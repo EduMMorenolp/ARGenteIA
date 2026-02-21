@@ -7,7 +7,8 @@ import { buildSystemPrompt, pruneHistory } from "./prompt.ts";
 import { getHistory, addMessage } from "../memory/session.ts";
 import { getTools, executeTool } from "../tools/index.ts";
 import { loadSkills } from "../skills/loader.ts";
-import type { ChatCompletionMessageParam, ChatCompletionTool } from "openai/resources/chat/completions";
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import type { ToolSpec } from "../tools/index.ts";
 
 export interface RunOptions {
   sessionId: string;
@@ -76,7 +77,7 @@ async function runOpenAI(
   const config = getConfig();
   const client = createClient(model, config) as OpenAI;
   const name = modelName(model);
-  const tools = getTools() as ChatCompletionTool[];
+  const tools: ToolSpec[] = getTools();
 
   // Primera llamada
   let response = await client.chat.completions.create({
@@ -103,9 +104,12 @@ async function runOpenAI(
     // Ejecutar cada tool call
     const toolResults: ChatCompletionMessageParam[] = [];
     for (const toolCall of assistantMsg.tool_calls ?? []) {
-      const args = JSON.parse(toolCall.function.arguments);
-      console.log(chalk.yellow(`   🔧 Tool: ${toolCall.function.name}`), args);
-      const result = await executeTool(toolCall.function.name, args);
+      // openai v6: narrowing para acceder a .function
+      if (!("function" in toolCall)) continue;
+      const fn = (toolCall as { id: string; function: { name: string; arguments: string } }).function;
+      const args = JSON.parse(fn.arguments) as Record<string, unknown>;
+      console.log(chalk.yellow(`   🔧 Tool: ${fn.name}`), args);
+      const result = await executeTool(fn.name, args);
       toolResults.push({
         role: "tool",
         tool_call_id: toolCall.id,

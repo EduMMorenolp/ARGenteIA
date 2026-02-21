@@ -1,11 +1,20 @@
 import { getConfig } from "../config/index.ts";
-import type { ChatCompletionTool } from "openai/resources/chat/completions";
+
+// Tipo simple para definir una tool compatible con OpenAI function calling
+export interface ToolSpec {
+  type: "function";
+  function: {
+    name: string;
+    description: string;
+    parameters: Record<string, unknown>;
+  };
+}
 
 // Registro de herramientas
 type ToolHandler = (args: Record<string, unknown>) => Promise<string>;
 
 interface ToolDefinition {
-  spec: ChatCompletionTool;
+  spec: ToolSpec;
   handler: ToolHandler;
   isEnabled: () => boolean;
 }
@@ -16,7 +25,7 @@ export function registerTool(def: ToolDefinition): void {
   registry.set(def.spec.function.name, def);
 }
 
-export function getTools(): ChatCompletionTool[] {
+export function getTools(): ToolSpec[] {
   return [...registry.values()]
     .filter((t) => t.isEnabled())
     .map((t) => t.spec);

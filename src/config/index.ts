@@ -35,11 +35,11 @@ const ToolsBasicSchema = z.object({
 });
 
 const ToolsConfigSchema = z.object({
-  bash: ToolsBashSchema.default({}),
-  webSearch: ToolsBasicSchema.default({}),
-  readFile: ToolsBasicSchema.default({}),
-  writeFile: ToolsBasicSchema.default({}),
-  readUrl: ToolsBasicSchema.default({}),
+  bash: ToolsBashSchema.default(() => ({ enabled: false, allowlist: [] })),
+  webSearch: ToolsBasicSchema.default(() => ({ enabled: false })),
+  readFile: ToolsBasicSchema.default(() => ({ enabled: false })),
+  writeFile: ToolsBasicSchema.default(() => ({ enabled: false })),
+  readUrl: ToolsBasicSchema.default(() => ({ enabled: false })),
 });
 
 const MemoryConfigSchema = z.object({
@@ -51,14 +51,24 @@ const MemoryConfigSchema = z.object({
 const ConfigSchema = z.object({
   agent: AgentConfigSchema,
   models: z.record(z.string(), ModelConfigSchema),
-  gateway: GatewayConfigSchema.default({}),
+  gateway: GatewayConfigSchema.default(() => ({ port: 18000 })),
   channels: z
     .object({
       telegram: TelegramConfigSchema.optional(),
     })
-    .default({}),
-  tools: ToolsConfigSchema.default({}),
-  memory: MemoryConfigSchema.default({}),
+    .default(() => ({})),
+  tools: ToolsConfigSchema.default(() => ({
+    bash: { enabled: false, allowlist: [] },
+    webSearch: { enabled: false },
+    readFile: { enabled: false },
+    writeFile: { enabled: false },
+    readUrl: { enabled: false },
+  })),
+  memory: MemoryConfigSchema.default(() => ({
+    dbPath: "./assistant.db",
+    maxContextMessages: 40,
+    compactAt: 60,
+  })),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
