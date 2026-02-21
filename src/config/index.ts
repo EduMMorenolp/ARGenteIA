@@ -28,6 +28,8 @@ const TelegramConfigSchema = z.object({
 const ToolsBashSchema = z.object({
   enabled: z.boolean().default(false),
   allowlist: z.array(z.string()).default([]),
+  os: z.enum(["windows", "linux"]).default("linux"),
+  psExe: z.string().optional(), // ruta absoluta a powershell.exe si no está en PATH
 });
 
 const ToolsBasicSchema = z.object({
@@ -35,7 +37,7 @@ const ToolsBasicSchema = z.object({
 });
 
 const ToolsConfigSchema = z.object({
-  bash: ToolsBashSchema.default(() => ({ enabled: false, allowlist: [] })),
+  bash: ToolsBashSchema.default(() => ({ enabled: false, allowlist: [], os: "linux" as const })),
   webSearch: ToolsBasicSchema.default(() => ({ enabled: false })),
   readFile: ToolsBasicSchema.default(() => ({ enabled: false })),
   writeFile: ToolsBasicSchema.default(() => ({ enabled: false })),
@@ -58,7 +60,7 @@ const ConfigSchema = z.object({
     })
     .default(() => ({})),
   tools: ToolsConfigSchema.default(() => ({
-    bash: { enabled: false, allowlist: [] },
+    bash: { enabled: false, allowlist: [], os: "linux" as const },
     webSearch: { enabled: false },
     readFile: { enabled: false },
     writeFile: { enabled: false },
