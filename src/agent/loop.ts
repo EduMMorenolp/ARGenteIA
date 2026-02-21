@@ -111,7 +111,9 @@ async function runOpenAI(
       // Ejecutar herramientas
       const toolResults: ChatCompletionMessageParam[] = [];
       for (const toolCall of assistantMsg.tool_calls) {
-        const fn = toolCall.function;
+        // Narrowing para TypeScript
+        const fn = (toolCall as any).function;
+        if (!fn) continue;
         let args: Record<string, unknown> = {};
         try {
           args = typeof fn.arguments === "string" ? JSON.parse(fn.arguments) : fn.arguments;
