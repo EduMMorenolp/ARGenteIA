@@ -17,6 +17,10 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
   - Parche de compatibilidad para OpenRouter y Llama 3 para evitar errores `422` y `400`.
   - Manejo de respuestas vacías para evitar crasheos en el bot de Telegram.
   - Logs detallados en terminal con colores para debuggear ejecuciones de herramientas.
+- **Multimodalidad Nativa (Sentidos):**
+  - **Hablar:** Integración con el sintetizador de voz de Windows (`speak_text`).
+  - **Ver:** Captura de imágenes vía webcam (`camera_capture`).
+  - **Escuchar (Privacidad Total):** Implementación de **Whisper Local** (offline) para transcripción de voz sin salir de la PC, usando `transformers.js`.
 - **Inicialización Automática:** La base de datos y sus directorios se crean automáticamente al arrancar el proyecto con `pnpm dev`.
 
 ### Cambiado

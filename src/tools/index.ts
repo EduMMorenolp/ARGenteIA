@@ -58,6 +58,7 @@ import { registerReadFile } from "./read-file.ts";
 import { registerWriteFile } from "./write-file.ts";
 import { registerReadUrl } from "./read-url.ts";
 import { registerMemoryTools } from "./memory.ts";
+import { registerMultimodalTools } from "./multimodal.ts";
 
 export function initTools(): void {
   const config = getConfig();
@@ -67,4 +68,5 @@ export function initTools(): void {
   registerWriteFile(config);
   registerReadUrl(config);
   registerMemoryTools();
+  registerMultimodalTools();
 }
