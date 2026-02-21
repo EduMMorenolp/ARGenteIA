@@ -75,7 +75,7 @@ async function runOpenAI(
   // Clonar historial para el loop
   let loopMessages = [...messages];
   let iterations = 0;
-  const MAX_ITERATIONS = 5;
+  const MAX_ITERATIONS = 6;
   const executedCalls = new Set<string>();
 
   try {
@@ -110,25 +110,24 @@ async function runOpenAI(
 
       // Ejecutar herramientas
       const toolResults: ChatCompletionMessageParam[] = [];
-      let hasRedundantCall = false;
+      let hasLoop = false;
 
       for (const toolCall of assistantMsg.tool_calls) {
         const fn = (toolCall as any).function;
         if (!fn) continue;
-        
-        // Detección de bucles: misma tool + mismos args
-        const callFingerprint = `${fn.name}:${fn.arguments}`;
-        if (executedCalls.has(callFingerprint)) {
-          console.log(chalk.red(`   ⚠️ Bloqueando llamada redundante a "${fn.name}" para evitar loop.`));
-          hasRedundantCall = true;
+
+        const fingerprint = `${fn.name}:${fn.arguments}`;
+        if (executedCalls.has(fingerprint)) {
+          console.log(chalk.red(`   ⚠️ Bucle detectado en tool "${fn.name}". Bloqueando.`));
+          hasLoop = true;
           toolResults.push({
             role: "tool",
             tool_call_id: toolCall.id,
-            content: `Error: Ya ejecutaste esta acción (${fn.name}) con estos mismos parámetros en este turno. No repitas la misma acción, por favor responde al usuario.`,
+            content: `Error: Ya ejecutaste esta acción EXACTA en este turno. No repitas herramientas. Por favor, finaliza tu respuesta al usuario ahora.`,
           });
           continue;
         }
-        executedCalls.add(callFingerprint);
+        executedCalls.add(fingerprint);
 
         let args: Record<string, unknown> = {};
         try {
@@ -148,17 +147,12 @@ async function runOpenAI(
 
       loopMessages.push(...toolResults);
 
-      // Si detectamos un loop, obligamos al modelo a responder
-      if (hasRedundantCall) {
-        loopMessages.push({ role: "system", content: "DETENTE: Estás repitiendo herramientas. Responde al usuario inmediatamente con el texto final." });
-      }
-
       // Siguiente iteración
       response = await client.chat.completions.create({
         model: name,
         messages: loopMessages,
         max_tokens: maxTokens,
-        tools: hasRedundantCall ? undefined : tools, // Si hay loop, quitamos herramientas temporalmente
+        tools: hasLoop ? undefined : tools, // Si hay bucle, forzamos salida sin más herramientas
       });
     }
 

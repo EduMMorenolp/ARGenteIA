@@ -115,7 +115,7 @@ export function registerMultimodalTools(): void {
       }
     },
     handler: async (args) => {
-      const duration = Math.min(Math.max(Number(args["durationSeconds"] || 5), 1), 15);
+      const duration = Math.min(Math.max(Number(args["durationSeconds"] || 5), 1), 30);
       const recordDir = resolve(process.cwd(), "memoryUser", "recordings");
       if (!existsSync(recordDir)) mkdirSync(recordDir, { recursive: true });
 
@@ -136,7 +136,7 @@ export function registerMultimodalTools(): void {
           [Audio]::mciSendString("open new type waveaudio alias recsound", $null, 0, 0)
           [Audio]::mciSendString("record recsound", $null, 0, 0)
           Start-Sleep -Seconds ${duration}
-          [Audio]::mciSendString("save recsound $path", $null, 0, 0)
+          [Audio]::mciSendString("save recsound ""$path""", $null, 0, 0)
           [Audio]::mciSendString("close recsound", $null, 0, 0)
         `;
         const ps = spawn(_psExe || "powershell", ["-NoProfile", "-Command", recordScript], { windowsHide: true });
@@ -145,6 +145,11 @@ export function registerMultimodalTools(): void {
       });
 
       console.log(chalk.green(`   🎤 Audio grabado. Transcribiendo localmente con Whisper...`));
+
+      // Verificar si el archivo realmente se creó
+      if (!existsSync(filePath)) {
+        return "Error detectado: El sistema grabó el audio pero no pudo guardar el archivo físico en el disco (posible problema de permisos o de la ruta con espacios).";
+      }
 
       try {
         const transcriber = await getWhisper();
