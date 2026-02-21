@@ -192,6 +192,19 @@ asistentePersonal/
 
 ---
 
+## Pasos de implementacion
+
+- Paso 1 — Base: dependencias, tsconfig, config loader
+- Paso 2 — Gateway: Express + WebSocket
+- Paso 3 — WebChat UI
+- Paso 4 — Agent loop con IA
+- Paso 5 — Canal Telegram
+- Paso 6 — Herramientas (web, bash, archivos, URL)
+- Paso 7 — Memoria SQLite
+- Paso 8 — Skills
+- Paso 9 — Multi-modelo y comandos
+- Paso 10 — Pulido final
+
 ## Licencia
 
 MIT
