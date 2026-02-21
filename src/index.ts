@@ -2,12 +2,20 @@ import { loadConfig } from "./config/index.ts";
 import { createGateway } from "./gateway/server.ts";
 import { startTelegram } from "./channels/telegram.ts";
 import { initTools } from "./tools/index.ts";
+import { getDb } from "./memory/db.ts";
 import chalk from "chalk";
 
 // 1. Cargar y validar configuración
 const config = loadConfig();
 
-// 2. Inicializar herramientas
+// 2. Inicializar memoria y herramientas
+try {
+  getDb();
+  console.log(chalk.blue(`   🗄️  Base de datos inicializada: ${config.memory.dbPath}`));
+} catch (err) {
+  console.error(chalk.red("❌ Error al inicializar la base de datos:"), err);
+}
+
 initTools();
 
 // 3. Crear e iniciar gateway (Express + WebSocket)

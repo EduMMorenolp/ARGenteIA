@@ -1,6 +1,11 @@
 import { getConfig } from "../config/index.ts";
+import chalk from "chalk";
 
-// Tipo simple para definir una tool compatible con OpenAI function calling
+export interface ToolContext {
+  sessionId: string;
+}
+
+// Tipo compatible con OpenAI function calling
 export interface ToolSpec {
   type: "function";
   function: {
@@ -11,7 +16,7 @@ export interface ToolSpec {
 }
 
 // Registro de herramientas
-type ToolHandler = (args: Record<string, unknown>) => Promise<string>;
+type ToolHandler = (args: Record<string, unknown>, context: ToolContext) => Promise<string>;
 
 interface ToolDefinition {
   spec: ToolSpec;
@@ -31,15 +36,17 @@ export function getTools(): ToolSpec[] {
     .map((t) => t.spec);
 }
 
-export async function executeTool(name: string, args: Record<string, unknown>): Promise<string> {
+export async function executeTool(name: string, args: Record<string, unknown>, context: ToolContext): Promise<string> {
   const tool = registry.get(name);
   if (!tool) return `Error: herramienta "${name}" no encontrada.`;
   if (!tool.isEnabled()) return `Error: herramienta "${name}" está deshabilitada.`;
 
   try {
-    return await tool.handler(args);
+    const result = await tool.handler(args, context);
+    return result;
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    console.error(chalk.red(`   ❌ Error ejecutando tool "${name}":`), err);
     return `Error al ejecutar ${name}: ${msg}`;
   }
 }
@@ -50,6 +57,7 @@ import { registerBash } from "./bash.ts";
 import { registerReadFile } from "./read-file.ts";
 import { registerWriteFile } from "./write-file.ts";
 import { registerReadUrl } from "./read-url.ts";
+import { registerMemoryTools } from "./memory.ts";
 
 export function initTools(): void {
   const config = getConfig();
@@ -58,4 +66,5 @@ export function initTools(): void {
   registerReadFile(config);
   registerWriteFile(config);
   registerReadUrl(config);
+  registerMemoryTools();
 }

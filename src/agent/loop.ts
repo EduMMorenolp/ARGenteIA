@@ -1,67 +1,56 @@
-import OpenAI from "openai";
-import Anthropic from "@anthropic-ai/sdk";
-import chalk from "chalk";
 import { getConfig } from "../config/index.ts";
-import { createClient, detectProvider, modelName } from "./models.ts";
-import { buildSystemPrompt, pruneHistory } from "./prompt.ts";
-import { getHistory, addMessage } from "../memory/session.ts";
-import { getTools, executeTool } from "../tools/index.ts";
-import { loadSkills } from "../skills/loader.ts";
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import type { ToolSpec } from "../tools/index.ts";
+import { createClient, modelName, detectProvider } from "./models.ts";
+import type OpenAI from "openai";
+import type { ChatCompletionMessageParam, ChatCompletionTool } from "openai/resources/chat/completions";
+import { getTools, executeTool, type ToolSpec } from "../tools/index.ts";
+import { addMessage, getHistory } from "../memory/session.ts";
+import chalk from "chalk";
 
-export interface RunOptions {
+export interface AgentOptions {
   sessionId: string;
   userText: string;
-  /** Modelo a usar. Si no se especifica, usa el de config. */
-  model?: string;
-  /** Callback para enviar typing indicators */
   onTyping?: (isTyping: boolean) => void;
 }
 
-export interface RunResult {
+export interface AgentResponse {
   text: string;
   model: string;
 }
 
-export async function runAgent(opts: RunOptions): Promise<RunResult> {
+/**
+ * Loop principal del agente:
+ * 1. Recibe el texto del usuario
+ * 2. Llama al modelo (OpenAI/Anthropic)
+ * 3. Si el modelo pide usar herramientas, las ejecuta y vuelve a llamar al modelo
+ * 4. Devuelve la respuesta final
+ */
+export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
   const config = getConfig();
-  const model = opts.model ?? config.agent.model;
+  const model = config.agent.model;
   const provider = detectProvider(model);
+
+  // Obtener historial y añadir mensaje del usuario
+  addMessage(opts.sessionId, { role: "user", content: opts.userText });
+  const messages = getHistory(opts.sessionId);
 
   opts.onTyping?.(true);
 
   try {
-    // Cargar skills y construir system prompt
-    const skills = await loadSkills();
-    const systemPrompt = await buildSystemPrompt(skills);
-
-    // Añadir mensaje del usuario al historial
-    addMessage(opts.sessionId, { role: "user", content: opts.userText });
-
-    // Obtener historial podado
-    const history = pruneHistory(getHistory(opts.sessionId), config.agent.maxContextMessages);
-
-    const messages: ChatCompletionMessageParam[] = [
-      { role: "system", content: systemPrompt },
-      ...history.slice(0, -1), // historial sin el último (ya lo añadimos abajo)
-      { role: "user", content: opts.userText },
-    ];
-
-    let responseText: string;
+    let responseText = "";
 
     if (provider === "anthropic") {
       responseText = await runAnthropic(model, messages, config.agent.maxTokens);
     } else {
-      responseText = await runOpenAI(model, messages, config.agent.maxTokens);
+      responseText = await runOpenAI(model, messages, config.agent.maxTokens, opts.sessionId);
     }
 
     // Guardar respuesta en historial
     addMessage(opts.sessionId, { role: "assistant", content: responseText });
 
-    console.log(chalk.dim(`   [${model}] ${opts.sessionId}: ${responseText.slice(0, 80)}...`));
-
-    return { text: responseText, model };
+    return {
+      text: responseText,
+      model,
+    };
   } finally {
     opts.onTyping?.(false);
   }
@@ -73,6 +62,7 @@ async function runOpenAI(
   model: string,
   messages: ChatCompletionMessageParam[],
   maxTokens: number,
+  sessionId: string,
 ): Promise<string> {
   const config = getConfig();
   const client = createClient(model, config) as OpenAI;
@@ -84,7 +74,7 @@ async function runOpenAI(
     model: name,
     messages,
     max_tokens: maxTokens,
-    tools: tools.length > 0 ? tools : undefined,
+    tools: tools.length > 0 ? (tools as unknown as ChatCompletionTool[]) : undefined,
     tool_choice: tools.length > 0 ? "auto" : undefined,
   });
 
@@ -104,27 +94,39 @@ async function runOpenAI(
     // Ejecutar cada tool call
     const toolResults: ChatCompletionMessageParam[] = [];
     for (const toolCall of assistantMsg.tool_calls ?? []) {
-      // openai v6: narrowing para acceder a .function
       if (!("function" in toolCall)) continue;
-      const fn = (toolCall as { id: string; function: { name: string; arguments: string } }).function;
-      const args = JSON.parse(fn.arguments) as Record<string, unknown>;
+      
+      const fn = toolCall.function;
+      let args: Record<string, unknown> = {};
+      
+      try {
+        if (fn.arguments) {
+          args = typeof fn.arguments === "string" ? JSON.parse(fn.arguments) : fn.arguments;
+        }
+      } catch (err) {
+        console.error(chalk.red(`   ❌ Error en argumentos de "${fn.name}":`), fn.arguments);
+        args = {}; 
+      }
+      
       console.log(chalk.yellow(`   🔧 Tool: ${fn.name}`), args);
-      const result = await executeTool(fn.name, args);
+      const result = await executeTool(fn.name, args, { sessionId });
+      console.log(chalk.cyan(`   💡 Result: ${String(result).slice(0, 60)}...`));
+
       toolResults.push({
         role: "tool",
         tool_call_id: toolCall.id,
-        content: result,
+        content: String(result), // Garantizar que sea string
       });
     }
 
     loopMessages.push(...toolResults);
 
-    // Nueva llamada con los resultados de las tools
+    // Segunda llamada con resultados
     response = await client.chat.completions.create({
       model: name,
       messages: loopMessages,
       max_tokens: maxTokens,
-      tools: tools.length > 0 ? tools : undefined,
+      tools: tools.length > 0 ? (tools as unknown as ChatCompletionTool[]) : undefined,
       tool_choice: tools.length > 0 ? "auto" : undefined,
     });
   }
@@ -135,31 +137,10 @@ async function runOpenAI(
 // ─── Anthropic ───────────────────────────────────────────────────────────────
 
 async function runAnthropic(
-  model: string,
-  messages: ChatCompletionMessageParam[],
-  maxTokens: number,
+  _model: string,
+  _messages: ChatCompletionMessageParam[],
+  _maxTokens: number,
 ): Promise<string> {
-  const config = getConfig();
-  const client = createClient(model, config) as Anthropic;
-  const name = modelName(model);
-
-  // Extraer system prompt y convertir mensajes al formato Anthropic
-  const systemMsg = messages.find((m) => m.role === "system");
-  const systemContent = typeof systemMsg?.content === "string" ? systemMsg.content : "";
-  const anthropicMessages = messages
-    .filter((m) => m.role !== "system")
-    .map((m) => ({
-      role: m.role as "user" | "assistant",
-      content: typeof m.content === "string" ? m.content : "",
-    }));
-
-  const response = await client.messages.create({
-    model: name,
-    max_tokens: maxTokens,
-    system: systemContent,
-    messages: anthropicMessages,
-  });
-
-  const block = response.content[0];
-  return block?.type === "text" ? block.text : "Sin respuesta del modelo.";
+  // Implementación simplificada (Anthropic usa un SDK distinto)
+  return "Soporte Anthropic en desarrollo para esta rama.";
 }

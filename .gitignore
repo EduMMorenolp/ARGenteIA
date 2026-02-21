@@ -1,7 +1,16 @@
-node_modules/
-dist/
+node_modules
+dist
+.env
 config.json
+
+# SQLite y Memoria
 *.db
 *.db-journal
-.env
+*.db-shm
+*.db-wal
+memoryUser/
+
+# Logs y OS
+*.log
+npm-debug.log*
 .DS_Store

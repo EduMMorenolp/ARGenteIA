@@ -57,7 +57,7 @@
     }
   },
   "memory": {
-    "dbPath": "./assistant.db",
+    "dbPath": "./memoryUser/assistant.db",
     "maxContextMessages": 40,
     "compactAt": 60
   }

@@ -23,7 +23,7 @@ export function registerReadFile(config: Config): void {
         },
       },
     },
-    handler: async (args) => {
+    handler: async (args, _context) => {
       const filePath = resolve(String(args["path"] ?? ""));
       try {
         const content = await readFile(filePath, "utf-8");

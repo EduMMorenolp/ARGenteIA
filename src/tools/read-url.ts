@@ -22,7 +22,7 @@ export function registerReadUrl(config: Config): void {
         },
       },
     },
-    handler: async (args) => {
+    handler: async (args, _context) => {
       const url = String(args["url"] ?? "");
 
       try {

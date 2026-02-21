@@ -21,7 +21,7 @@ export function registerWebSearch(config: Config): void {
         },
       },
     },
-    handler: async (args) => {
+    handler: async (args, _context) => {
       const query = String(args["query"] ?? "");
       const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_redirect=1&no_html=1&skip_disambig=1`;
 

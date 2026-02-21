@@ -66,7 +66,7 @@ export function registerBash(config: Config): void {
         },
       },
     },
-    handler: async (rawArgs) => {
+    handler: async (rawArgs, _context) => {
       const command = String(rawArgs["command"] ?? "").trim();
 
       // Verificar allowlist (primer token antes de espacio o pipe)

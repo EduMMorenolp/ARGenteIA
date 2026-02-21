@@ -27,7 +27,7 @@ export function registerWriteFile(config: Config): void {
         },
       },
     },
-    handler: async (args) => {
+    handler: async (args, _context) => {
       const filePath = resolve(String(args["path"] ?? ""));
       const content = String(args["content"] ?? "");
 
