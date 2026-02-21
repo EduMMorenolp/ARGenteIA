@@ -1,12 +1,14 @@
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { z } from "zod";
+import JSON5 from "json5";
+import chalk from "chalk";
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
 const ModelConfigSchema = z.object({
   apiKey: z.string(),
-  baseUrl: z.url().optional(),
+  baseUrl: z.string().url().optional(),
 });
 
 const AgentConfigSchema = z.object({
@@ -29,7 +31,7 @@ const ToolsBashSchema = z.object({
   enabled: z.boolean().default(false),
   allowlist: z.array(z.string()).default([]),
   os: z.enum(["windows", "linux"]).default("linux"),
-  psExe: z.string().optional(), // ruta absoluta a powershell.exe si no está en PATH
+  psExe: z.string().optional(),
 });
 
 const ToolsBasicSchema = z.object({
@@ -86,24 +88,34 @@ export function loadConfig(configPath?: string): Config {
   const path = configPath ?? resolve(process.cwd(), "config.json");
 
   if (!existsSync(path)) {
-    console.error(`❌ No se encontró config.json en: ${path}`);
-    console.error(`   Copiá config.example.json → config.json y completá tus credenciales.`);
+    console.error(chalk.red(`❌ No se encontró config.json en: ${path}`));
+    console.error(chalk.yellow(`   Copiá config.example.json → config.json y completá tus credenciales.`));
+    process.exit(1);
+  }
+
+  const content = readFileSync(path, "utf-8").trim();
+  
+  if (!content) {
+    console.error(chalk.red(`❌ El archivo config.json está vacío.`));
+    console.error(chalk.yellow(`   Por favor, configurá tu modelo y API keys antes de continuar.`));
     process.exit(1);
   }
 
   let raw: unknown;
   try {
-    raw = JSON.parse(readFileSync(path, "utf-8"));
-  } catch (err) {
-    console.error(`❌ Error al parsear config.json:`, err);
+    raw = JSON5.parse(content);
+  } catch (err: any) {
+    console.error(chalk.red(`❌ Error de sintaxis en config.json:`));
+    console.error(chalk.white(`   ${err.message}`));
     process.exit(1);
   }
 
   const result = ConfigSchema.safeParse(raw);
   if (!result.success) {
-    console.error(`❌ Configuración inválida:`);
+    console.error(chalk.red(`❌ Configuración inválida en config.json:`));
     for (const issue of result.error.issues) {
-      console.error(`   ${issue.path.join(".")}: ${issue.message}`);
+      const pathStr = issue.path.join(".");
+      console.error(chalk.yellow(`   • [${pathStr || "root"}]: ${issue.message}`));
     }
     process.exit(1);
   }
@@ -111,8 +123,16 @@ export function loadConfig(configPath?: string): Config {
   // Verificar que el modelo activo esté definido en models
   const { agent, models } = result.data;
   if (!models[agent.model]) {
-    console.error(`❌ El modelo "${agent.model}" no está en la sección "models" de config.json`);
+    console.error(chalk.red(`❌ Error: El modelo "${agent.model}" no está definido en la sección "models".`));
+    console.error(chalk.yellow(`   Modelos configurados: ${Object.keys(models).join(", ") || "ninguno"}`));
     process.exit(1);
+  }
+
+  // Verificar si hay API keys con placeholders
+  for (const [name, cfg] of Object.entries(models)) {
+    if (cfg.apiKey.includes("...") || cfg.apiKey.startsWith("tu_")) {
+      console.warn(chalk.magenta(`⚠️  Advertencia: La API Key para "${name}" parece ser un placeholder.`));
+    }
   }
 
   _config = result.data;
