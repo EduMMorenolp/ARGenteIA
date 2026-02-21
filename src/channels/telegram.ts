@@ -52,6 +52,11 @@ export function startTelegram(): void {
         },
       });
 
+      if (!result.text || result.text.trim() === "") {
+        console.log(chalk.yellow("⚠️  Telegram: el agente devolvió un mensaje vacío. No se envió nada."));
+        return;
+      }
+
       // Telegram soporta Markdown básico
       await bot!.sendMessage(chatId, result.text, {
         parse_mode: "Markdown",
