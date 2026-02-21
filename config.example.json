@@ -1,0 +1,57 @@
+{
+  "agent": {
+    "model": "openai/gpt-4o",
+    "systemPrompt": "Eres un asistente personal útil, conciso y directo. Respondes en español.",
+    "maxTokens": 4096,
+    "maxContextMessages": 40
+  },
+  "models": {
+    "openai/gpt-4o": {
+      "apiKey": "sk-...",
+      "baseUrl": "https://api.openai.com/v1"
+    },
+    "openai/gpt-4o-mini": {
+      "apiKey": "sk-...",
+      "baseUrl": "https://api.openai.com/v1"
+    },
+    "anthropic/claude-3-5-sonnet-20241022": {
+      "apiKey": "sk-ant-..."
+    },
+    "openrouter/meta-llama/llama-3.3-70b-instruct": {
+      "apiKey": "sk-or-...",
+      "baseUrl": "https://openrouter.ai/api/v1"
+    }
+  },
+  "gateway": {
+    "port": 18000
+  },
+  "channels": {
+    "telegram": {
+      "botToken": "123456:ABCDEF",
+      "allowFrom": ["tu_username_de_telegram"]
+    }
+  },
+  "tools": {
+    "bash": {
+      "enabled": true,
+      "allowlist": ["ls", "cat", "echo", "pwd", "find", "grep", "date", "whoami", "uname"]
+    },
+    "webSearch": {
+      "enabled": true
+    },
+    "readFile": {
+      "enabled": true
+    },
+    "writeFile": {
+      "enabled": false
+    },
+    "readUrl": {
+      "enabled": true
+    }
+  },
+  "memory": {
+    "dbPath": "./assistant.db",
+    "maxContextMessages": 40,
+    "compactAt": 60
+  }
+}
