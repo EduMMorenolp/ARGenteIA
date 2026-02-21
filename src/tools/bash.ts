@@ -90,9 +90,11 @@ export function registerBash(config: Config): void {
 
         if (isWindows) {
           const exe = _psExe ?? "powershell";
-          proc = spawn(exe, ["-NoProfile", "-NonInteractive", "-Command", command], {
+          // Forzar UTF-8 en la entrada/salida de la sesión de PS
+          const utf8Cmd = `$OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; ${command}`;
+          proc = spawn(exe, ["-NoProfile", "-NonInteractive", "-Command", utf8Cmd], {
             windowsHide: true,
-            env: { ...process.env },
+            env: { ...process.env, LANG: "es_ES.UTF-8" },
           });
         } else {
           proc = spawn("/bin/bash", ["-c", command], {
