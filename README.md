@@ -1,11 +1,12 @@
-# 🤖 Asistente Personal IA
+# 🤖 ARGenteIA
 
 Un asistente personal de IA minimalista que corre en tu máquina local y te atiende desde **Telegram** y una **WebChat** en el navegador.
 
-- Sin servicios en la nube propios — todo corre en tu PC
-- Soporta múltiples modelos: OpenAI, Anthropic, OpenRouter
-- Extensible con **skills** (archivos `.md`) y **herramientas** (web, archivos, terminal)
-- Memoria persistente de conversación
+- Sin servicios en la nube propios — todo corre en tu PC.
+- Soporta múltiples modelos: OpenAI, Anthropic, OpenRouter.
+- **Memoria a Largo Plazo:** Sistema de recuerdos persistentes por usuario usando SQLite.
+- **Terminal Inteligente:** Soporte multi-OS (Windows/PowerShell y Linux/Bash) con detección automática.
+- Extensible con **skills** (archivos `.md`) y **herramientas** (web, archivos, terminal).
 
 ---
 
@@ -18,12 +19,16 @@ WebChat (navegador) ◄── Express + WS ──►  Gateway (localhost:18000)
                                                │
                                           Agent Loop
                                                │
-                              ┌────────────────┴──────────────┐
-                           Tools                           Memory
-                  (web, bash, archivos, URL)          (SQLite local)
+               ┌───────────────────────────────┴───────────────┐
+             Tools                                           Memory
+    (web, bash, fs, URL)                             (SQLite Persistent)
+          │                                              │
+    (Bash/PowerShell)                              (user_facts table)
 ```
 
-El **Gateway** es un servidor local que conecta tus canales con el agente de IA. El agente puede usar herramientas para hacer cosas reales en tu PC o en la web, y recuerda el contexto de tu conversación.
+El **Gateway** es un servidor local que conecta tus canales con el agente de IA. El agente puede usar herramientas para realizar acciones reales en tu PC o en la web, y posee dos tipos de memoria:
+1. **Memoria de Sesión:** El historial de la charla actual (se borra con `/reset`).
+2. **Memoria Long-Term:** Datos que la IA decide "memorizar" (gustos, nombre, datos clave) que persisten incluso tras reiniciar el asistente o la sesión.
 
 ---
 
@@ -51,7 +56,7 @@ cp config.example.json config.json
 pnpm dev
 ```
 
-El asistente estará disponible en `http://localhost:18000`
+El asistente estará disponible en el puerto configurado (default `18000` o `19666`).
 
 ---
 
@@ -59,72 +64,46 @@ El asistente estará disponible en `http://localhost:18000`
 
 ```json5
 {
-  // Modelo activo
   "agent": {
-    "model": "openai/gpt-4o",
-    "systemPrompt": "Eres un asistente personal útil, conciso y directo.",
+    "model": "openrouter/meta-llama/llama-3.3-70b-instruct",
+    "systemPrompt": "Eres un asistente personal útil y directo.",
     "maxTokens": 4096
   },
-
-  // Credenciales de modelos disponibles
   "models": {
-    "openai/gpt-4o": {
-      "apiKey": "sk-...",
-      "baseUrl": "https://api.openai.com/v1"
-    },
-    "anthropic/claude-3-5-sonnet": {
-      "apiKey": "sk-ant-..."
-    },
-    "openrouter/llama-3.3-70b": {
+    "openrouter/meta-llama/llama-3.3-70b-instruct": {
       "apiKey": "sk-or-...",
       "baseUrl": "https://openrouter.ai/api/v1"
     }
   },
-
-  // Puerto del servidor local
-  "gateway": {
-    "port": 18000
-  },
-
-  // Canal Telegram (opcional)
-  "channels": {
-    "telegram": {
-      "botToken": "123456:ABCDEF",
-      "allowFrom": ["tu_username_de_telegram"]
-    }
-  },
-
-  // Herramientas habilitadas
   "tools": {
     "bash": {
       "enabled": true,
-      "allowlist": ["ls", "cat", "echo", "pwd", "find", "grep", "date"]
+      "os": "windows", // "windows" para PowerShell, "linux" para Bash
+      "psExe": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", // Opcional: ruta exacta
+      "allowlist": ["ls", "cat", "echo", "pwd", "dir", "Get-ChildItem", "Get-Content"]
     },
     "webSearch": { "enabled": true },
     "readFile":  { "enabled": true },
-    "writeFile": { "enabled": false },
+    "writeFile": { "enabled": true },
     "readUrl":   { "enabled": true }
+  },
+  "memory": {
+    "dbPath": "./memoryUser/assistant.db" // Ruta a la base de datos SQLite
   }
 }
 ```
 
 ---
 
-## Skills
+## Herramientas de Memoria
 
-Las skills son archivos `.md` en la carpeta `/skills/` que le dan instrucciones extra al agente. Se cargan automáticamente al arrancar.
+El asistente gestiona su memoria a largo plazo mediante estas herramientas:
 
-**Ejemplo** (`skills/asistente.md`):
-
-```markdown
-# Comportamiento general
-
-- Responde siempre en español
-- Sé conciso: máximo 3 párrafos salvo que se pida más detalle
-- Si no sabes algo, dilo directamente en lugar de inventar
-```
-
-Podés crear tantas skills como quieras. El agente las leerá todas.
+| Herramienta | Descripción |
+|---|---|
+| `memorize_fact` | Guarda un dato importante sobre vos (ej: gustos, profesión, cumpleaños). |
+| `recall_facts` | Recupera todas las memorias guardadas para el usuario actual. |
+| `forget_fact` | Elimina una memoria específica usando su ID. |
 
 ---
 
@@ -132,23 +111,11 @@ Podés crear tantas skills como quieras. El agente las leerá todas.
 
 | Comando | Descripción |
 |---|---|
-| `/model <nombre>` | Cambiar el modelo activo |
-| `/reset` | Borrar el historial de la sesión actual |
-| `/skills` | Listar las skills cargadas |
-| `/tools` | Ver las herramientas disponibles |
-| `/status` | Ver modelo activo, tokens usados |
-
----
-
-## Herramientas disponibles
-
-| Herramienta | Descripción |
-|---|---|
-| `web_search` | Busca en DuckDuckGo (sin API key) |
-| `bash` | Ejecuta comandos de terminal (con allowlist) |
-| `read_file` | Lee un archivo de tu PC |
-| `write_file` | Escribe o crea un archivo |
-| `read_url` | Descarga y extrae texto de una URL |
+| `/model` | Sin argumentos: lista modelos disponibles. Con nombre: cambia el modelo. |
+| `/reset` | Borra el historial de la charla actual (pero mantiene la memoria long-term). |
+| `/skills` | Lista las extensiones de comportamiento cargadas. |
+| `/tools` | Muestra qué herramientas tiene permitido usar el asistente. |
+| `/status` | Estado del sistema y estadísticas de la sesión. |
 
 ---
 
@@ -157,54 +124,23 @@ Podés crear tantas skills como quieras. El agente las leerá todas.
 ```
 asistentePersonal/
 ├── src/
-│   ├── index.ts            # Entry point
-│   ├── gateway/            # Servidor Express + WebSocket
-│   ├── channels/           # Telegram, WebChat
-│   ├── agent/              # Loop del agente, modelos, prompt
-│   ├── tools/              # Herramientas del agente
-│   ├── memory/             # Sesiones y persistencia SQLite
-│   ├── skills/             # Loader de skills .md
-│   └── config/             # Carga y validación de config.json
-├── ui/                     # WebChat (HTML + CSS + JS)
-├── skills/                 # Tus skills personales (.md)
-├── config.json             # Tu configuración (no subir a git)
-├── config.example.json     # Plantilla de configuración
+│   ├── index.ts            # Punto de entrada (inicializa DB y servidores)
+│   ├── gateway/            # Servidor Express + WebSocket (Protocolo WebChat)
+│   ├── channels/           # Canales de comunicación (Telegram, WebChat)
+│   ├── agent/              # Motor del Agente: loop, integración de modelos y prompts
+│   ├── tools/              # Implementación de herramientas (Bash, Memoria, Web, FS)
+│   ├── memory/             # Lógica de base de datos SQLite y sesiones
+│   ├── skills/             # Sistema de inyección de prompts dinámicos (.md)
+│   └── config/             # Gestión de configuración config.json (Zod)
+├── ui/                     # Interfaz de WebChat (Premium Dark Theme)
+├── memoryUser/             # Contiene la base de datos SQLite (ignorado en git)
+├── skills/                 # Skills personalizadas para tu asistente
+├── config.json             # Tu configuración activa
 └── package.json
 ```
 
 ---
 
-## Conseguir un bot de Telegram
-
-1. Hablar con [@BotFather](https://t.me/botfather) en Telegram
-2. Escribir `/newbot` y seguir los pasos
-3. Copiar el token que te da y pegarlo en `config.json`
-
----
-
-## Modelos soportados
-
-| Proveedor | Ejemplo de modelo | Requiere |
-|---|---|---|
-| OpenAI | `openai/gpt-4o` | API key de [platform.openai.com](https://platform.openai.com) |
-| Anthropic | `anthropic/claude-3-5-sonnet` | API key de [console.anthropic.com](https://console.anthropic.com) |
-| OpenRouter | `openrouter/llama-3.3-70b` | API key de [openrouter.ai](https://openrouter.ai) (tiene modelos gratis) |
-
----
-
-## Pasos de implementacion
-
-- Paso 1 — Base: dependencias, tsconfig, config loader
-- Paso 2 — Gateway: Express + WebSocket
-- Paso 3 — WebChat UI
-- Paso 4 — Agent loop con IA
-- Paso 5 — Canal Telegram
-- Paso 6 — Herramientas (web, bash, archivos, URL)
-- Paso 7 — Memoria SQLite
-- Paso 8 — Skills
-- Paso 9 — Multi-modelo y comandos
-- Paso 10 — Pulido final
-
 ## Licencia
 
-MIT
+MIT - Hacé lo que quieras con el código. 🚀

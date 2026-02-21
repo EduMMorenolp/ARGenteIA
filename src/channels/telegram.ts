@@ -88,7 +88,7 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
     case "/help":
       await bot!.sendMessage(
         chatId,
-        `🤖 *Asistente Personal IA*\n\nComandos:\n• /reset — Limpiar historial\n• /model — Ver/cambiar modelo\n• /status — Estado actual\n• /tools — Herramientas disponibles\n• /skills — Skills cargadas`,
+        `🤖 *ARGenteIA*\n\nComandos:\n• /reset — Limpiar historial\n• /model — Ver/cambiar modelo\n• /status — Estado actual\n• /tools — Herramientas disponibles\n• /skills — Skills cargadas`,
         { parse_mode: "Markdown" },
       );
       break;

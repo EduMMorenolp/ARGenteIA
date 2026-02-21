@@ -77,7 +77,7 @@ export function createGateway(): GatewayServer {
   const start = (): Promise<void> =>
     new Promise((resolve) => {
       httpServer.listen(config.gateway.port, () => {
-        console.log(chalk.green(`\n🤖 Asistente Personal IA`));
+        console.log(chalk.green(`\n🤖 ARGenteIA`));
         console.log(chalk.dim(`   Gateway: `) + chalk.white(`http://localhost:${config.gateway.port}`));
         console.log(chalk.dim(`   WebChat: `) + chalk.white(`http://localhost:${config.gateway.port}`));
         console.log(chalk.dim(`   Modelo:  `) + chalk.white(config.agent.model));

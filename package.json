@@ -1,5 +1,5 @@
 {
-  "name": "asistente-personal",
+  "name": "argenteia",
   "version": "1.0.0",
   "description": "Asistente personal IA con Telegram y WebChat",
   "main": "dist/index.js",

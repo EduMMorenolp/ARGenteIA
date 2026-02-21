@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Asistente Personal IA</title>
+  <title>ARGenteIA</title>
   <meta name="description" content="Tu asistente personal de IA — WebChat" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <div class="app">
     <!-- Sidebar -->
@@ -17,7 +21,7 @@
       <div class="sidebar-header">
         <div class="logo">
           <span class="logo-icon">🤖</span>
-          <span class="logo-text">Asistente IA</span>
+          <span class="logo-text">ARGenteIA</span>
         </div>
       </div>
 
@@ -57,21 +61,18 @@
         <div class="welcome-msg">
           <div class="welcome-icon">🤖</div>
           <h2>¡Hola! Soy tu asistente personal.</h2>
-          <p>Puedo buscar en la web, leer archivos, ejecutar comandos y más.<br/>Escribí un mensaje para comenzar.</p>
+          <p>Puedo buscar en la web, leer archivos, ejecutar comandos y más.<br />Escribí un mensaje para comenzar.</p>
         </div>
       </div>
 
       <form class="input-area" id="chat-form">
         <div class="input-wrapper">
-          <textarea
-            id="user-input"
-            placeholder="Escribí un mensaje... (Enter para enviar, Shift+Enter para nueva línea)"
-            rows="1"
-            autocomplete="off"
-          ></textarea>
+          <textarea id="user-input"
+            placeholder="Escribí un mensaje... (Enter para enviar, Shift+Enter para nueva línea)" rows="1"
+            autocomplete="off"></textarea>
           <button type="submit" id="send-btn" aria-label="Enviar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </button>
         </div>
@@ -82,4 +83,5 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="app.js"></script>
 </body>
+
 </html>
