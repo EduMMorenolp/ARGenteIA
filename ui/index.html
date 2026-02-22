@@ -1,87 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ARGenteIA</title>
-  <meta name="description" content="Tu asistente personal de IA — WebChat" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <title>ARGenteIA - Asistente Personal</title>
 </head>
 
 <body>
-  <div class="app">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <div class="logo">
-          <span class="logo-icon">🤖</span>
-          <span class="logo-text">ARGenteIA</span>
-        </div>
-      </div>
-
-      <div class="model-info">
-        <div class="model-label">Modelo activo</div>
-        <div class="model-name" id="model-name">Conectando...</div>
-      </div>
-
-      <nav class="commands-list">
-        <div class="commands-title">Comandos rápidos</div>
-        <button class="cmd-btn" data-cmd="/status">📊 Estado</button>
-        <button class="cmd-btn" data-cmd="/tools">🔧 Herramientas</button>
-        <button class="cmd-btn" data-cmd="/skills">📚 Skills</button>
-        <button class="cmd-btn" data-cmd="/reset" class="danger">🗑️ Limpiar chat</button>
-      </nav>
-
-      <div class="sidebar-footer">
-        <div class="connection-status" id="conn-status">
-          <span class="status-dot"></span>
-          <span class="status-text">Conectando...</span>
-        </div>
-        <div class="msg-count" id="msg-count">0 mensajes</div>
-      </div>
-    </aside>
-
-    <!-- Main chat -->
-    <main class="chat-area">
-      <header class="chat-header">
-        <h1>Chat</h1>
-        <div class="typing-indicator" id="typing" style="display:none">
-          <span></span><span></span><span></span>
-          <small>Pensando...</small>
-        </div>
-      </header>
-
-      <div class="messages" id="messages">
-        <div class="welcome-msg">
-          <div class="welcome-icon">🤖</div>
-          <h2>¡Hola! Soy tu asistente personal.</h2>
-          <p>Puedo buscar en la web, leer archivos, ejecutar comandos y más.<br />Escribí un mensaje para comenzar.</p>
-        </div>
-      </div>
-
-      <form class="input-area" id="chat-form">
-        <div class="input-wrapper">
-          <textarea id="user-input"
-            placeholder="Escribí un mensaje... (Enter para enviar, Shift+Enter para nueva línea)" rows="1"
-            autocomplete="off"></textarea>
-          <button type="submit" id="send-btn" aria-label="Enviar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </button>
-        </div>
-      </form>
-    </main>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="app.js"></script>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
 </body>
 
 </html>

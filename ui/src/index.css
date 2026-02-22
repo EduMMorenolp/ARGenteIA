@@ -25,7 +25,7 @@ html, body { height: 100%; overflow: hidden; }
 body { font-family: var(--font); background: var(--bg-base); color: var(--text); font-size: 14px; line-height: 1.6; }
 
 /* ─── Layout ───────────────────────────────────────────────────────────── */
-.app { display: grid; grid-template-columns: 240px 1fr; height: 100vh; overflow: hidden; }
+.app-container { display: grid; grid-template-columns: 240px 1fr; height: 100vh; overflow: hidden; }
 
 /* ─── Sidebar ──────────────────────────────────────────────────────────── */
 .sidebar {
@@ -164,18 +164,18 @@ body { font-family: var(--font); background: var(--bg-base); color: var(--text);
 }
 #user-input::placeholder { color: var(--text-muted); }
 
-#send-btn {
+.send-btn {
   width: 36px; height: 36px; background: var(--accent); border: none; border-radius: var(--radius-sm);
   color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
   transition: background .15s, transform .1s; flex-shrink: 0;
 }
-#send-btn:hover { background: #6aa0ff; }
-#send-btn:active { transform: scale(.95); }
-#send-btn:disabled { background: var(--bg-surface); cursor: not-allowed; }
-#send-btn svg { width: 18px; height: 18px; }
+.send-btn:hover { background: #6aa0ff; }
+.send-btn:active { transform: scale(.95); }
+.send-btn:disabled { background: var(--bg-surface); cursor: not-allowed; }
+.send-btn svg { width: 18px; height: 18px; }
 
 /* ─── Responsive ───────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .app { grid-template-columns: 1fr; }
+  .app-container { grid-template-columns: 1fr; }
   .sidebar { display: none; }
 }

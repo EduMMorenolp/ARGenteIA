@@ -23,9 +23,10 @@ export function createGateway(): GatewayServer {
   const wss = new WebSocketServer({ server: httpServer });
 
   // ─── Servir WebChat UI estática ────────────────────────────────────────────
-  const uiPath = join(__dirname, "../../ui");
+  const uiPath = join(__dirname, "../../ui/dist");
   app.use(express.static(uiPath));
   app.use(express.json());
+
 
   // Health check
   app.get("/health", (_req, res) => {
