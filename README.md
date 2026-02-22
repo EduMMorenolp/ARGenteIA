@@ -8,6 +8,7 @@ Un asistente personal de IA minimalista que corre en tu máquina local y te atie
 - **Terminal Inteligente:** Soporte multi-OS (Windows/PowerShell y Linux/Bash) con detección automática.
 - **Gestión de Archivos:** El asistente puede leer, escribir y **enviarte archivos directamente por Telegram** (soporta hasta 50MB).
 - **Resolución de Rutas:** Soporte para `$HOME` y `~`, mapeando automáticamente a las carpetas de usuario correctas en Windows y Linux.
+- **Tareas Programadas:** Capacidad para agendar acciones recurrentes (ej: reportes diarios, recordatorios) usando formato CRON.
 - **Contexto Optimizado:** Sistema de poda (pruning) de mensajes y correcta inyección de prompts de sistema.
 - Extensible con **skills** (archivos `.md`) y **herramientas** (web, archivos, terminal).
 
@@ -109,6 +110,8 @@ El asistente gestiona su memoria a largo plazo mediante estas herramientas:
 | `forget_fact` | Elimina una memoria específica usando su ID. |
 | `send_file_telegram` | Envía un archivo local directamente al chat de Telegram (Límite 50MB). |
 | `read_file` | Lee el contenido de archivos de texto (con protección contra archivos binarios). |
+| `schedule_task` | Programa una tarea recurrente usando formato CRON. |
+| `list_scheduled_tasks` | Muestra las tareas programadas actualmente. |
 
 ---
 

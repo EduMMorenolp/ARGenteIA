@@ -2,6 +2,7 @@ import { loadConfig } from "./config/index.ts";
 import { createGateway } from "./gateway/server.ts";
 import { startTelegram } from "./channels/telegram.ts";
 import { initTools } from "./tools/index.ts";
+import { initScheduler } from "./agent/scheduler-manager.ts";
 import { getDb } from "./memory/db.ts";
 import chalk from "chalk";
 
@@ -17,6 +18,7 @@ try {
 }
 
 initTools();
+await initScheduler();
 
 // 3. Crear e iniciar gateway (Express + WebSocket)
 const gateway = createGateway();
