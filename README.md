@@ -6,6 +6,9 @@ Un asistente personal de IA minimalista que corre en tu máquina local y te atie
 - Soporta múltiples modelos: OpenAI, Anthropic, OpenRouter.
 - **Memoria a Largo Plazo:** Sistema de recuerdos persistentes por usuario usando SQLite.
 - **Terminal Inteligente:** Soporte multi-OS (Windows/PowerShell y Linux/Bash) con detección automática.
+- **Gestión de Archivos:** El asistente puede leer, escribir y **enviarte archivos directamente por Telegram** (soporta hasta 50MB).
+- **Resolución de Rutas:** Soporte para `$HOME` y `~`, mapeando automáticamente a las carpetas de usuario correctas en Windows y Linux.
+- **Contexto Optimizado:** Sistema de poda (pruning) de mensajes y correcta inyección de prompts de sistema.
 - Extensible con **skills** (archivos `.md`) y **herramientas** (web, archivos, terminal).
 
 ---
@@ -104,6 +107,8 @@ El asistente gestiona su memoria a largo plazo mediante estas herramientas:
 | `memorize_fact` | Guarda un dato importante sobre vos (ej: gustos, profesión, cumpleaños). |
 | `recall_facts` | Recupera todas las memorias guardadas para el usuario actual. |
 | `forget_fact` | Elimina una memoria específica usando su ID. |
+| `send_file_telegram` | Envía un archivo local directamente al chat de Telegram (Límite 50MB). |
+| `read_file` | Lee el contenido de archivos de texto (con protección contra archivos binarios). |
 
 ---
 
