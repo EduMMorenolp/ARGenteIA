@@ -505,16 +505,16 @@ const TEMPLATES = [
     tools: []
   },
   {
-    name: 'Coder / Programador',
-    prompt: 'Eres un experto senior en desarrollo de software. Tu objetivo es ayudar al usuario a escribir código limpio, eficiente y bien documentado. Resuelves bugs, explicas conceptos técnicos y diseñas arquitecturas de sistemas. Siempre proporcionas ejemplos de código completos y explicaciones paso a paso.',
-    description: 'Experto en desarrollo de software',
+    name: 'Programador / Coder',
+    prompt: 'Eres un experto en programación y desarrollo de software. Escribes código limpio, eficiente y bien documentado. Siempre consideras las mejores prácticas y los patrones de diseño.',
+    description: 'Desarrollo de software',
     tools: ['read_file', 'write_file', 'bash']
   },
   {
-    name: 'Escritor Creativo',
-    prompt: 'Eres un escritor profesional con gran habilidad para la narrativa, redacción de artículos y corrección de estilo. Ayudas al usuario a redactar correos, ensayos, cuentos o cualquier tipo de texto, asegurando un tono adecuado, excelente gramática y fluidez.',
-    description: 'Redacción y contenido',
-    tools: ['write_file']
+    name: 'Redactor / Escritor',
+    prompt: 'Eres un escritor creativo y editor profesional. Tu objetivo es crear textos persuasivos, interesantes y gramaticalmente perfectos. Te adaptas al tono y estilo que el usuario necesite.',
+    description: 'Contenido y edición',
+    tools: []
   },
   {
     name: 'Investigador / Researcher',
@@ -541,6 +541,25 @@ const TEMPLATES = [
     tools: ['get_weather', 'web_search']
   }
 ];
+
+const TOOL_LABELS: Record<string, string> = {
+  'web_search': '🔍 Búsqueda Web',
+  'bash': '💻 Terminal/Bash',
+  'read_file': '📁 Leer Archivo',
+  'write_file': '💾 Escribir Archivo',
+  'read_url': '🌐 Leer URL/Web',
+  'memorize_fact': '🧠 Memorizar Dato',
+  'recall_facts': '📚 Recordar Datos',
+  'forget_fact': '❌ Olvidar Dato',
+  'send_file_telegram': '✈️ Enviar a Telegram',
+  'schedule_task': '⏰ Programar Tarea',
+  'list_scheduled_tasks': '📋 Lista de Tareas',
+  'delete_scheduled_task': '🗑️ Eliminar Tarea',
+  'update_profile': '👤 Perfil Usuario',
+  'call_expert': '🤖 Llamar Experto',
+  'get_weather': '🌦️ Consultar Clima',
+  'delegate_task': '🤝 Delegar Tarea'
+};
 
 function ExpertCreator({ onClose, onSave, initialData, availableTools }: {
   onClose: () => void,
@@ -615,7 +634,7 @@ function ExpertCreator({ onClose, onSave, initialData, availableTools }: {
                   className={`tool-chip ${formData.tools?.includes(tool) ? 'selected' : ''}`}
                   onClick={() => toggleTool(tool)}
                 >
-                  {tool}
+                  {TOOL_LABELS[tool] || tool}
                 </button>
               ))}
             </div>

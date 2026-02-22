@@ -346,12 +346,14 @@ body {
 .chat-area {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 100vh; /* Altura fija */
+  max-height: 100vh;
   overflow: hidden;
   background: radial-gradient(circle at top right, #1a1d2e 0%, var(--bg-dark) 40%);
 }
 
 .chat-header {
+  flex-shrink: 0; /* No se encoge */
   padding: 16px 32px;
   background: var(--glass);
   backdrop-filter: blur(12px);
@@ -568,6 +570,7 @@ body {
 
 /* ─── Input Area ───────────────────────────────────────────────────────── */
 .input-section {
+  flex-shrink: 0; /* No se encoge */
   padding: 24px 32px;
   background: linear-gradient(to top, var(--bg-dark), transparent);
 }
@@ -767,11 +770,11 @@ textarea {
 .shadow-sm { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 
 .tools-selection-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+  gap: 4px;
   background: var(--bg-input);
-  padding: 12px;
+  padding: 4px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
 }
