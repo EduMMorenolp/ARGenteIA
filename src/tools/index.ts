@@ -60,6 +60,7 @@ import { registerReadUrl } from "./read-url.ts";
 import { registerMemoryTools } from "./memory.ts";
 import { registerSendFile } from "./send-file.ts";
 import { registerSchedulerTools } from "./scheduler.ts";
+import { registerUserTools } from "./user-tools.ts";
 
 export function initTools(): void {
   const config = getConfig();
@@ -71,4 +72,5 @@ export function initTools(): void {
   registerMemoryTools();
   registerSendFile(config);
   registerSchedulerTools(config);
+  registerUserTools(config);
 }

@@ -38,6 +38,14 @@ export function getDb(): Database.Database {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS users (
+      userId TEXT PRIMARY KEY,
+      name TEXT,
+      timezone TEXT DEFAULT 'America/Argentina/Buenos_Aires',
+      preferences TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_user_facts_userId ON user_facts(userId);
     CREATE INDEX IF NOT EXISTS idx_tasks_userId ON scheduled_tasks(userId);
   `);

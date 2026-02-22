@@ -72,8 +72,21 @@ async function runOpenAI(
   const toolSpecs: ToolSpec[] = getTools();
   const tools = toolSpecs.length > 0 ? (toolSpecs as unknown as ChatCompletionTool[]) : undefined;
 
-  // Clonar historial para el loop y añadir system prompt
-  const systemPrompt = config.agent.systemPrompt || "Eres un asistente personal útil.";
+  // 1. Obtener perfil del usuario para personalizar el sistema
+  const { getUser } = await import("../memory/user-db.ts");
+  const userProfile = getUser(sessionId);
+  let systemPrompt = config.agent.systemPrompt || "Eres un asistente personal útil.";
+
+  if (userProfile && userProfile.name) {
+    systemPrompt += `\nESTÁS HABLANDO CON: ${userProfile.name}. Su zona horaria es: ${userProfile.timezone}.`;
+  } else {
+    systemPrompt += `\nESTE ES UN USUARIO NUEVO. NO TIENES SU PERFIL.
+    INSTRUCCIÓN CRÍTICA: Antes de cualquier otra cosa, preséntate brevemente como ARGenteIA y dile al usuario que necesitas configurar su perfil. 
+    Pídele amablemente su NOMBRE y confirma su zona horaria (por defecto Argentina/BsAs). 
+    Cuando te dé los datos, usa la herramienta 'update_profile'.`;
+  }
+
+  // Clonar historial para el loop y añadir system prompt dinámico
   let loopMessages: ChatCompletionMessageParam[] = [
     { role: "system", content: systemPrompt },
     ...messages

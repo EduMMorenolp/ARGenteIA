@@ -137,6 +137,17 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
       break;
     }
 
+    case "/profile": {
+      const { getUser } = await import("../memory/user-db.ts");
+      const user = getUser(sessionId);
+      if (!user) {
+        await bot!.sendMessage(chatId, "❌ No tienes un perfil configurado aún. ¡Dime 'Hola' para empezar!");
+      } else {
+        await bot!.sendMessage(chatId, `👤 *Tu Perfil:*\n• Nombre: ${user.name || 'Sin nombre'}\n• Zona Horaria: \`${user.timezone}\`\n• Creado: ${user.created_at}`, { parse_mode: "Markdown" });
+      }
+      break;
+    }
+
     default:
       await bot!.sendMessage(chatId, `Comando desconocido. Usá /help para ver los disponibles.`);
   }

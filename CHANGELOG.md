@@ -12,6 +12,10 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 - **Sistema de Tareas Programadas:** Nueva capacidad para agendar tareas recurrentes mediante expresiones CRON (ej: mandar el clima cada mañana).
   - Herramientas: `schedule_task`, `list_scheduled_tasks`, `delete_scheduled_task`.
   - Persistencia en SQLite y ejecución automática al iniciar el asistente.
+- **Perfiles de Usuario y Onboarding:** Sistema de reconocimiento automático para nuevos usuarios que solicita nombre y zona horaria al inicio.
+  - Almacenamiento persistente de datos personales y preferencias en SQLite.
+  - Comando `/profile` en Telegram para visualizar los datos guardados.
+  - Nueva herramienta `update_profile` para gestión dinámica de la identidad del usuario.
 
 ### Mejorado
 - **Robustez en Herramientas de Archivos:** Implementada limpieza automática de comillas accidentales en rutas de archivos proporcionadas por el modelo de lenguaje.
