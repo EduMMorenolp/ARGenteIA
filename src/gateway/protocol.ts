@@ -8,7 +8,9 @@ export type WsMessageType =
   | "status"            // servidor → cliente: info de la sesión
   | "command_result"    // servidor → cliente: resultado de un comando
   | "list_experts"      // servidor → cliente: lista de expertos disponibles
-  | "expert_update";    // cliente → servidor: crear/actualizar experto
+  | "expert_update"      // cliente → servidor: crear/actualizar experto
+  | "list_users"        // servidor → cliente: lista de usuarios existentes
+  | "identify";          // cliente → servidor: asociar sesión con userId
 
 export interface WsUserMessage {
   type: "user_message";
@@ -22,6 +24,12 @@ export interface WsAssistantMessage {
   text: string;
   model: string;
   sessionId: string;
+  origin?: 'web' | 'telegram';
+  history?: Array<{
+    role: string;
+    text: string;
+    origin: 'web' | 'telegram';
+  }>;
 }
 
 export interface WsTypingMessage {
@@ -59,6 +67,16 @@ export interface WsExpertUpdateMessage {
   name?: string;
 }
 
+export interface WsListUsersMessage {
+  type: "list_users";
+  users: any[];
+}
+
+export interface WsIdentifyMessage {
+  type: "identify";
+  userId: string;
+}
+
 export type WsMessage =
   | WsUserMessage
   | WsAssistantMessage
@@ -67,4 +85,6 @@ export type WsMessage =
   | WsStatusMessage
   | WsCommandResultMessage
   | WsListExpertsMessage
-  | WsExpertUpdateMessage;
+  | WsExpertUpdateMessage
+  | WsListUsersMessage
+  | WsIdentifyMessage;

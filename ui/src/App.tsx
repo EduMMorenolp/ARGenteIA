@@ -3,7 +3,7 @@ import { marked } from 'marked';
 import {
   Send, Bot, Terminal,
   MessageSquare, Zap, Plus, Cpu, Info, X, ChevronRight,
-  Shield, Globe, Database, Calendar, Trash2, Edit2
+  Shield, Globe, Database, Calendar, Trash2, Edit2, LogOut
 } from 'lucide-react';
 
 interface Expert {
@@ -14,12 +14,20 @@ interface Expert {
   tools?: string[];
 }
 
+interface UserProfile {
+  userId: string;
+  name: string | null;
+  timezone: string;
+  created_at: string;
+}
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   text: string;
   model?: string;
   type?: 'message' | 'command' | 'error';
+  origin?: 'web' | 'telegram';
 }
 
 interface WsMessage {
@@ -34,6 +42,13 @@ interface WsMessage {
   sessionId?: string;
   experts?: Expert[];
   tools?: string[];
+  users?: UserProfile[];
+  origin?: 'web' | 'telegram';
+  history?: Array<{
+    role: string;
+    text: string;
+    origin: 'web' | 'telegram';
+  }>;
 }
 
 const WS_URL = `ws://${window.location.host}`;
@@ -50,6 +65,9 @@ export default function App() {
   // Expert management
   const [experts, setExperts] = useState<Expert[]>([]);
   const [availableTools, setAvailableTools] = useState<string[]>([]);
+  const [availableUsers, setAvailableUsers] = useState<UserProfile[]>([]);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+
   const [selectedExpert, setSelectedExpert] = useState<string | null>(null);
   const [isCreatorOpen, setIsCreatorOpen] = useState(false);
   const [isFeaturesOpen, setIsFeaturesOpen] = useState(false);
@@ -98,7 +116,18 @@ export default function App() {
       case 'assistant_message':
         setIsTyping(false);
         setIsWaiting(false);
-        addMessage('assistant', msg.text || '', msg.model);
+        if (msg.history && msg.history.length > 0) {
+          // Si trae historial, lo mapeamos al estado
+          const historicalMessages = msg.history.map(m => ({
+            id: 'hist-' + Math.random().toString(36).substr(2, 9),
+            role: (m.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+            text: m.text,
+            origin: m.origin
+          }));
+          setMessages(prev => [...prev, ...historicalMessages]);
+        } else if (msg.text && msg.text !== "Cargando historial...") {
+          addMessage('assistant', msg.text, msg.model, 'message', msg.origin);
+        }
         setMessageCount(prev => prev + 1);
         break;
 
@@ -121,17 +150,44 @@ export default function App() {
       case 'list_tools':
         if (msg.tools) setAvailableTools(msg.tools);
         break;
+
+      case 'list_users':
+        if (msg.users) setAvailableUsers(msg.users);
+        break;
     }
   };
 
-  const addMessage = (role: 'user' | 'assistant', text: string, model?: string, type: 'message' | 'command' | 'error' = 'message') => {
+  const addMessage = (role: 'user' | 'assistant', text: string, model?: string, type: 'message' | 'command' | 'error' = 'message', origin?: 'web' | 'telegram') => {
     setMessages(prev => [...prev, {
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       role,
       text,
       model,
-      type
+      type,
+      origin
     }]);
+  };
+
+  const identifyUser = (user: UserProfile) => {
+    ws.current?.send(JSON.stringify({
+      type: 'identify',
+      userId: user.userId
+    }));
+    setCurrentUser(user);
+  };
+
+  const continueAsGuest = () => {
+    const guestId = `guest-${Math.random().toString(36).substr(2, 9)}`;
+    ws.current?.send(JSON.stringify({
+      type: 'identify',
+      userId: guestId
+    }));
+    setCurrentUser({
+      userId: guestId,
+      name: 'Invitado',
+      timezone: 'America/Argentina/Buenos_Aires',
+      created_at: new Date().toISOString()
+    });
   };
 
   const sendMessage = (text: string) => {
@@ -215,6 +271,16 @@ export default function App() {
   const renderContent = (text: string) => {
     return { __html: marked.parse(text) };
   };
+
+  if (!currentUser) {
+    return (
+      <LoginScreen
+        users={availableUsers}
+        onSelect={identifyUser}
+        onGuest={continueAsGuest}
+      />
+    );
+  }
 
   return (
     <div className="app-container">
@@ -301,6 +367,9 @@ export default function App() {
             <div className={`status-led ${isConnected ? 'online' : 'offline'}`} />
             <span className="status-label">{isConnected ? 'Conectado' : 'Sin conexión'}</span>
           </div>
+          <button className="logout-trigger" onClick={() => setCurrentUser(null)} title="Cerrar Sesión">
+            <LogOut size={14} /> <span>Cerrar Sesión</span>
+          </button>
         </div>
       </aside>
 
@@ -358,7 +427,14 @@ export default function App() {
               <div key={msg.id} className={`message-row ${msg.role}`}>
                 <div className="msg-container">
                   <div className="msg-header">
-                    <span className="msg-author">{msg.role === 'user' ? 'Tú' : (msg.model ? msg.model.split('/').pop() : '🤖')}</span>
+                    <span className="msg-author">
+                      {msg.role === 'user' ? 'Tú' : (msg.model ? msg.model.split('/').pop() : '🤖')}
+                      {msg.origin === 'telegram' && (
+                        <span title="Desde Telegram" style={{ marginLeft: '6px', opacity: 0.6 }}>
+                          <Send size={10} />
+                        </span>
+                      )}
+                    </span>
                     {msg.type === 'command' && <span className="type-badge">Comando</span>}
                     {msg.type === 'error' && <span className="type-badge error">Error</span>}
                   </div>
@@ -590,6 +666,50 @@ function FeaturesOverlay({ features, onClose }: { features: any[], onClose: () =
               <p>{f.description}</p>
             </div>
           ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LoginScreen({ users, onSelect, onGuest }: {
+  users: UserProfile[],
+  onSelect: (u: UserProfile) => void,
+  onGuest: () => void
+}) {
+  return (
+    <div className="login-container">
+      <div className="login-card">
+        <div className="login-header">
+          <div className="logo-box">🤖</div>
+          <h1>Bienvenido a ARGenteIA</h1>
+          <p>Selecciona tu perfil para continuar o inicia como invitado.</p>
+        </div>
+
+        <div className="user-grid">
+          {users.map(user => (
+            <button key={user.userId} className="user-card" onClick={() => onSelect(user)}>
+              <div className="user-avatar">
+                {user.name ? user.name.charAt(0).toUpperCase() : '?'}
+              </div>
+              <div className="user-details">
+                <span className="user-name">{user.name || 'Usuario sin nombre'}</span>
+                <span className="user-id">ID: {user.userId}</span>
+              </div>
+            </button>
+          ))}
+
+          <button className="user-card guest" onClick={onGuest}>
+            <div className="user-avatar">?</div>
+            <div className="user-details">
+              <span className="user-name">Continuar como Invitado</span>
+              <span className="user-id">Sesión temporal</span>
+            </div>
+          </button>
+        </div>
+
+        <div className="login-footer">
+          <p>Tus datos se sincronizarán con tu perfil de Telegram.</p>
         </div>
       </div>
     </div>

@@ -3,11 +3,12 @@ import { createClient, modelName } from "./models.ts";
 import type OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { getExpert } from "../memory/expert-db.ts";
+import { saveMessage } from "../memory/message-db.ts";
 import chalk from "chalk";
-
 export interface ExpertRequest {
   expertName: string;
   task: string;
+  userId?: string; // ID del usuario que solicita la tarea
 }
 
 /**
@@ -20,6 +21,17 @@ export async function runExpert(req: ExpertRequest): Promise<string> {
     throw new Error(`Experto "${req.expertName}" no encontrado en la base de datos.`);
   }
 
+  // Persistir la tarea si temenos un userId
+  if (req.userId) {
+    saveMessage({
+      userId: req.userId,
+      role: "user",
+      content: `[Experto: ${req.expertName}] ${req.task}`,
+      origin: "web",
+      expertName: req.expertName
+    });
+  }
+  
   console.log(chalk.magenta(`   🤖 Invocando experto: ${expert.name} (${expert.model})`));
 
   const config = getConfig();

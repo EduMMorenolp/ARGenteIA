@@ -4,12 +4,14 @@ import type OpenAI from "openai";
 import type { ChatCompletionMessageParam, ChatCompletionTool } from "openai/resources/chat/completions";
 import { getTools, executeTool, type ToolSpec } from "../tools/index.ts";
 import { addMessage, getHistory } from "../memory/session.ts";
+import { saveMessage } from "../memory/message-db.ts";
 import chalk from "chalk";
 
 export interface AgentOptions {
   sessionId: string;
   userText: string;
   onTyping?: (isTyping: boolean) => void;
+  origin?: 'web' | 'telegram'; // Origen del mensaje
 }
 
 export interface AgentResponse {
@@ -22,8 +24,17 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
   const model = config.agent.model;
   const provider = detectProvider(model);
 
-  // Añadir mensaje del usuario al historial
+  // Añadir mensaje del usuario al historial en memoria
   addMessage(opts.sessionId, { role: "user", content: opts.userText }, config.agent.maxContextMessages);
+  
+  // Persistir en base de datos
+  saveMessage({
+    userId: opts.sessionId,
+    role: "user",
+    content: opts.userText,
+    origin: opts.origin || "web"
+  });
+
   const messages = getHistory(opts.sessionId);
 
   opts.onTyping?.(true);
@@ -42,8 +53,16 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
       responseText = "He procesado tu solicitud, pero no tengo una respuesta textual en este momento. ¿En qué más puedo ayudarte?";
     }
 
-    // Guardar respuesta final en historial
+    // Guardar respuesta final en historial en memoria
     addMessage(opts.sessionId, { role: "assistant", content: responseText }, config.agent.maxContextMessages);
+
+    // Persistir respuesta en base de datos
+    saveMessage({
+      userId: opts.sessionId,
+      role: "assistant",
+      content: responseText,
+      origin: opts.origin || "web"
+    });
 
     return { text: responseText, model };
   } catch (err: any) {

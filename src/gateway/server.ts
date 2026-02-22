@@ -35,7 +35,7 @@ export function createGateway(): GatewayServer {
 
   // ─── WebSocket ─────────────────────────────────────────────────────────────
   wss.on("connection", (ws: WebSocket) => {
-    const sessionId = `webchat-${Date.now()}`;
+    let sessionId = `webchat-${Date.now()}`;
     console.log(chalk.cyan(`🌐 WebChat conectado [${sessionId}]`));
 
     // Enviar estado inicial
@@ -57,6 +57,10 @@ export function createGateway(): GatewayServer {
       send(ws, { type: "list_tools" as any, tools: toolNames } as any);
     });
 
+    // Enviar lista de usuarios existentes
+    import("../memory/user-db.ts").then(({ listAllUsers }) => {
+      send(ws, { type: "list_users", users: listAllUsers() });
+    });
 
 
     ws.on("message", async (data) => {
@@ -76,6 +80,35 @@ export function createGateway(): GatewayServer {
           expertName: msg.expertName,
           send,
         } as any);
+      } else if (msg.type === "identify") {
+        // Cambiar sessionId por el userId elegido
+        const oldId = sessionId;
+        sessionId = msg.userId;
+        console.log(chalk.cyan(`👤 WebChat identificado: ${oldId} -> ${sessionId}`));
+        
+        // Enviar confirmación de estado con el nuevo ID
+        send(ws, {
+          type: "status",
+          model: config.agent.model,
+          sessionId,
+          messageCount: 0,
+        });
+
+        // Enviar historial de la base de datos
+        import("../memory/message-db.ts").then(({ getMessages }) => {
+          const history = getMessages(sessionId);
+          send(ws, { 
+            type: "assistant_message", // Usar un tipo que el cliente entienda como histórico o extender
+            text: "Cargando historial...",
+            model: "sistema",
+            sessionId,
+            history: history.map(m => ({
+              role: m.role,
+              text: m.content,
+              origin: m.origin
+            }))
+          } as any);
+        });
       } else if (msg.type === "expert_update") {
 
         const { listExperts, upsertExpert, deleteExpert } = await import("../memory/expert-db.ts");

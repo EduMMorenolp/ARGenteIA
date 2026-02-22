@@ -51,6 +51,7 @@ export function startTelegram(): void {
       const result = await runAgent({
         sessionId,
         userText: text,
+        origin: "telegram",
         onTyping: async (isTyping) => {
           if (isTyping) await bot!.sendChatAction(chatId, "typing").catch(() => {});
         },

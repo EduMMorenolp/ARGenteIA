@@ -48,3 +48,12 @@ export function updateTimeZone(userId: string, timezone: string): void {
   const stmt = db.prepare("UPDATE users SET timezone = ? WHERE userId = ?");
   stmt.run(timezone, userId);
 }
+
+/**
+ * Obtiene todos los perfiles de usuario.
+ */
+export function listAllUsers(): UserProfile[] {
+  const db = getDb();
+  const stmt = db.prepare("SELECT * FROM users ORDER BY created_at DESC");
+  return stmt.all() as UserProfile[];
+}

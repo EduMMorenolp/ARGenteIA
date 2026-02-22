@@ -34,15 +34,29 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
     // Si el usuario seleccionó un experto específico, vamos directo a él
     if ((opts as any).expertName) {
       const { runExpert } = await import("../agent/expert-runner.ts");
-      const text = await runExpert({
+      const { saveMessage } = await import("../memory/message-db.ts");
+      
+      const response = await runExpert({
         expertName: (opts as any).expertName,
-        task: opts.text
+        task: opts.text,
+        userId: sessionId
       });
-      result = { text, model: `Expert: ${(opts as any).expertName}` };
+      
+      // Persistir respuesta del experto
+      saveMessage({
+        userId: sessionId,
+        role: "assistant",
+        content: response,
+        origin: "web",
+        expertName: (opts as any).expertName
+      });
+
+      result = { text: response, model: `Expert: ${(opts as any).expertName}` };
     } else {
       result = await runAgent({
         sessionId,
         userText: text,
+        origin: "web",
         onTyping: (isTyping) => send(ws, { type: "typing", isTyping }),
       });
     }
@@ -52,6 +66,7 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
       text: result.text,
       model: result.model,
       sessionId,
+      origin: "web",
     });
 
   } catch (err) {

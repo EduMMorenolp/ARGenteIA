@@ -2,6 +2,28 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [1.3.1] - 2026-02-22
+
+### Añadido
+- **Historial de Chat Persistente (SQLite):** Implementada una nueva tabla `messages` para almacenar de forma definitiva todas las conversaciones del asistente y sus expertos.
+- **Asociación de Perfiles (Web-Telegram Login):**
+  - Nueva pantalla de inicio de sesión en la Web que permite seleccionar perfiles existentes de Telegram.
+  - Sincronización automática de historial: Los mensajes enviados por Telegram ahora son visibles en la interfaz Web.
+  - Gestión de sesiones: Botón de "Cerrar Sesión" añadido para permitir el cambio dinámico entre usuarios o modo invitado.
+- **Identificación de Origen de Mensajes:** 
+  - Sistema de tracking para distinguir si un mensaje fue enviado desde la Web o Telegram.
+  - Iconos visuales descriptivos en la interfaz de chat para mensajes con origen móvil/Telegram.
+- **Persistencia en Agentes Expertos:** Las interacciones con sub-agentes corporativos ahora se guardan y vinculan correctamente al historial persistente del usuario solicitante.
+
+### Mejorado
+- **Carga de Contexto Histórico:** Al identificar un usuario, se recuperan automáticamente los últimos 50 mensajes de la base de datos para mantener la continuidad de la charla.
+- **Robustez del Gateway:** Transición fluida de `sessionId` genérico a `userId` específico sin pérdida de conexión.
+
+### Corregido
+- **Error Crítico de Asignación:** Solucionado el bug `TypeError: Assignment to constant variable` que impedía la identificación de usuarios en el servidor WebSocket.
+- **Build de Producción:** Corregidos errores de tipos y de importaciones de iconos no utilizados que bloqueaban `npm run build`.
+- **Integridad de Base de Datos:** Eliminado error de sintaxis en el script de inicialización de tablas SQL.
+
 ## [1.3.0] - 2026-02-22
 
 ### Añadido
