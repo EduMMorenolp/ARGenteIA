@@ -43,6 +43,7 @@ interface WsMessage {
   experts?: Expert[];
   tools?: string[];
   users?: UserProfile[];
+  tasks?: any[];
   origin?: 'web' | 'telegram';
   history?: Array<{
     role: string;
@@ -66,6 +67,7 @@ export default function App() {
   const [experts, setExperts] = useState<Expert[]>([]);
   const [availableTools, setAvailableTools] = useState<string[]>([]);
   const [availableUsers, setAvailableUsers] = useState<UserProfile[]>([]);
+  const [scheduledTasks, setScheduledTasks] = useState<any[]>([]);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
   const [selectedExpert, setSelectedExpert] = useState<string | null>(null);
@@ -154,6 +156,10 @@ export default function App() {
       case 'list_users':
         if (msg.users) setAvailableUsers(msg.users);
         break;
+
+      case 'list_tasks' as any:
+        if (msg.tasks) setScheduledTasks(msg.tasks);
+        break;
     }
   };
 
@@ -217,6 +223,13 @@ export default function App() {
     }));
     setIsCreatorOpen(false);
     setEditingExpert(null);
+  };
+
+  const deleteTask = (id: number) => {
+    ws.current?.send(JSON.stringify({
+      type: 'delete_task',
+      id
+    }));
   };
 
   const deleteExpert = (name: string) => {
@@ -347,6 +360,30 @@ export default function App() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className="nav-section">
+            <div className="section-header">
+              <span className="section-title">Tareas Programadas</span>
+              <Calendar size={12} className="text-muted" />
+            </div>
+            <div className="tasks-list">
+              {scheduledTasks.length === 0 ? (
+                <div className="empty-state">No hay tareas programadas</div>
+              ) : (
+                scheduledTasks.map((t) => (
+                  <div key={t.id} className="task-item">
+                    <div className="task-info">
+                      <span className="task-desc">{t.task}</span>
+                      <span className="task-cron">{t.cron}</span>
+                    </div>
+                    <button className="task-delete" onClick={() => deleteTask(t.id)}>
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -536,8 +573,8 @@ const TEMPLATES = [
   },
   {
     name: 'Meteorólogo / Clima',
-    prompt: 'Eres un experto en meteorología y pronóstico del tiempo. Tu única función es informar sobre el clima en base a la ubicación del usuario. Utiliza la herramienta de clima para obtener datos precisos. Si no tienes la ubicación, pídela amablemente o utiliza la búsqueda web como respaldo.',
-    description: 'Información del tiempo',
+    prompt: 'Eres un experto meteorólogo. Tu tarea es dar el reporte del tiempo usando OBLIGATORIAMENTE la herramienta "get_weather". Si te preguntan por la semana, usa "forecast: true". Presenta los datos de forma estructurada. NO des explicaciones generales sobre el clima histórico, da el pronóstico REAL de hoy y los próximos días.',
+    description: 'Reporte del clima en tiempo real',
     tools: ['get_weather', 'web_search']
   }
 ];

@@ -260,6 +260,74 @@ body {
   color: var(--text-main);
 }
 
+/* ─── Tasks List ───────────────────────────────────────────────────────── */
+.tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-item {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: var(--transition);
+}
+
+.task-item:hover {
+  border-color: rgba(79, 140, 255, 0.4);
+}
+
+.task-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.task-desc {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-cron {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.task-delete {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+
+.task-delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+}
+
+.empty-state {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 12px;
+  font-style: italic;
+}
+
 .feature-trigger {
   width: 100%;
   display: flex;

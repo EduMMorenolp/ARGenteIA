@@ -109,6 +109,11 @@ export function createGateway(): GatewayServer {
             }))
           } as any);
         });
+
+        // Enviar tareas programadas
+        import("../memory/scheduler-db.ts").then(({ getUserTasks }) => {
+          send(ws, { type: "list_tasks" as any, tasks: getUserTasks(sessionId) } as any);
+        });
       } else if (msg.type === "expert_update") {
 
         const { listExperts, upsertExpert, deleteExpert } = await import("../memory/expert-db.ts");
@@ -121,6 +126,16 @@ export function createGateway(): GatewayServer {
           deleteExpert(msg.name);
           send(ws, { type: "list_experts", experts: listExperts() });
         }
+      } else if (msg.type === "delete_task") {
+        const { deleteTask, getUserTasks } = await import("../memory/scheduler-db.ts");
+        const { stopLocalTask } = await import("../agent/scheduler-manager.ts");
+        if (deleteTask(msg.id, sessionId)) {
+          stopLocalTask(msg.id);
+          send(ws, { type: "list_tasks" as any, tasks: getUserTasks(sessionId) } as any);
+        }
+      } else if (msg.type === "list_tasks" as any) {
+        const { getUserTasks } = await import("../memory/scheduler-db.ts");
+        send(ws, { type: "list_tasks" as any, tasks: getUserTasks(sessionId) } as any);
       }
 
     });

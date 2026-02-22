@@ -93,7 +93,7 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
     case "/help":
       await bot!.sendMessage(
         chatId,
-        `🤖 *ARGenteIA*\n\nComandos:\n• /reset — Limpiar historial\n• /model — Ver/cambiar modelo\n• /status — Estado actual\n• /tools — Herramientas disponibles\n• /skills — Skills cargadas\n\n🔹 *Gestión de Agentes Expertos:*\n• /agentes — Listar expertos configurados\n• /crear_agente <nombre>|<modelo>|<prompt> — Crea/Edita un experto\n• /borrar_agente <nombre> — Elimina un experto`,
+        `🤖 *ARGenteIA*\n\nComandos:\n• /reset — Limpiar historial\n• /model — Ver/cambiar modelo\n• /status — Estado actual\n• /tools — Herramientas disponibles\n• /skills — Skills cargadas\n\n🔹 *Gestión de Agentes Expertos:*\n• /agentes — Listar expertos\n• /crear_agente <nombre>|<modelo>|<prompt> — Crea experto\n• /borrar_agente <nombre> — Elimina experto\n\n⏰ *Tareas Programadas:*\n• /tareas — Listar tus tareas\n• /borrar_tarea <ID> — Eliminar tarea por ID`,
         { parse_mode: "Markdown" },
       );
       break;
@@ -188,6 +188,35 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
     case "/skills": {
       const skills = await loadSkills();
       await bot!.sendMessage(chatId, `📚 Skills cargadas: ${skills.length}`);
+      break;
+    }
+
+    case "/tareas": {
+      const { getUserTasks } = await import("../memory/scheduler-db.ts");
+      const tasks = getUserTasks(sessionId);
+      if (tasks.length === 0) {
+        await bot!.sendMessage(chatId, "No tienes tareas programadas actualmente.");
+      } else {
+        const list = tasks.map(t => `• *[ID ${t.id}]* "${t.task}"\n  ⏰ \`${t.cron}\``).join("\n\n");
+        await bot!.sendMessage(chatId, `📅 *Tus Tareas Programadas:*\n\n${list}`, { parse_mode: "Markdown" });
+      }
+      break;
+    }
+
+    case "/borrar_tarea": {
+      const id = parseInt(arg);
+      if (isNaN(id)) {
+        await bot!.sendMessage(chatId, "❌ Debes especificar un ID numérico válido. Ej: `/borrar_tarea 12`", { parse_mode: "Markdown" });
+        return;
+      }
+      const { deleteTask } = await import("../memory/scheduler-db.ts");
+      const { stopLocalTask } = await import("../agent/scheduler-manager.ts");
+      if (deleteTask(id, sessionId)) {
+        stopLocalTask(id);
+        await bot!.sendMessage(chatId, `✅ Tarea con ID ${id} eliminada.`);
+      } else {
+        await bot!.sendMessage(chatId, `❌ No se encontró la tarea ${id} o no te pertenece.`);
+      }
       break;
     }
 

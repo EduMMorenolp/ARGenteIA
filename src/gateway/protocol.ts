@@ -10,6 +10,8 @@ export type WsMessageType =
   | "list_experts"      // servidor → cliente: lista de expertos disponibles
   | "expert_update"      // cliente → servidor: crear/actualizar experto
   | "list_users"        // servidor → cliente: lista de usuarios existentes
+  | "list_tasks"        // servidor → cliente: lista de tareas programadas
+  | "delete_task"      // cliente → servidor: eliminar tarea
   | "identify";          // cliente → servidor: asociar sesión con userId
 
 export interface WsUserMessage {
@@ -77,6 +79,16 @@ export interface WsIdentifyMessage {
   userId: string;
 }
 
+export interface WsListTasksMessage {
+  type: "list_tasks";
+  tasks: any[];
+}
+
+export interface WsDeleteTaskMessage {
+  type: "delete_task";
+  id: number;
+}
+
 export type WsMessage =
   | WsUserMessage
   | WsAssistantMessage
@@ -87,4 +99,6 @@ export type WsMessage =
   | WsListExpertsMessage
   | WsExpertUpdateMessage
   | WsListUsersMessage
+  | WsListTasksMessage
+  | WsDeleteTaskMessage
   | WsIdentifyMessage;

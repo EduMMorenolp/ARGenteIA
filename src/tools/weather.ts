@@ -7,21 +7,27 @@ export function registerWeatherTool(): void {
       type: "function",
       function: {
         name: "get_weather",
-        description: "Obtiene el clima actual de una ubicación específica. Puedes pasar la ciudad, país o dejarlo vacío para detectar por IP.",
+        description: "Obtiene el clima actual o el pronóstico de una ubicación específica.",
         parameters: {
           type: "object",
           properties: {
             location: {
               type: "string",
-              description: "Nombre de la ciudad o ubicación (ej: 'Buenos Aires', 'Madrid', 'Paris'). Si el usuario no especifica, deja este campo vacío.",
+              description: "Nombre de la ciudad o ubicación (ej: 'Buenos Aires', 'Madrid').",
             },
+            forecast: {
+              type: "boolean",
+              description: "Si es true, devuelve el pronóstico para los próximos 3 días. Si es false (por defecto), solo el clima actual.",
+            }
           },
         },
       },
     },
     handler: async (args) => {
       const location = args["location"] ? encodeURIComponent(String(args["location"])) : "";
-      const url = `https://wttr.in/${location}?format=%l:+%c+%t+%w+%h`;
+      const isForecast = args["forecast"] === true || String(args["forecast"]) === "true";
+      
+      const url = `https://wttr.in/${location}?format=j1`;
 
       try {
         const resp = await fetch(url, {
@@ -32,12 +38,30 @@ export function registerWeatherTool(): void {
           return `Error al conectar con el servicio de clima: ${resp.statusText}`;
         }
 
-        const data = await resp.text();
-        if (!data || data.includes("404")) {
+        const data = await resp.json() as any;
+        if (!data || !data.current_condition) {
           return `No se pudo encontrar información de clima para: "${args["location"] || "tu ubicación actual"}"`;
         }
 
-        return `Reporte del clima:\n${data}\n\nNota: Datos proporcionados por wttr.in`;
+        const current = data.current_condition[0];
+        const area = data.nearest_area[0];
+        
+        let report = `Clima actual en ${area.areaName[0].value}, ${area.country[0].value}:\n`;
+        report += `- Temperatura: ${current.temp_C}°C (Sensación: ${current.FeelsLikeC}°C)\n`;
+        report += `- Estado: ${current.lang_es ? current.lang_es[0].value : current.weatherDesc[0].value}\n`;
+        report += `- Humedad: ${current.humidity}%\n`;
+        report += `- Viento: ${current.windspeedKmph} km/h\n`;
+
+        if (isForecast && data.weather) {
+          report += `\nPRONÓSTICO PRÓXIMOS DÍAS:\n`;
+          data.weather.slice(0, 3).forEach((day: any) => {
+            report += `\n📅 Fecha: ${day.date}\n`;
+            report += `   - Máx: ${day.maxtempC}°C / Mín: ${day.mintempC}°C\n`;
+            report += `   - Estado: ${day.hourly[4].weatherDesc[0].value}\n`; // 12:00 aprox
+          });
+        }
+
+        return report;
       } catch (err: any) {
         return `Error al procesar la consulta del clima: ${err.message}`;
       }
