@@ -90,10 +90,11 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
 
   switch (command) {
     case "/start":
+    case "/ayuda":
     case "/help":
       await bot!.sendMessage(
         chatId,
-        `🤖 *ARGenteIA*\n\nComandos:\n• /reset — Limpiar historial\n• /model — Ver/cambiar modelo\n• /status — Estado actual\n• /tools — Herramientas disponibles\n• /skills — Skills cargadas\n\n🔹 *Gestión de Agentes Expertos:*\n• /agentes — Listar expertos\n• /crear_agente <nombre>|<modelo>|<prompt> — Crea experto\n• /borrar_agente <nombre> — Elimina experto\n\n⏰ *Tareas Programadas:*\n• /tareas — Listar tus tareas\n• /borrar_tarea <ID> — Eliminar tarea por ID`,
+        `🤖 *ARGenteIA — Menú de Ayuda*\n\n🔹 *Comandos de Sistema:*\n• /reset — Limpiar historial\n• /model — Ver/cambiar modelo\n• /status — Estado actual\n• /tools — Herramientas disponibles\n• /skills — Skills cargadas\n• /ayuda — Mostrar este menú\n\n🔹 *Gestión de Expertos:*\n• /agentes — Listar expertos\n• /crear_agente <nombre>|<modelo>|<prompt> — Crea experto\n• /borrar_agente <nombre> — Elimina experto\n\n⏰ *Tareas Programadas:*\n• /tareas — Listar tus tareas\n• /borrar_tarea <ID> — Eliminar tarea por ID`,
         { parse_mode: "Markdown" },
       );
       break;

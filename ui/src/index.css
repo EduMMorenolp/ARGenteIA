@@ -25,13 +25,12 @@
   --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; }
 
 html, body, #root {
   height: 100vh;
   width: 100vw;
   margin: 0;
-  padding: 0;
   overflow: hidden;
 }
 
@@ -603,6 +602,7 @@ body {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-top-left-radius: 4px;
+
 }
 
 .message-row.user .msg-bubble {
@@ -775,13 +775,28 @@ textarea {
 }
 
 
-.form-group input[type="range"] { padding: 0; }
+.form-group input:focus, .form-group textarea:focus, .template-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.field-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 32px;
+  margin-top: 12px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
 }
 
 .btn-primary {

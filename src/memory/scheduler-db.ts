@@ -34,3 +34,9 @@ export function getUserTasks(userId: string): ScheduledTask[] {
   const stmt = db.prepare("SELECT * FROM scheduled_tasks WHERE userId = ? ORDER BY created_at DESC");
   return stmt.all(userId) as ScheduledTask[];
 }
+export function updateTask(id: number, userId: string, task: string, cron: string): boolean {
+  const db = getDb();
+  const stmt = db.prepare("UPDATE scheduled_tasks SET task = ?, cron = ? WHERE id = ? AND userId = ?");
+  const result = stmt.run(task, cron, id, userId);
+  return result.changes > 0;
+}

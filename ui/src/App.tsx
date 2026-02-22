@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { marked } from 'marked';
 import {
   Send, Bot, Terminal,
-  MessageSquare, Zap, Plus, Cpu, Info, X, ChevronRight,
+  MessageSquare, Zap, Plus, Cpu, Info, X,
   Shield, Globe, Database, Calendar, Trash2, Edit2, LogOut
 } from 'lucide-react';
 
@@ -74,6 +74,7 @@ export default function App() {
   const [isCreatorOpen, setIsCreatorOpen] = useState(false);
   const [isFeaturesOpen, setIsFeaturesOpen] = useState(false);
   const [editingExpert, setEditingExpert] = useState<Expert | null>(null);
+  const [editingTask, setEditingTask] = useState<any | null>(null);
 
   const ws = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -232,6 +233,16 @@ export default function App() {
     }));
   };
 
+  const updateTask = (id: number, task: string, cron: string) => {
+    ws.current?.send(JSON.stringify({
+      type: 'update_task',
+      id,
+      task,
+      cron
+    }));
+    setEditingTask(null);
+  };
+
   const deleteExpert = (name: string) => {
     if (confirm(`¿Estás seguro de eliminar al experto "${name}"?`)) {
       ws.current?.send(JSON.stringify({
@@ -268,17 +279,18 @@ export default function App() {
 
   const quickCommands = [
     { label: 'Estado', cmd: '/status', icon: <Zap size={14} /> },
-    { label: 'Ayuda', cmd: '/help', icon: <MessageSquare size={14} /> },
-    { label: 'Limpiar', cmd: '/reset', icon: <Terminal size={14} /> }
+    { label: 'Ayuda', cmd: '/ayuda', icon: <MessageSquare size={14} /> },
+    { label: 'Limpiar', cmd: '/reset', icon: <Terminal size={14} /> },
+    { label: 'Funciones', cmd: 'features', icon: <Info size={14} /> }
   ];
 
   const features = [
-    { name: 'Navegación Web', icon: <Globe size={20} />, description: 'Busca en internet y analiza contenido de URLs en tiempo real.' },
-    { name: 'Ejecución de Código', icon: <Terminal size={20} />, description: 'Ejecuta comandos Bash y scripts para resolver tareas técnicas.' },
-    { name: 'Gestión de Archivos', icon: <Database size={20} />, description: 'Lee, escribe y organiza archivos en tu sistema local.' },
-    { name: 'Planificación', icon: <Calendar size={20} />, description: 'Agenda tareas y recordatorios automáticos con el Scheduler.' },
-    { name: 'Privacidad', icon: <Shield size={20} />, description: 'Tus datos se procesan localmente y tus APIs están protegidas.' },
-    { name: 'Multi-Agente', icon: <Cpu size={20} />, description: 'Delega tareas complejas a un equipo de expertos especializados.' }
+    { name: 'Navegación Web', icon: <Globe size={20} />, description: 'Busca en internet, analiza contenido de URLs y extrae datos en tiempo real.' },
+    { name: 'Terminal Bash', icon: <Terminal size={20} />, description: 'Ejecuta comandos Bash y scripts nativos para resolver tareas técnicas complejas.' },
+    { name: 'Gestión de Archivos', icon: <Database size={20} />, description: 'Lee, escribe, edita y organiza archivos en tu sistema local con total seguridad.' },
+    { name: 'Planificación Cron', icon: <Calendar size={20} />, description: 'Agenda tareas recurrentes con formato cron que se ejecutan incluso si no estás conectado.' },
+    { name: 'Privacidad Local', icon: <Shield size={20} />, description: 'Tus datos se procesan localmente. El asistente solo usa la nube para la inteligencia del modelo.' },
+    { name: 'Expertos Multi-Agente', icon: <Cpu size={20} />, description: 'Crea y delega tareas a expertos especializados en código, redacción, clima y mucho más.' }
   ];
 
   const renderContent = (text: string) => {
@@ -316,8 +328,11 @@ export default function App() {
                 <button
                   key={cmd.cmd}
                   className="cmd-pill"
-                  onClick={() => !isWaiting && sendMessage(cmd.cmd)}
-                  disabled={isWaiting}
+                  onClick={() => {
+                    if (cmd.cmd === 'features') setIsFeaturesOpen(true);
+                    else if (!isWaiting) sendMessage(cmd.cmd);
+                  }}
+                  disabled={isWaiting && cmd.cmd !== 'features'}
                 >
                   {cmd.icon} {cmd.label}
                 </button>
@@ -374,7 +389,7 @@ export default function App() {
               ) : (
                 scheduledTasks.map((t) => (
                   <div key={t.id} className="task-item">
-                    <div className="task-info">
+                    <div className="task-info" onClick={() => setEditingTask(t)}>
                       <span className="task-desc">{t.task}</span>
                       <span className="task-cron">{t.cron}</span>
                     </div>
@@ -387,12 +402,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="nav-section">
-            <button className="feature-trigger" onClick={() => setIsFeaturesOpen(true)}>
-              <Info size={16} /> <span>Funcionalidades</span>
-              <ChevronRight size={14} className="ml-auto" />
-            </button>
-          </div>
+          {/* Features moved to top commands */}
         </nav>
 
         <div className="sidebar-footer">
@@ -528,6 +538,14 @@ export default function App() {
         <FeaturesOverlay
           features={features}
           onClose={() => setIsFeaturesOpen(false)}
+        />
+      )}
+
+      {editingTask && (
+        <TaskEditor
+          task={editingTask}
+          onClose={() => setEditingTask(null)}
+          onSave={updateTask}
         />
       )}
     </div>
@@ -728,6 +746,53 @@ function FeaturesOverlay({ features, onClose }: { features: any[], onClose: () =
               <p>{f.description}</p>
             </div>
           ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TaskEditor({ task, onClose, onSave }: {
+  task: any,
+  onClose: () => void,
+  onSave: (id: number, task: string, cron: string) => void
+}) {
+  const [formData, setFormData] = useState({
+    task: task.task,
+    cron: task.cron
+  });
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Editar Tarea Programada</h3>
+          <button className="icon-btn" onClick={onClose}><X size={18} /></button>
+        </div>
+        <div className="modal-body">
+          <div className="form-group">
+            <label>Descripción de la Tarea</label>
+            <input
+              type="text"
+              placeholder="Ej: Consultar clima y enviar reporte..."
+              value={formData.task}
+              onChange={e => setFormData({ ...formData, task: e.target.value })}
+            />
+          </div>
+          <div className="form-group">
+            <label>Horario Cron (minutos hora día mes día_semana)</label>
+            <input
+              type="text"
+              placeholder="Ej: 30 7 * * *"
+              value={formData.cron}
+              onChange={e => setFormData({ ...formData, cron: e.target.value })}
+            />
+            <small className="field-hint">Calcula tu cron en crontab.guru si tienes dudas.</small>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn-secondary" onClick={onClose}>Cancelar</button>
+          <button className="btn-primary" onClick={() => onSave(task.id, formData.task, formData.cron)}>Guardar Cambios</button>
         </div>
       </div>
     </div>

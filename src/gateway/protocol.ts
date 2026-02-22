@@ -12,6 +12,7 @@ export type WsMessageType =
   | "list_users"        // servidor → cliente: lista de usuarios existentes
   | "list_tasks"        // servidor → cliente: lista de tareas programadas
   | "delete_task"      // cliente → servidor: eliminar tarea
+  | "update_task"      // cliente → servidor: editar tarea
   | "identify";          // cliente → servidor: asociar sesión con userId
 
 export interface WsUserMessage {
@@ -89,6 +90,13 @@ export interface WsDeleteTaskMessage {
   id: number;
 }
 
+export interface WsUpdateTaskMessage {
+  type: "update_task";
+  id: number;
+  task: string;
+  cron: string;
+}
+
 export type WsMessage =
   | WsUserMessage
   | WsAssistantMessage
@@ -101,4 +109,5 @@ export type WsMessage =
   | WsListUsersMessage
   | WsListTasksMessage
   | WsDeleteTaskMessage
+  | WsUpdateTaskMessage
   | WsIdentifyMessage;

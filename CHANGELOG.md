@@ -2,6 +2,31 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [1.4.0] - 2026-02-22
+
+### Añadido
+- **Gestión Completa de Tareas (Web & Telegram):**
+  - **Panel de Control Web:** Nueva sección en la barra lateral que lista todas las tareas programadas con actualización en tiempo real.
+  - **Edición Visual:** Implementado modal de edición de tareas que permite modificar la descripción y la expresión cron sin borrar la tarea.
+  - **Comandos de Telegram:** Añadidos comandos `/tareas` (para listar con IDs) y `/borrar_tarea <ID>` (para eliminación remota).
+- **Reporte Meteorológico Profesional:**
+  - Migración a la API JSON de `wttr.in` para obtener datos estructurados y fiables.
+  - Soporte para **Pronóstico Extendido de 3 días** mediante el parámetro `forecast`.
+  - El experto en Clima ahora procesa y resume visualmente temperaturas máximas, mínimas y estado del cielo.
+
+### Mejorado
+- **Arquitectura de UI/UX:**
+  - Reorganización de la barra de comandos rápida (Estado, Ayuda, Limpiar, Funciones).
+  - Modal de "Funcionalidades" rediseñado con descripciones técnicas precisas de los módulos del sistema.
+  - Mejora en la validación visual de formularios y estados de foco en modales.
+- **Protocolo de Comunicación:** Sincronización proactiva de tareas programadas mediante el mensaje `list_tasks` al identificar el usuario.
+
+### Corregido
+- **Build & Layout:** 
+  - Corregido bug de scroll infinito en la lista de mensajes mediante rigidización del contenedor principal.
+  - Eliminados errores de compilación por iconos no utilizados (`ChevronRight`) y variables de estado perdidas tras refactorización.
+  - Solucionado el problema de alias del comando de ayuda (`/ayuda` ahora es universal).
+
 ## [1.3.1] - 2026-02-22
 
 ### Añadido

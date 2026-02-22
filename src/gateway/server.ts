@@ -133,6 +133,21 @@ export function createGateway(): GatewayServer {
           stopLocalTask(msg.id);
           send(ws, { type: "list_tasks" as any, tasks: getUserTasks(sessionId) } as any);
         }
+      } else if (msg.type === "update_task") {
+        const { updateTask, getUserTasks } = await import("../memory/scheduler-db.ts");
+        const { stopLocalTask, scheduleLocalTask } = await import("../agent/scheduler-manager.ts");
+        if (updateTask(msg.id, sessionId, msg.task, msg.cron)) {
+          stopLocalTask(msg.id);
+          scheduleLocalTask({
+            id: msg.id,
+            userId: sessionId,
+            task: msg.task,
+            cron: msg.cron,
+            active: 1,
+            created_at: new Date().toISOString()
+          });
+          send(ws, { type: "list_tasks" as any, tasks: getUserTasks(sessionId) } as any);
+        }
       } else if (msg.type === "list_tasks" as any) {
         const { getUserTasks } = await import("../memory/scheduler-db.ts");
         send(ws, { type: "list_tasks" as any, tasks: getUserTasks(sessionId) } as any);
