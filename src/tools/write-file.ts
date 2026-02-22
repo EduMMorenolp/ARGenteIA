@@ -28,8 +28,23 @@ export function registerWriteFile(config: Config): void {
       },
     },
     handler: async (args, _context) => {
-      const filePath = resolve(String(args["path"] ?? ""));
+      let rawPath = String(args["path"] ?? "").trim();
       const content = String(args["content"] ?? "");
+
+      // Eliminar comillas accidentales
+      if ((rawPath.startsWith('"') && rawPath.endsWith('"')) || (rawPath.startsWith("'") && rawPath.endsWith("'"))) {
+        rawPath = rawPath.slice(1, -1);
+      }
+
+      // Resolver ~ o $HOME
+      const homeDir = process.env[process.platform === "win32" ? "USERPROFILE" : "HOME"] || "";
+      if (rawPath.startsWith("~")) {
+        rawPath = rawPath.replace("~", homeDir);
+      } else if (rawPath.includes("$HOME")) {
+        rawPath = rawPath.replace(/\$HOME/g, homeDir);
+      }
+
+      const filePath = resolve(rawPath);
 
       try {
         await mkdir(dirname(filePath), { recursive: true });

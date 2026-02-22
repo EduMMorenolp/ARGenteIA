@@ -67,7 +67,7 @@ export function registerMemoryTools(): void {
           properties: {
             id: {
               type: "number",
-              description: "El ID del dato a eliminar (se obtiene con recall_facts).",
+              description: "El ID numérico exacto del dato a eliminar. Debes obtenerlo primero llamando a recall_facts.",
             },
           },
           required: ["id"],

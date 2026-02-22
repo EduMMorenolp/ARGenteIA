@@ -8,6 +8,10 @@ import { loadSkills } from "../skills/loader.ts";
 
 let bot: TelegramBot | null = null;
 
+export function getBot(): TelegramBot | null {
+  return bot;
+}
+
 export function startTelegram(): void {
   const config = getConfig();
   const tgConfig = config.channels.telegram;

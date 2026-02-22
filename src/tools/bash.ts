@@ -50,7 +50,7 @@ export function registerBash(config: Config): void {
       function: {
         name: "bash",
         description: isWindows
-          ? `Ejecuta comandos en PowerShell (Windows). Soporta pipes y comandos completos.\nComandos permitidos: ${config.tools.bash.allowlist.join(", ")}.\nEjemplos:\n- Listar descargas: \`Get-ChildItem $HOME\\Downloads | Sort-Object LastWriteTime -Descending | Select-Object -First 5\`\n- Explorar home: \`Get-ChildItem $HOME\`\n- Fecha: \`Get-Date\`\n- Leer archivo: \`Get-Content "ruta\\archivo.txt"\``
+          ? `Ejecuta comandos en PowerShell (Windows). Soporta pipes y comandos completos.\nComandos permitidos: ${config.tools.bash.allowlist.join(", ")}.\nIMPORTANTE: En Windows, usa comillas dobles para rutas con espacios o caracteres especiales (ej: "ruta\\archivo (1).txt"). NO uses escapes de barra invertida (\\) para paréntesis.\nEjemplos:\n- Listar descargas: \`Get-ChildItem "$HOME\\Downloads" | Sort-Object LastWriteTime -Descending | Select-Object -First 5\`\n- Explorar home: \`Get-ChildItem "$HOME"\`\n- Leer archivo: \`Get-Content "$HOME\\Documents\\plan.txt"\``
           : `Ejecuta comandos en bash (Linux/macOS). Soporta pipes.\nComandos permitidos: ${config.tools.bash.allowlist.join(", ")}.\nEjemplos:\n- Listar descargas: \`ls -lt ~/Downloads | head -5\`\n- Fecha: \`date\``,
         parameters: {
           type: "object",
@@ -58,8 +58,8 @@ export function registerBash(config: Config): void {
             command: {
               type: "string",
               description: isWindows
-                ? "Comando completo de PowerShell (puede incluir pipes con |). Usá $HOME para el directorio del usuario."
-                : "Comando completo de bash (puede incluir pipes con |).",
+                ? "Comando completo de PowerShell. Usa comillas para rutas: \"$HOME\\Downloads\\file (1).txt\""
+                : "Comando completo de bash.",
             },
           },
           required: ["command"],

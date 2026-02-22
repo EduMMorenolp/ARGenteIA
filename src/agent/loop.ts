@@ -23,7 +23,7 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
   const provider = detectProvider(model);
 
   // Añadir mensaje del usuario al historial
-  addMessage(opts.sessionId, { role: "user", content: opts.userText });
+  addMessage(opts.sessionId, { role: "user", content: opts.userText }, config.agent.maxContextMessages);
   const messages = getHistory(opts.sessionId);
 
   opts.onTyping?.(true);
@@ -43,7 +43,7 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
     }
 
     // Guardar respuesta final en historial
-    addMessage(opts.sessionId, { role: "assistant", content: responseText });
+    addMessage(opts.sessionId, { role: "assistant", content: responseText }, config.agent.maxContextMessages);
 
     return { text: responseText, model };
   } catch (err: any) {
@@ -72,8 +72,12 @@ async function runOpenAI(
   const toolSpecs: ToolSpec[] = getTools();
   const tools = toolSpecs.length > 0 ? (toolSpecs as unknown as ChatCompletionTool[]) : undefined;
 
-  // Clonar historial para el loop
-  let loopMessages = [...messages];
+  // Clonar historial para el loop y añadir system prompt
+  const systemPrompt = config.agent.systemPrompt || "Eres un asistente personal útil.";
+  let loopMessages: ChatCompletionMessageParam[] = [
+    { role: "system", content: systemPrompt },
+    ...messages
+  ];
   let iterations = 0;
   const MAX_ITERATIONS = 6;
 

@@ -24,7 +24,31 @@ export function registerReadFile(config: Config): void {
       },
     },
     handler: async (args, _context) => {
-      const filePath = resolve(String(args["path"] ?? ""));
+      let rawPath = String(args["path"] ?? "").trim();
+      
+      // Eliminar comillas accidentales que el modelo a veces pone alrededor de la ruta
+      if ((rawPath.startsWith('"') && rawPath.endsWith('"')) || (rawPath.startsWith("'") && rawPath.endsWith("'"))) {
+        rawPath = rawPath.slice(1, -1);
+      }
+      
+      // Resolver ~ o $HOME a la carpeta del usuario
+      const homeDir = process.env[process.platform === "win32" ? "USERPROFILE" : "HOME"] || "";
+      if (rawPath.startsWith("~")) {
+        rawPath = rawPath.replace("~", homeDir);
+      } else if (rawPath.includes("$HOME")) {
+        rawPath = rawPath.replace(/\$HOME/g, homeDir);
+      }
+
+      const filePath = resolve(rawPath);
+
+      // Verificar si es un archivo binario conocido para no leerlo como UTF-8
+      const binaryExtensions = [".exe", ".zip", ".xlsx", ".docx", ".pdf", ".bin", ".jpg", ".png"];
+      const isBinary = binaryExtensions.some(ext => filePath.toLowerCase().endsWith(ext));
+
+      if (isBinary) {
+        return `Error: El archivo "${filePath}" es un formato binario (${filePath.split('.').pop()}). Solo puedo leer archivos de texto plano, código o logs.`;
+      }
+
       try {
         const content = await readFile(filePath, "utf-8");
         const lines = content.split("\n").length;

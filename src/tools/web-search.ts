@@ -22,13 +22,28 @@ export function registerWebSearch(config: Config): void {
       },
     },
     handler: async (args, _context) => {
-      const query = String(args["query"] ?? "");
+      const query = String(args["query"] ?? "").trim();
+      if (!query) {
+        return "Error: La consulta de búsqueda está vacía. Por favor, proporciona un término para buscar.";
+      }
+      
       const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_redirect=1&no_html=1&skip_disambig=1`;
 
-      const resp = await fetch(url, {
-        headers: { "User-Agent": "AsistentePersonal/1.0" },
-      });
-      const data = (await resp.json()) as Record<string, unknown>;
+      try {
+        const resp = await fetch(url, {
+          headers: { "User-Agent": "AsistentePersonal/1.0" },
+        });
+
+        if (!resp.ok) {
+          return `Error al conectar con DuckDuckGo: ${resp.statusText}`;
+        }
+
+        const text = await resp.text();
+        if (!text) {
+          return `DuckDuckGo devolvió una respuesta vacía para: "${query}"`;
+        }
+
+        const data = JSON.parse(text) as Record<string, unknown>;
 
       const parts: string[] = [];
 
@@ -53,11 +68,14 @@ export function registerWebSearch(config: Config): void {
         if (items) parts.push(`**Resultados relacionados:**\n${items}`);
       }
 
-      if (parts.length === 0) {
-        return `No se encontraron resultados para: "${query}"`;
-      }
+        if (parts.length === 0) {
+          return `No se encontraron resultados para: "${query}"`;
+        }
 
-      return parts.join("\n\n");
+        return parts.join("\n\n");
+      } catch (err: any) {
+        return `Error al procesar la búsqueda: ${err.message}`;
+      }
     },
   });
 }

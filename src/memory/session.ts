@@ -10,9 +10,14 @@ export function getHistory(sessionId: string): ChatCompletionMessageParam[] {
   return sessions.get(sessionId)!;
 }
 
-export function addMessage(sessionId: string, msg: ChatCompletionMessageParam): void {
+export function addMessage(sessionId: string, msg: ChatCompletionMessageParam, maxMessages: number = 40): void {
   const history = getHistory(sessionId);
   history.push(msg);
+  
+  if (history.length > maxMessages) {
+    const toRemove = history.length - maxMessages;
+    history.splice(0, toRemove);
+  }
 }
 
 export function resetSession(sessionId: string): void {
