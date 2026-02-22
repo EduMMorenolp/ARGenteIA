@@ -89,8 +89,7 @@ export async function runExpert(req: ExpertRequest): Promise<string> {
         try { args = typeof fn.arguments === "string" ? JSON.parse(fn.arguments) : fn.arguments; } catch {}
 
         console.log(chalk.yellow(`   🔧 [Expert ${expert.name}] Tool: ${fn.name}`), args);
-        // Usamos una sesión genérica o la que venga en el request si la ampliamos luego
-        const result = await executeTool(fn.name, args, { sessionId: "expert-call" });
+        const result = await executeTool(fn.name, args, { sessionId: req.userId || "expert-call" });
         
         toolResults.push({
           role: "tool",

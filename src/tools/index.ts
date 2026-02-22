@@ -62,6 +62,7 @@ import { registerSendFile } from "./send-file.ts";
 import { registerSchedulerTools } from "./scheduler.ts";
 import { registerUserTools } from "./user-tools.ts";
 import { registerDelegateTool } from "./delegate.ts";
+import { registerWeatherTool } from "./weather.ts";
 
 export function initTools(): void {
   const config = getConfig();
@@ -75,4 +76,5 @@ export function initTools(): void {
   registerSchedulerTools(config);
   registerUserTools(config);
   registerDelegateTool();
+  registerWeatherTool();
 }

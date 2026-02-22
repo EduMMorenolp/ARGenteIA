@@ -533,6 +533,12 @@ const TEMPLATES = [
     prompt: 'Eres un estratega de negocios con experiencia en emprendimiento y gestión de proyectos. Ayudas al usuario a validar ideas, crear planes de negocio, analizar mercados y optimizar procesos organizativos.',
     description: 'Estrategia y negocios',
     tools: ['web_search', 'scheduler_add_task']
+  },
+  {
+    name: 'Meteorólogo / Clima',
+    prompt: 'Eres un experto en meteorología y pronóstico del tiempo. Tu única función es informar sobre el clima en base a la ubicación del usuario. Utiliza la herramienta de clima para obtener datos precisos. Si no tienes la ubicación, pídela amablemente o utiliza la búsqueda web como respaldo.',
+    description: 'Información del tiempo',
+    tools: ['get_weather', 'web_search']
   }
 ];
 
