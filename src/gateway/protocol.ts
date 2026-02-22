@@ -6,12 +6,15 @@ export type WsMessageType =
   | "typing"            // servidor → cliente: indicador de escritura
   | "error"             // servidor → cliente: error
   | "status"            // servidor → cliente: info de la sesión
-  | "command_result";   // servidor → cliente: resultado de un comando
+  | "command_result"    // servidor → cliente: resultado de un comando
+  | "list_experts"      // servidor → cliente: lista de expertos disponibles
+  | "expert_update";    // cliente → servidor: crear/actualizar experto
 
 export interface WsUserMessage {
   type: "user_message";
   text: string;
   sessionId?: string;
+  expertName?: string; // Si se define, el mensaje va directo a este experto
 }
 
 export interface WsAssistantMessage {
@@ -44,10 +47,24 @@ export interface WsCommandResultMessage {
   result: string;
 }
 
+export interface WsListExpertsMessage {
+  type: "list_experts";
+  experts: any[];
+}
+
+export interface WsExpertUpdateMessage {
+  type: "expert_update";
+  action: "upsert" | "delete" | "list";
+  expert?: any;
+  name?: string;
+}
+
 export type WsMessage =
   | WsUserMessage
   | WsAssistantMessage
   | WsTypingMessage
   | WsErrorMessage
   | WsStatusMessage
-  | WsCommandResultMessage;
+  | WsCommandResultMessage
+  | WsListExpertsMessage
+  | WsExpertUpdateMessage;

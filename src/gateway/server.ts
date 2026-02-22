@@ -46,6 +46,19 @@ export function createGateway(): GatewayServer {
       messageCount: 0,
     });
 
+    // Enviar lista de expertos inicial
+    import("../memory/expert-db.ts").then(({ listExperts }) => {
+      send(ws, { type: "list_experts", experts: listExperts() });
+    });
+
+    // Enviar lista de herramientas disponibles
+    import("../tools/index.ts").then(({ getTools }) => {
+      const toolNames = getTools().map(t => t.function.name);
+      send(ws, { type: "list_tools" as any, tools: toolNames } as any);
+    });
+
+
+
     ws.on("message", async (data) => {
       let msg: WsMessage;
       try {
@@ -60,9 +73,23 @@ export function createGateway(): GatewayServer {
           ws,
           sessionId,
           text: msg.text,
+          expertName: msg.expertName,
           send,
-        });
+        } as any);
+      } else if (msg.type === "expert_update") {
+
+        const { listExperts, upsertExpert, deleteExpert } = await import("../memory/expert-db.ts");
+        if (msg.action === "list") {
+          send(ws, { type: "list_experts", experts: listExperts() });
+        } else if (msg.action === "upsert" && msg.expert) {
+          upsertExpert(msg.expert);
+          send(ws, { type: "list_experts", experts: listExperts() });
+        } else if (msg.action === "delete" && msg.name) {
+          deleteExpert(msg.name);
+          send(ws, { type: "list_experts", experts: listExperts() });
+        }
       }
+
     });
 
     ws.on("close", () => {

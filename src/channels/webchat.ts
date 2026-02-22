@@ -29,11 +29,23 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
   send(ws, { type: "typing", isTyping: true });
 
   try {
-    const result = await runAgent({
-      sessionId,
-      userText: text,
-      onTyping: (isTyping) => send(ws, { type: "typing", isTyping }),
-    });
+    let result;
+    
+    // Si el usuario seleccionó un experto específico, vamos directo a él
+    if ((opts as any).expertName) {
+      const { runExpert } = await import("../agent/expert-runner.ts");
+      const text = await runExpert({
+        expertName: (opts as any).expertName,
+        task: opts.text
+      });
+      result = { text, model: `Expert: ${(opts as any).expertName}` };
+    } else {
+      result = await runAgent({
+        sessionId,
+        userText: text,
+        onTyping: (isTyping) => send(ws, { type: "typing", isTyping }),
+      });
+    }
 
     send(ws, {
       type: "assistant_message",
@@ -41,6 +53,7 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
       model: result.model,
       sessionId,
     });
+
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     send(ws, { type: "error", message: `Error del agente: ${msg}` });

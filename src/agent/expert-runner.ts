@@ -26,27 +26,81 @@ export async function runExpert(req: ExpertRequest): Promise<string> {
   const client = createClient(expert.model, config) as OpenAI;
   const name = modelName(expert.model);
 
+  // 1. Configurar herramientas disponibles para este experto
+  const { getTools, executeTool } = await import("../tools/index.ts");
+  const allTools = getTools();
+  
+  // Filtrar herramientas si el experto tiene una lista definida
+  const tools = expert.tools && expert.tools.length > 0
+    ? allTools.filter(t => expert.tools.includes(t.function.name))
+    : [];
+
   const messages: ChatCompletionMessageParam[] = [
     { role: "system", content: expert.system_prompt },
     { role: "user", content: Array.isArray(req.task) ? JSON.stringify(req.task) : req.task }
   ];
 
   try {
-    const response = await client.chat.completions.create({
+    let iterations = 0;
+    const MAX_ITERATIONS = 5;
+
+    let response = await client.chat.completions.create({
       model: name,
       messages,
       max_tokens: config.agent.maxTokens,
       temperature: expert.temperature ?? 0.7,
+      tools: tools.length > 0 ? (tools as any) : undefined,
+      tool_choice: tools.length > 0 ? "auto" : undefined,
     });
 
-    const content = response.choices[0]?.message?.content;
-    if (!content) {
-      return "El experto no devolvió ninguna respuesta.";
+    while (iterations < MAX_ITERATIONS) {
+      iterations++;
+      const assistantMsg = response.choices[0]?.message;
+      if (!assistantMsg) break;
+
+      messages.push({
+        role: "assistant",
+        content: assistantMsg.content || "",
+        tool_calls: assistantMsg.tool_calls
+      } as ChatCompletionMessageParam);
+
+      if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
+        if (assistantMsg.content) return assistantMsg.content;
+        break;
+      }
+
+      const toolResults: ChatCompletionMessageParam[] = [];
+      for (const toolCall of assistantMsg.tool_calls) {
+        const fn = (toolCall as any).function;
+        if (!fn) continue;
+        let args = {};
+        try { args = typeof fn.arguments === "string" ? JSON.parse(fn.arguments) : fn.arguments; } catch {}
+
+        console.log(chalk.yellow(`   🔧 [Expert ${expert.name}] Tool: ${fn.name}`), args);
+        // Usamos una sesión genérica o la que venga en el request si la ampliamos luego
+        const result = await executeTool(fn.name, args, { sessionId: "expert-call" });
+        
+        toolResults.push({
+          role: "tool",
+          tool_call_id: toolCall.id,
+          content: String(result),
+        });
+      }
+
+      messages.push(...toolResults);
+
+      response = await client.chat.completions.create({
+        model: name,
+        messages,
+        max_tokens: config.agent.maxTokens,
+        tools: tools as any,
+      });
     }
 
-    return content;
+    return response.choices[0]?.message?.content || "El experto no devolvió ninguna respuesta.";
   } catch (err: any) {
     console.error(chalk.red(`   ❌ Error en experto ${expert.name}:`), err.message);
     throw new Error(`Error del experto ${expert.name}: ${err.message}`);
   }
 }
+

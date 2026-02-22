@@ -2,6 +2,38 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [1.3.0] - 2026-02-22
+
+### Añadido
+- **Migración Major a Vite + React:** Interfaz de usuario reconstruida desde cero para mayor velocidad, modularidad y estética premium.
+  - Diseño **Glassmorphism** oscuro con tipografía *Outfit*.
+  - Navegación lateral renovada con gestión integrada de agentes y comandos.
+  - Renderizado optimizado de Markdown y bloques de código.
+- **Sistema Multi-Agente (Expertos):**
+  - Capacidad para crear, editar y eliminar expertos especializados directamente desde la UI.
+  - Invocación directa: Selecciona un experto en el chat para hablar exclusivamente con él.
+  - Las respuestas de los expertos ahora aparecen identificadas con su nombre y modelo en el chat.
+- **Sistema de Plantillas de Agentes:**
+  - Selector de plantillas (Coder, Escritor, Researcher, Analista) que precarga automáticamente Prompts de sistema optimizados.
+  - Asignación inteligente de herramientas por plantilla.
+- **Capacitación de Herramientas para Expertos:**
+  - Los expertos ahora pueden usar herramientas (búsqueda web, bash, archivos) de forma autónoma.
+  - Implementado bucle de razonamiento y uso de herramientas (`tool_calls`) específico para expertos.
+  - Selector visual de herramientas mediante "chips" interactivos en el creador de agentes.
+- **Sincronización de Estado en Tiempo Real:** 
+  - El servidor ahora notifica dinámicamente la lista de expertos y herramientas disponibles al conectar.
+  - Implementadas nuevas acciones de WebSocket: `list_experts`, `list_tools`, `expert_update`.
+
+### Mejorado
+- **Feedback del Sistema:** Indicador de escritura animado que diferencia cuando el asistente general o un experto específico está procesando.
+- **Persistencia de Expertos:** Los sub-agentes se guardan en SQLite asegurando que tus configuraciones se mantengan tras reiniciar el servidor.
+- **Interfaz de Creación:** Modal optimizado con control de temperatura, modelo (OpenRouter) e instrucciones detalladas.
+
+### Corregido
+- **Build Errors:** Eliminados imports no utilizados en la UI que causaban fallos en la compilación de producción.
+- **Inconsistencia de Dependencias:** Corregido error de módulo no encontrado para `zod-to-json-schema` en el entorno de ejecución.
+- **WebSocket Protocol:** Robustez mejorada en el manejo de mensajes para evitar desincronización entre cliente y servidor.
+
 ## [1.2.0] - 2026-02-22
 
 ### Añadido
