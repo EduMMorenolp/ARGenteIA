@@ -92,10 +92,63 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
     case "/help":
       await bot!.sendMessage(
         chatId,
-        `🤖 *ARGenteIA*\n\nComandos:\n• /reset — Limpiar historial\n• /model — Ver/cambiar modelo\n• /status — Estado actual\n• /tools — Herramientas disponibles\n• /skills — Skills cargadas`,
+        `🤖 *ARGenteIA*\n\nComandos:\n• /reset — Limpiar historial\n• /model — Ver/cambiar modelo\n• /status — Estado actual\n• /tools — Herramientas disponibles\n• /skills — Skills cargadas\n\n🔹 *Gestión de Agentes Expertos:*\n• /agentes — Listar expertos configurados\n• /crear_agente <nombre>|<modelo>|<prompt> — Crea/Edita un experto\n• /borrar_agente <nombre> — Elimina un experto`,
         { parse_mode: "Markdown" },
       );
       break;
+
+    case "/agentes": {
+      const { listExperts } = await import("../memory/expert-db.ts");
+      const experts = listExperts();
+      if (experts.length === 0) {
+        await bot!.sendMessage(chatId, "No hay agentes expertos configurados aún.");
+      } else {
+        const list = experts.map(e => `• *${e.name}* (\`${e.model}\`)\n  _${e.system_prompt.slice(0, 50)}..._`).join("\n\n");
+        await bot!.sendMessage(chatId, `🤖 *Agentes Expertos Disponibles:*\n\n${list}`, { parse_mode: "Markdown" });
+      }
+      break;
+    }
+
+    case "/crear_agente": {
+      const { upsertExpert } = await import("../memory/expert-db.ts");
+      const subParts = arg.split("|");
+      if (subParts.length < 3) {
+        await bot!.sendMessage(chatId, "❌ Formato inválido. Usá:\n`/crear_agente nombre|modelo|prompt`", { parse_mode: "Markdown" });
+        return;
+      }
+      const [name, model, ...promptParts] = subParts;
+      const systemPrompt = promptParts.join("|").trim();
+      
+      try {
+        upsertExpert({
+          name: name.trim(),
+          model: model.trim(),
+          system_prompt: systemPrompt,
+          tools: [],
+          temperature: 0.7
+        });
+        await bot!.sendMessage(chatId, `✅ Agente experto "*${name.trim()}*" creado/actualizado con éxito.`, { parse_mode: "Markdown" });
+      } catch (err: any) {
+        await bot!.sendMessage(chatId, `❌ Error al crear agente: ${err.message}`);
+      }
+      break;
+    }
+
+    case "/borrar_agente": {
+      const { deleteExpert, getExpert } = await import("../memory/expert-db.ts");
+      if (!arg) {
+        await bot!.sendMessage(chatId, "❌ Debes especificar el nombre del agente a borrar.");
+        return;
+      }
+      const name = arg.trim();
+      if (!getExpert(name)) {
+        await bot!.sendMessage(chatId, `❌ El agente "${name}" no existe.`);
+        return;
+      }
+      deleteExpert(name);
+      await bot!.sendMessage(chatId, `✅ Agente experto "${name}" eliminado.`);
+      break;
+    }
 
     case "/reset":
       resetSession(sessionId);

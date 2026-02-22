@@ -61,6 +61,7 @@ import { registerMemoryTools } from "./memory.ts";
 import { registerSendFile } from "./send-file.ts";
 import { registerSchedulerTools } from "./scheduler.ts";
 import { registerUserTools } from "./user-tools.ts";
+import { registerDelegateTool } from "./delegate.ts";
 
 export function initTools(): void {
   const config = getConfig();
@@ -73,4 +74,5 @@ export function initTools(): void {
   registerSendFile(config);
   registerSchedulerTools(config);
   registerUserTools(config);
+  registerDelegateTool();
 }

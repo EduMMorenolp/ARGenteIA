@@ -68,7 +68,6 @@ export function scheduleLocalTask(task: ScheduledTask): void {
         console.error(chalk.red(`   ❌ Error al ejecutar runAgent para tarea [ID ${task.id}]:`), err.message);
       }
     }, {
-        scheduled: true,
         timezone: "America/Argentina/Buenos_Aires" // Por defecto, pero idealmente configurable
     });
 

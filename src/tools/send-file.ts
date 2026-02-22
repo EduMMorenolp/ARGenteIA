@@ -75,8 +75,7 @@ export function registerSendFile(config: Config): void {
 
       try {
         await bot.sendDocument(chatId, filePath, { 
-          caption,
-          contentType: "application/octet-stream"
+          caption
         });
         return `Archivo "${filePath.split(/[\\/]/).pop()}" enviado correctamente a Telegram.`;
       } catch (err: any) {

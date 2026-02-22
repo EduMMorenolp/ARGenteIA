@@ -86,6 +86,18 @@ async function runOpenAI(
     Cuando te dé los datos, usa la herramienta 'update_profile'.`;
   }
 
+  // 2. Información de Sub-Agentes (Expertos)
+  const { listExperts } = await import("../memory/expert-db.ts");
+  const experts = listExperts();
+  if (experts.length > 0) {
+    systemPrompt += `\n\nTIENES ACCESO A UN EQUIPO DE EXPERTOS ESPECIALIZADOS. 
+    Si el usuario requiere una tarea que encaje con alguno de estos expertos, USA la herramienta 'call_expert'.
+    Expertos disponibles:
+    ${experts.map(e => `- ${e.name}: ${e.system_prompt.slice(0, 100)}... (Modelo: ${e.model})`).join("\n    ")}
+    
+    REGLA: Prefiere delegar tareas técnicas, de redacción creativa o de investigación a estos expertos para mejores resultados.`;
+  }
+
   // Clonar historial para el loop y añadir system prompt dinámico
   let loopMessages: ChatCompletionMessageParam[] = [
     { role: "system", content: systemPrompt },
