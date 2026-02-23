@@ -740,7 +740,32 @@ textarea {
   margin-bottom: 24px;
 }
 
-.modal-header h3 { font-size: 20px; font-weight: 700; }
+.modal-header h3 { 
+  font-size: 18px; 
+  font-weight: 600; 
+  color: var(--text-main);
+}
+
+.icon-btn {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.icon-btn:hover {
+  background: var(--border);
+  color: var(--error);
+  border-color: var(--error);
+  transform: rotate(90deg);
+}
 
 .form-group {
   margin-bottom: 20px;
@@ -785,8 +810,62 @@ textarea {
   display: block;
   margin-top: 6px;
   font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* ─── Days Selector ─────────────────────────────────────────────────── */
+.days-selector {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.day-chip {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+  user-select: none;
+}
+
+.day-chip:hover {
+  border-color: var(--accent);
   color: var(--text-dim);
-  font-style: italic;
+}
+
+.day-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.time-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.time-input-wrap {
+  position: relative;
+}
+
+.time-input-wrap input {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
 }
 
 
