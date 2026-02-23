@@ -3,16 +3,14 @@ FROM node:22-slim AS ui-builder
 RUN npm install -g pnpm
 WORKDIR /app/ui
 COPY ui/package.json ./
-# If lockfile exists, copy it
-COPY ui/pnpm-lock.yaml* ./ 
-RUN pnpm install
+RUN pnpm install --no-frozen-lockfile
 COPY ui/ ./
 RUN pnpm run build
 
 # --- Stage 2: Build the Backend ---
 FROM node:22-slim AS server-builder
 RUN npm install -g pnpm
-# Install tools for building better-sqlite3
+# Install tools for building native modules
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
@@ -21,6 +19,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
+# Allow build scripts for native modules
 RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm run build
@@ -30,7 +29,7 @@ FROM node:22-slim
 WORKDIR /app
 RUN npm install -g pnpm
 
-# Install runtime dependencies for better-sqlite3 and screenshot-desktop
+# Install runtime dependencies for native modules
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
@@ -48,9 +47,8 @@ COPY --from=server-builder /app/dist ./dist
 COPY --from=ui-builder /app/ui/dist ./ui/dist
 COPY skills ./skills
 COPY config.example.json ./config.example.json
-# We'll expect config.json to be provided via volume, 
-# but we copy it now just to have a working image out of the box
-COPY config.json ./config.json
+# We copy config.json if it exists, but volume is preferred
+COPY config.json* ./config.json
 
 # Ensure memory directory exists
 RUN mkdir -p memoryUser
