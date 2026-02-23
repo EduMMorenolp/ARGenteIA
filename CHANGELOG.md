@@ -15,12 +15,16 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
   - El experto en Clima ahora procesa y resume visualmente temperaturas máximas, mínimas y estado del cielo.
 
 ### Mejorado
-- **Arquitectura de UI/UX:**
-  - **Selector de Horarios Pro:** Rediseñado el editor de tareas para eliminar la necesidad de conocer formato CRON. Ahora incluye selectores numéricos de hora/minuto y chips interactivos para los días de la semana.
-  - **Botón de Cierre Premium:** Nuevo diseño circular para el botón "X" con animación de rotación y feedback visual mejorado.
-  - **Modal de Funcionalidades:** Rediseñado con descripciones técnicas precisas de los módulos del sistema.
-  - **Formularios & Foco:** Mejora en la validación visual y estados de foco (glow) en todos los modales.
-  - Reorganización de la barra de comandos rápida (Estado, Ayuda, Limpiar, Funciones).
+- **Arquitectura de Frontend Pro:** Refactorización completa de la UI siguiendo patrones de diseño escalables (Next.js style).
+  - Extracción de lógica a **Hooks personalizados** (`useAssistant`, `useWebSocket`).
+  - Modularización de componentes en carpetas especializadas (`components/chat`, `components/layout`, `components/modals`).
+  - Centralización de tipos, constantes y servicios.
+- **Selector de Horarios Pro:** Rediseñado el editor de tareas para eliminar la necesidad de conocer formato CRON. Ahora incluye selectores numéricos de hora/minuto y chips interactivos para los días de la semana.
+- **Botón de Cierre Premium:** Nuevo diseño circular para el botón "X" con animación de rotación y feedback visual mejorado.
+- **Modal de Funcionalidades:** Rediseñado con descripciones técnicas precisas de los módulos del sistema.
+- **Formularios & Foco:** Mejora en la validación visual y estados de foco (glow) en todos los modales.
+- Reorganización de la barra de comandos rápida (Estado, Ayuda, Limpiar, Funciones).
+- **Identidad Visual:** Actualización del favicon (`logo.svg`).
 - **Protocolo de Comunicación:** Sincronización proactiva de tareas programadas mediante el mensaje `list_tasks` al identificar el usuario.
 
 ### Corregido

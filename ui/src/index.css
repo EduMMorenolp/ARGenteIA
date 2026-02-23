@@ -767,6 +767,24 @@ textarea {
   transform: rotate(90deg);
 }
 
+.icon-btn-sm {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.icon-btn-sm:hover {
+  background: var(--bg-input);
+  color: var(--accent);
+}
+
 .form-group {
   margin-bottom: 20px;
 }

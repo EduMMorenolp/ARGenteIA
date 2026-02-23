@@ -1,0 +1,120 @@
+import { useState } from 'react';
+import { X } from 'lucide-react';
+import type { Expert } from '../../types';
+import { TEMPLATES, TOOL_LABELS } from '../../constants';
+
+interface ExpertCreatorProps {
+    onClose: () => void;
+    onSave: (e: Expert) => void;
+    initialData: Expert | null;
+    availableTools: string[];
+}
+
+export function ExpertCreator({ onClose, onSave, initialData, availableTools }: ExpertCreatorProps) {
+    const [formData, setFormData] = useState<Expert>(initialData || {
+        name: '',
+        model: 'openrouter/meta-llama/llama-3.3-70b-instruct',
+        system_prompt: '',
+        temperature: 0.7,
+        tools: []
+    });
+
+    const handleTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const template = TEMPLATES.find(t => t.name === e.target.value);
+        if (template && template.name !== 'Personalizado') {
+            setFormData({
+                ...formData,
+                name: template.name.split(' / ')[0], // Simplificar nombre
+                system_prompt: template.prompt,
+                tools: template.tools || []
+            });
+        }
+    };
+
+    const toggleTool = (tool: string) => {
+        const tools = formData.tools || [];
+        if (tools.includes(tool)) {
+            setFormData({ ...formData, tools: tools.filter(t => t !== tool) });
+        } else {
+            setFormData({ ...formData, tools: [...tools, tool] });
+        }
+    };
+
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h3>{initialData ? 'Editar Experto' : 'Crear Nuevo Experto'}</h3>
+                    <button className="icon-btn" onClick={onClose}><X size={18} /></button>
+                </div>
+                <div className="modal-body max-h-600">
+                    {!initialData && (
+                        <div className="form-group">
+                            <label>Seleccionar Plantilla</label>
+                            <select className="template-select" onChange={handleTemplateChange}>
+                                {TEMPLATES.map(t => (
+                                    <option key={t.name} value={t.name}>{t.name} - {t.description}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+                    <div className="form-group">
+                        <label>Nombre</label>
+                        <input
+                            type="text"
+                            placeholder="Ej: Coder, Escritor..."
+                            value={formData.name}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                            disabled={!!initialData}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Herramientas Habilitadas</label>
+                        <div className="tools-selection-grid">
+                            {availableTools.map(tool => (
+                                <button
+                                    key={tool}
+                                    className={`tool-chip ${formData.tools?.includes(tool) ? 'selected' : ''}`}
+                                    onClick={() => toggleTool(tool)}
+                                >
+                                    {TOOL_LABELS[tool] || tool}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Modelo (OpenRouter)</label>
+                        <input
+                            type="text"
+                            value={formData.model}
+                            onChange={e => setFormData({ ...formData, model: e.target.value })}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Instrucciones (Prompt)</label>
+                        <textarea
+                            placeholder="Define cómo debe comportarse este experto..."
+                            rows={4}
+                            value={formData.system_prompt}
+                            onChange={e => setFormData({ ...formData, system_prompt: e.target.value })}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Temperatura ({formData.temperature})</label>
+                        <input
+                            type="range" min="0" max="1" step="0.1"
+                            value={formData.temperature}
+                            onChange={e => setFormData({ ...formData, temperature: parseFloat(e.target.value) })}
+                        />
+                    </div>
+                </div>
+                <div className="modal-footer">
+                    <button className="btn-secondary" onClick={onClose}>Cancelar</button>
+                    <button className="btn-primary" onClick={() => onSave(formData)}>Guardar Experto</button>
+                </div>
+            </div>
+        </div>
+    );
+}
