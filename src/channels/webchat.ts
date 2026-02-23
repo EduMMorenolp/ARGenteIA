@@ -14,7 +14,9 @@ interface WebChatHandlerOpts {
   send: (ws: WebSocket, msg: WsMessage) => void;
 }
 
-export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<void> {
+export async function handleWebChatMessage(
+  opts: WebChatHandlerOpts,
+): Promise<void> {
   const { ws, sessionId, text } = opts;
   const config = getConfig();
   const trimmed = text.trim();
@@ -30,25 +32,25 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
 
   try {
     let result;
-    
+
     // Si el usuario seleccionó un experto específico, vamos directo a él
     if ((opts as any).expertName) {
       const { runExpert } = await import("../agent/expert-runner.ts");
       const { saveMessage } = await import("../memory/message-db.ts");
-      
+
       const response = await runExpert({
         expertName: (opts as any).expertName,
         task: opts.text,
-        userId: sessionId
+        userId: sessionId,
       });
-      
+
       // Persistir respuesta del experto
       saveMessage({
         userId: sessionId,
         role: "assistant",
         content: response,
         origin: "web",
-        expertName: (opts as any).expertName
+        expertName: (opts as any).expertName,
       });
 
       result = { text: response, model: `Expert: ${(opts as any).expertName}` };
@@ -68,7 +70,6 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
       sessionId,
       origin: "web",
     });
-
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     send(ws, { type: "error", message: `Error del agente: ${msg}` });
@@ -91,19 +92,37 @@ async function handleCommand(
   switch (command) {
     case "reset": {
       resetSession(sessionId);
-      sendFn(ws, { type: "command_result", command, result: "✅ Sesión reiniciada." });
+      sendFn(ws, {
+        type: "command_result",
+        command,
+        result: "✅ Sesión reiniciada.",
+      });
       break;
     }
 
     case "model": {
       if (!arg) {
-        const models = Object.keys(config.models).map((m) => `  - ${m}`).join("\n");
-        sendFn(ws, { type: "command_result", command, result: `Modelos disponibles:\n${models}\n\nUso: /model <nombre>` });
+        const models = Object.keys(config.models)
+          .map((m) => `  - ${m}`)
+          .join("\n");
+        sendFn(ws, {
+          type: "command_result",
+          command,
+          result: `Modelos disponibles:\n${models}\n\nUso: /model <nombre>`,
+        });
       } else if (!config.models[arg]) {
-        sendFn(ws, { type: "command_result", command, result: `❌ Modelo "${arg}" no encontrado en config.json` });
+        sendFn(ws, {
+          type: "command_result",
+          command,
+          result: `❌ Modelo "${arg}" no encontrado en config.json`,
+        });
       } else {
         config.agent.model = arg;
-        sendFn(ws, { type: "command_result", command, result: `✅ Modelo cambiado a: ${arg}` });
+        sendFn(ws, {
+          type: "command_result",
+          command,
+          result: `✅ Modelo cambiado a: ${arg}`,
+        });
       }
       break;
     }
@@ -122,10 +141,20 @@ async function handleCommand(
     case "tools": {
       const tools = getTools();
       if (tools.length === 0) {
-        sendFn(ws, { type: "command_result", command, result: "No hay herramientas habilitadas." });
+        sendFn(ws, {
+          type: "command_result",
+          command,
+          result: "No hay herramientas habilitadas.",
+        });
       } else {
-        const list = tools.map((t) => `  - **${t.function.name}**: ${t.function.description}`).join("\n");
-        sendFn(ws, { type: "command_result", command, result: `Herramientas habilitadas:\n${list}` });
+        const list = tools
+          .map((t) => `  - **${t.function.name}**: ${t.function.description}`)
+          .join("\n");
+        sendFn(ws, {
+          type: "command_result",
+          command,
+          result: `Herramientas habilitadas:\n${list}`,
+        });
       }
       break;
     }
@@ -133,9 +162,39 @@ async function handleCommand(
     case "skills": {
       const skills = await loadSkills();
       if (skills.length === 0) {
-        sendFn(ws, { type: "command_result", command, result: "No hay skills cargadas. Creá archivos .md en la carpeta /skills/." });
+        sendFn(ws, {
+          type: "command_result",
+          command,
+          result:
+            "No hay skills cargadas. Creá archivos .md en la carpeta /skills/.",
+        });
       } else {
-        sendFn(ws, { type: "command_result", command, result: `${skills.length} skill(s) cargada(s).` });
+        sendFn(ws, {
+          type: "command_result",
+          command,
+          result: `${skills.length} skill(s) cargada(s).`,
+        });
+      }
+      break;
+    }
+
+    case "ollama": {
+      const { getOllamaModels } = await import("../agent/models.ts");
+      const ollamaModels = await getOllamaModels(config);
+      if (ollamaModels.length === 0) {
+        sendFn(ws, {
+          type: "command_result",
+          command,
+          result:
+            "⚠️ No se pudieron obtener modelos de Ollama. Asegúrate de que Ollama esté corriendo localmente.",
+        });
+      } else {
+        const list = ollamaModels.map((m) => `  - ${m}`).join("\n");
+        sendFn(ws, {
+          type: "command_result",
+          command,
+          result: `Modelos de Ollama disponibles:\n${list}\n\nUso: Para usar uno, agrégalo a tu config.json o cámbialo con /model si ya existe.`,
+        });
       }
       break;
     }

@@ -17,7 +17,11 @@ export function startTelegram(): void {
   const tgConfig = config.channels.telegram;
 
   if (!tgConfig?.botToken || tgConfig.botToken === "123456:ABCDEF") {
-    console.log(chalk.yellow("ℹ️  Telegram no configurado (botToken no definido). Canal deshabilitado."));
+    console.log(
+      chalk.yellow(
+        "ℹ️  Telegram no configurado (botToken no definido). Canal deshabilitado.",
+      ),
+    );
     return;
   }
 
@@ -30,13 +34,23 @@ export function startTelegram(): void {
     const sessionId = `telegram-${chatId}`;
 
     // Verificar allowlist
-    if (tgConfig.allowFrom.length > 0 && !tgConfig.allowFrom.includes(username)) {
-      console.log(chalk.yellow(`⚠️  Telegram: mensaje rechazado de @${username}`));
-      await bot!.sendMessage(chatId, "Lo siento, no estás autorizado para usar este asistente.");
+    if (
+      tgConfig.allowFrom.length > 0 &&
+      !tgConfig.allowFrom.includes(username)
+    ) {
+      console.log(
+        chalk.yellow(`⚠️  Telegram: mensaje rechazado de @${username}`),
+      );
+      await bot!.sendMessage(
+        chatId,
+        "Lo siento, no estás autorizado para usar este asistente.",
+      );
       return;
     }
 
-    console.log(chalk.magenta(`📱 Telegram [@${username}]: ${text.slice(0, 60)}`));
+    console.log(
+      chalk.magenta(`📱 Telegram [@${username}]: ${text.slice(0, 60)}`),
+    );
 
     // Comandos
     if (text.startsWith("/")) {
@@ -53,22 +67,29 @@ export function startTelegram(): void {
         userText: text,
         origin: "telegram",
         onTyping: async (isTyping) => {
-          if (isTyping) await bot!.sendChatAction(chatId, "typing").catch(() => {});
+          if (isTyping)
+            await bot!.sendChatAction(chatId, "typing").catch(() => {});
         },
       });
 
       if (!result.text || result.text.trim() === "") {
-        console.log(chalk.yellow("⚠️  Telegram: el agente devolvió un mensaje vacío. No se envió nada."));
+        console.log(
+          chalk.yellow(
+            "⚠️  Telegram: el agente devolvió un mensaje vacío. No se envió nada.",
+          ),
+        );
         return;
       }
 
       // Telegram soporta Markdown básico
-      await bot!.sendMessage(chatId, result.text, {
-        parse_mode: "Markdown",
-      }).catch(async () => {
-        // Si falla el markdown, enviar como texto plano
-        await bot!.sendMessage(chatId, result.text);
-      });
+      await bot!
+        .sendMessage(chatId, result.text, {
+          parse_mode: "Markdown",
+        })
+        .catch(async () => {
+          // Si falla el markdown, enviar como texto plano
+          await bot!.sendMessage(chatId, result.text);
+        });
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
       await bot!.sendMessage(chatId, `❌ Error: ${errMsg}`);
@@ -82,7 +103,11 @@ export function startTelegram(): void {
   console.log(chalk.magenta(`📱 Telegram bot activo`));
 }
 
-async function handleTelegramCommand(chatId: number, cmd: string, sessionId: string): Promise<void> {
+async function handleTelegramCommand(
+  chatId: number,
+  cmd: string,
+  sessionId: string,
+): Promise<void> {
   const config = getConfig();
   const parts = cmd.split(" ");
   const command = parts[0]?.toLowerCase() ?? "";
@@ -94,7 +119,7 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
     case "/help":
       await bot!.sendMessage(
         chatId,
-        `🤖 *ARGenteIA — Menú de Ayuda*\n\n🔹 *Comandos de Sistema:*\n• /reset — Limpiar historial\n• /model — Ver/cambiar modelo\n• /status — Estado actual\n• /tools — Herramientas disponibles\n• /skills — Skills cargadas\n• /ayuda — Mostrar este menú\n\n🔹 *Gestión de Expertos:*\n• /agentes — Listar expertos\n• /crear_agente <nombre>|<modelo>|<prompt> — Crea experto\n• /borrar_agente <nombre> — Elimina experto\n\n⏰ *Tareas Programadas:*\n• /tareas — Listar tus tareas\n• /borrar_tarea <ID> — Eliminar tarea por ID`,
+        `🤖 *ARGenteIA — Menú de Ayuda*\n\n🔹 *Comandos de Sistema:*\n• /reset — Limpiar historial\n• /model — Ver/cambiar modelo\n• /ollama — Listar modelos locales\n• /status — Estado actual\n• /tools — Herramientas disponibles\n• /skills — Skills cargadas\n• /ayuda — Mostrar este menú\n\n🔹 *Gestión de Expertos:*\n• /agentes — Listar expertos\n• /crear_agente <nombre>|<modelo>|<prompt> — Crea experto\n• /borrar_agente <nombre> — Elimina experto\n\n⏰ *Tareas Programadas:*\n• /tareas — Listar tus tareas\n• /borrar_tarea <ID> — Eliminar tarea por ID`,
         { parse_mode: "Markdown" },
       );
       break;
@@ -103,10 +128,22 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
       const { listExperts } = await import("../memory/expert-db.ts");
       const experts = listExperts();
       if (experts.length === 0) {
-        await bot!.sendMessage(chatId, "No hay agentes expertos configurados aún.");
+        await bot!.sendMessage(
+          chatId,
+          "No hay agentes expertos configurados aún.",
+        );
       } else {
-        const list = experts.map(e => `• *${e.name}* (\`${e.model}\`)\n  _${e.system_prompt.slice(0, 50)}..._`).join("\n\n");
-        await bot!.sendMessage(chatId, `🤖 *Agentes Expertos Disponibles:*\n\n${list}`, { parse_mode: "Markdown" });
+        const list = experts
+          .map(
+            (e) =>
+              `• *${e.name}* (\`${e.model}\`)\n  _${e.system_prompt.slice(0, 50)}..._`,
+          )
+          .join("\n\n");
+        await bot!.sendMessage(
+          chatId,
+          `🤖 *Agentes Expertos Disponibles:*\n\n${list}`,
+          { parse_mode: "Markdown" },
+        );
       }
       break;
     }
@@ -115,12 +152,16 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
       const { upsertExpert } = await import("../memory/expert-db.ts");
       const subParts = arg.split("|");
       if (subParts.length < 3) {
-        await bot!.sendMessage(chatId, "❌ Formato inválido. Usá:\n`/crear_agente nombre|modelo|prompt`", { parse_mode: "Markdown" });
+        await bot!.sendMessage(
+          chatId,
+          "❌ Formato inválido. Usá:\n`/crear_agente nombre|modelo|prompt`",
+          { parse_mode: "Markdown" },
+        );
         return;
       }
       const [name, model, ...promptParts] = subParts;
       const systemPrompt = promptParts.join("|").trim();
-      
+
       try {
         upsertExpert({
           name: name.trim(),
@@ -128,19 +169,30 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
           system_prompt: systemPrompt,
           tools: [],
           experts: [],
-          temperature: 0.7
+          temperature: 0.7,
         });
-        await bot!.sendMessage(chatId, `✅ Agente experto "*${name.trim()}*" creado/actualizado con éxito.`, { parse_mode: "Markdown" });
+        await bot!.sendMessage(
+          chatId,
+          `✅ Agente experto "*${name.trim()}*" creado/actualizado con éxito.`,
+          { parse_mode: "Markdown" },
+        );
       } catch (err: any) {
-        await bot!.sendMessage(chatId, `❌ Error al crear agente: ${err.message}`);
+        await bot!.sendMessage(
+          chatId,
+          `❌ Error al crear agente: ${err.message}`,
+        );
       }
       break;
     }
 
     case "/borrar_agente": {
-      const { deleteExpert, getExpert } = await import("../memory/expert-db.ts");
+      const { deleteExpert, getExpert } =
+        await import("../memory/expert-db.ts");
       if (!arg) {
-        await bot!.sendMessage(chatId, "❌ Debes especificar el nombre del agente a borrar.");
+        await bot!.sendMessage(
+          chatId,
+          "❌ Debes especificar el nombre del agente a borrar.",
+        );
         return;
       }
       const name = arg.trim();
@@ -161,7 +213,10 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
     case "/model":
       if (!arg) {
         const models = Object.keys(config.models).join("\n• ");
-        await bot!.sendMessage(chatId, `Modelos disponibles:\n• ${models}\n\nUso: /model <nombre>`);
+        await bot!.sendMessage(
+          chatId,
+          `Modelos disponibles:\n• ${models}\n\nUso: /model <nombre>`,
+        );
       } else if (!config.models[arg]) {
         await bot!.sendMessage(chatId, `❌ Modelo "${arg}" no encontrado.`);
       } else {
@@ -170,9 +225,32 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
       }
       break;
 
+    case "/ollama": {
+      const { getOllamaModels } = await import("../agent/models.ts");
+      const ollamaModels = await getOllamaModels(config);
+      if (ollamaModels.length === 0) {
+        await bot!.sendMessage(
+          chatId,
+          "⚠️ No se pudieron obtener modelos de Ollama. Asegúrate de que Ollama esté corriendo localmente.",
+        );
+      } else {
+        const list = ollamaModels.map((m) => `• \`${m}\``).join("\n");
+        await bot!.sendMessage(
+          chatId,
+          `🦙 *Modelos de Ollama Disponibles:*\n\n${list}\n\n_Para usar uno, agrégalo a tu config.json o cámbialo con /model si ya existe._`,
+          { parse_mode: "Markdown" },
+        );
+      }
+      break;
+    }
+
     case "/status": {
       const history = getHistory(sessionId);
-      await bot!.sendMessage(chatId, `📊 *Estado:*\nModelo: \`${config.agent.model}\`\nMensajes: ${history.length}`, { parse_mode: "Markdown" });
+      await bot!.sendMessage(
+        chatId,
+        `📊 *Estado:*\nModelo: \`${config.agent.model}\`\nMensajes: ${history.length}`,
+        { parse_mode: "Markdown" },
+      );
       break;
     }
 
@@ -182,7 +260,9 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
         await bot!.sendMessage(chatId, "No hay herramientas habilitadas.");
       } else {
         const list = tools.map((t) => `• *${t.function.name}*`).join("\n");
-        await bot!.sendMessage(chatId, `🔧 *Herramientas:*\n${list}`, { parse_mode: "Markdown" });
+        await bot!.sendMessage(chatId, `🔧 *Herramientas:*\n${list}`, {
+          parse_mode: "Markdown",
+        });
       }
       break;
     }
@@ -197,10 +277,19 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
       const { getUserTasks } = await import("../memory/scheduler-db.ts");
       const tasks = getUserTasks(sessionId);
       if (tasks.length === 0) {
-        await bot!.sendMessage(chatId, "No tienes tareas programadas actualmente.");
+        await bot!.sendMessage(
+          chatId,
+          "No tienes tareas programadas actualmente.",
+        );
       } else {
-        const list = tasks.map(t => `• *[ID ${t.id}]* "${t.task}"\n  ⏰ \`${t.cron}\``).join("\n\n");
-        await bot!.sendMessage(chatId, `📅 *Tus Tareas Programadas:*\n\n${list}`, { parse_mode: "Markdown" });
+        const list = tasks
+          .map((t) => `• *[ID ${t.id}]* "${t.task}"\n  ⏰ \`${t.cron}\``)
+          .join("\n\n");
+        await bot!.sendMessage(
+          chatId,
+          `📅 *Tus Tareas Programadas:*\n\n${list}`,
+          { parse_mode: "Markdown" },
+        );
       }
       break;
     }
@@ -208,7 +297,11 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
     case "/borrar_tarea": {
       const id = parseInt(arg);
       if (isNaN(id)) {
-        await bot!.sendMessage(chatId, "❌ Debes especificar un ID numérico válido. Ej: `/borrar_tarea 12`", { parse_mode: "Markdown" });
+        await bot!.sendMessage(
+          chatId,
+          "❌ Debes especificar un ID numérico válido. Ej: `/borrar_tarea 12`",
+          { parse_mode: "Markdown" },
+        );
         return;
       }
       const { deleteTask } = await import("../memory/scheduler-db.ts");
@@ -217,7 +310,10 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
         stopLocalTask(id);
         await bot!.sendMessage(chatId, `✅ Tarea con ID ${id} eliminada.`);
       } else {
-        await bot!.sendMessage(chatId, `❌ No se encontró la tarea ${id} o no te pertenece.`);
+        await bot!.sendMessage(
+          chatId,
+          `❌ No se encontró la tarea ${id} o no te pertenece.`,
+        );
       }
       break;
     }
@@ -226,14 +322,24 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
       const { getUser } = await import("../memory/user-db.ts");
       const user = getUser(sessionId);
       if (!user) {
-        await bot!.sendMessage(chatId, "❌ No tienes un perfil configurado aún. ¡Dime 'Hola' para empezar!");
+        await bot!.sendMessage(
+          chatId,
+          "❌ No tienes un perfil configurado aún. ¡Dime 'Hola' para empezar!",
+        );
       } else {
-        await bot!.sendMessage(chatId, `👤 *Tu Perfil:*\n• Nombre: ${user.name || 'Sin nombre'}\n• Zona Horaria: \`${user.timezone}\`\n• Creado: ${user.created_at}`, { parse_mode: "Markdown" });
+        await bot!.sendMessage(
+          chatId,
+          `👤 *Tu Perfil:*\n• Nombre: ${user.name || "Sin nombre"}\n• Zona Horaria: \`${user.timezone}\`\n• Creado: ${user.created_at}`,
+          { parse_mode: "Markdown" },
+        );
       }
       break;
     }
 
     default:
-      await bot!.sendMessage(chatId, `Comando desconocido. Usá /help para ver los disponibles.`);
+      await bot!.sendMessage(
+        chatId,
+        `Comando desconocido. Usá /help para ver los disponibles.`,
+      );
   }
 }

@@ -3,7 +3,7 @@
 Un asistente personal de IA minimalista que corre en tu máquina local y te atiende desde **Telegram** y una **WebChat** en el navegador.
 
 - Sin servicios en la nube propios — todo corre en tu PC.
-- Soporta múltiples modelos: OpenAI, Anthropic, OpenRouter.
+- Soporta múltiples modelos: OpenAI, Anthropic, OpenRouter, **Ollama (local)**.
 - **Memoria a Largo Plazo:** Sistema de recuerdos persistentes por usuario usando SQLite.
 - **Terminal Inteligente:** Soporte multi-OS (Windows/PowerShell y Linux/Bash) con detección automática.
 - **Gestión de Archivos:** El asistente puede leer, escribir y **enviarte archivos directamente por Telegram** (soporta hasta 50MB).
@@ -31,6 +31,7 @@ WebChat (navegador) ◄── Express + WS ──►  Gateway (localhost:18000)
 ```
 
 El **Gateway** es un servidor local que conecta tus canales con el agente de IA. El agente puede usar herramientas para realizar acciones reales en tu PC o en la web, y posee dos tipos de memoria:
+
 1. **Memoria de Sesión:** El historial de la charla actual (se borra con `/reset`).
 2. **Memoria Long-Term:** Datos que la IA decide "memorizar" (gustos, nombre, datos clave) que persisten incluso tras reiniciar el asistente o la sesión.
 
@@ -68,32 +69,40 @@ El asistente estará disponible en el puerto configurado (default `18000` o `196
 
 ```json5
 {
-  "agent": {
-    "model": "openrouter/meta-llama/llama-3.3-70b-instruct",
-    "systemPrompt": "Eres un asistente personal útil y directo.",
-    "maxTokens": 4096
+  agent: {
+    model: "openrouter/meta-llama/llama-3.3-70b-instruct",
+    systemPrompt: "Eres un asistente personal útil y directo.",
+    maxTokens: 4096,
   },
-  "models": {
+  models: {
     "openrouter/meta-llama/llama-3.3-70b-instruct": {
-      "apiKey": "sk-or-...",
-      "baseUrl": "https://openrouter.ai/api/v1"
-    }
-  },
-  "tools": {
-    "bash": {
-      "enabled": true,
-      "os": "windows", // "windows" para PowerShell, "linux" para Bash
-      "psExe": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", // Opcional: ruta exacta
-      "allowlist": ["ls", "cat", "echo", "pwd", "dir", "Get-ChildItem", "Get-Content"]
+      apiKey: "sk-or-...",
+      baseUrl: "https://openrouter.ai/api/v1",
     },
-    "webSearch": { "enabled": true },
-    "readFile":  { "enabled": true },
-    "writeFile": { "enabled": true },
-    "readUrl":   { "enabled": true }
   },
-  "memory": {
-    "dbPath": "./memoryUser/assistant.db" // Ruta a la base de datos SQLite
-  }
+  tools: {
+    bash: {
+      enabled: true,
+      os: "windows", // "windows" para PowerShell, "linux" para Bash
+      psExe: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", // Opcional: ruta exacta
+      allowlist: [
+        "ls",
+        "cat",
+        "echo",
+        "pwd",
+        "dir",
+        "Get-ChildItem",
+        "Get-Content",
+      ],
+    },
+    webSearch: { enabled: true },
+    readFile: { enabled: true },
+    writeFile: { enabled: true },
+    readUrl: { enabled: true },
+  },
+  memory: {
+    dbPath: "./memoryUser/assistant.db", // Ruta a la base de datos SQLite
+  },
 }
 ```
 
@@ -103,27 +112,27 @@ El asistente estará disponible en el puerto configurado (default `18000` o `196
 
 El asistente gestiona su memoria a largo plazo mediante estas herramientas:
 
-| Herramienta | Descripción |
-|---|---|
-| `memorize_fact` | Guarda un dato importante sobre vos (ej: gustos, profesión, cumpleaños). |
-| `recall_facts` | Recupera todas las memorias guardadas para el usuario actual. |
-| `forget_fact` | Elimina una memoria específica usando su ID. |
-| `send_file_telegram` | Envía un archivo local directamente al chat de Telegram (Límite 50MB). |
-| `read_file` | Lee el contenido de archivos de texto (con protección contra archivos binarios). |
-| `schedule_task` | Programa una tarea recurrente usando formato CRON. |
-| `list_scheduled_tasks` | Muestra las tareas programadas actualmente. |
+| Herramienta            | Descripción                                                                      |
+| ---------------------- | -------------------------------------------------------------------------------- |
+| `memorize_fact`        | Guarda un dato importante sobre vos (ej: gustos, profesión, cumpleaños).         |
+| `recall_facts`         | Recupera todas las memorias guardadas para el usuario actual.                    |
+| `forget_fact`          | Elimina una memoria específica usando su ID.                                     |
+| `send_file_telegram`   | Envía un archivo local directamente al chat de Telegram (Límite 50MB).           |
+| `read_file`            | Lee el contenido de archivos de texto (con protección contra archivos binarios). |
+| `schedule_task`        | Programa una tarea recurrente usando formato CRON.                               |
+| `list_scheduled_tasks` | Muestra las tareas programadas actualmente.                                      |
 
 ---
 
 ## Comandos en el chat
 
-| Comando | Descripción |
-|---|---|
-| `/model` | Sin argumentos: lista modelos disponibles. Con nombre: cambia el modelo. |
-| `/reset` | Borra el historial de la charla actual (pero mantiene la memoria long-term). |
-| `/skills` | Lista las extensiones de comportamiento cargadas. |
-| `/tools` | Muestra qué herramientas tiene permitido usar el asistente. |
-| `/status` | Estado del sistema y estadísticas de la sesión. |
+| Comando   | Descripción                                                                  |
+| --------- | ---------------------------------------------------------------------------- |
+| `/model`  | Sin argumentos: lista modelos disponibles. Con nombre: cambia el modelo.     |
+| `/reset`  | Borra el historial de la charla actual (pero mantiene la memoria long-term). |
+| `/skills` | Lista las extensiones de comportamiento cargadas.                            |
+| `/tools`  | Muestra qué herramientas tiene permitido usar el asistente.                  |
+| `/status` | Estado del sistema y estadísticas de la sesión.                              |
 
 ---
 

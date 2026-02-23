@@ -20,6 +20,9 @@
     "openrouter/meta-llama/llama-3.3-70b-instruct": {
       "apiKey": "sk-or-...",
       "baseUrl": "https://openrouter.ai/api/v1"
+    },
+    "ollama/llama3": {
+      "baseUrl": "http://localhost:11434/v1"
     }
   },
   "gateway": {
@@ -37,8 +40,32 @@
       "// OS opciones": "Descomentá la que uses: 'linux' o 'windows'",
       "os": "linux",
       "// os (Windows)": "windows",
-      "allowlist": ["ls", "cat", "echo", "pwd", "find", "grep", "date", "whoami", "uname"],
-      "// allowlist (Windows)": ["ls", "cat", "echo", "pwd", "find", "grep", "date", "whoami", "dir", "Get-ChildItem", "Get-Content", "Get-Date", "Get-Location"],
+      "allowlist": [
+        "ls",
+        "cat",
+        "echo",
+        "pwd",
+        "find",
+        "grep",
+        "date",
+        "whoami",
+        "uname"
+      ],
+      "// allowlist (Windows)": [
+        "ls",
+        "cat",
+        "echo",
+        "pwd",
+        "find",
+        "grep",
+        "date",
+        "whoami",
+        "dir",
+        "Get-ChildItem",
+        "Get-Content",
+        "Get-Date",
+        "Get-Location"
+      ],
       "// psExe": "Opcional. Solo si PowerShell no se detecta automáticamente.",
       "// psExe (PS5, Windows 10/11)": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
       "// psExe (PS7, si está instalado)": "C:\\Program Files\\PowerShell\\7\\pwsh.exe"

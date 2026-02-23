@@ -7,7 +7,7 @@ import chalk from "chalk";
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
 const ModelConfigSchema = z.object({
-  apiKey: z.string(),
+  apiKey: z.string().optional(),
   baseUrl: z.string().url().optional(),
 });
 
@@ -39,7 +39,11 @@ const ToolsBasicSchema = z.object({
 });
 
 const ToolsConfigSchema = z.object({
-  bash: ToolsBashSchema.default(() => ({ enabled: false, allowlist: [], os: "linux" as const })),
+  bash: ToolsBashSchema.default(() => ({
+    enabled: false,
+    allowlist: [],
+    os: "linux" as const,
+  })),
   webSearch: ToolsBasicSchema.default(() => ({ enabled: false })),
   readFile: ToolsBasicSchema.default(() => ({ enabled: false })),
   writeFile: ToolsBasicSchema.default(() => ({ enabled: false })),
@@ -89,15 +93,23 @@ export function loadConfig(configPath?: string): Config {
 
   if (!existsSync(path)) {
     console.error(chalk.red(`❌ No se encontró config.json en: ${path}`));
-    console.error(chalk.yellow(`   Copiá config.example.json → config.json y completá tus credenciales.`));
+    console.error(
+      chalk.yellow(
+        `   Copiá config.example.json → config.json y completá tus credenciales.`,
+      ),
+    );
     process.exit(1);
   }
 
   const content = readFileSync(path, "utf-8").trim();
-  
+
   if (!content) {
     console.error(chalk.red(`❌ El archivo config.json está vacío.`));
-    console.error(chalk.yellow(`   Por favor, configurá tu modelo y API keys antes de continuar.`));
+    console.error(
+      chalk.yellow(
+        `   Por favor, configurá tu modelo y API keys antes de continuar.`,
+      ),
+    );
     process.exit(1);
   }
 
@@ -115,7 +127,9 @@ export function loadConfig(configPath?: string): Config {
     console.error(chalk.red(`❌ Configuración inválida en config.json:`));
     for (const issue of result.error.issues) {
       const pathStr = issue.path.join(".");
-      console.error(chalk.yellow(`   • [${pathStr || "root"}]: ${issue.message}`));
+      console.error(
+        chalk.yellow(`   • [${pathStr || "root"}]: ${issue.message}`),
+      );
     }
     process.exit(1);
   }
@@ -123,15 +137,30 @@ export function loadConfig(configPath?: string): Config {
   // Verificar que el modelo activo esté definido en models
   const { agent, models } = result.data;
   if (!models[agent.model]) {
-    console.error(chalk.red(`❌ Error: El modelo "${agent.model}" no está definido en la sección "models".`));
-    console.error(chalk.yellow(`   Modelos configurados: ${Object.keys(models).join(", ") || "ninguno"}`));
+    console.error(
+      chalk.red(
+        `❌ Error: El modelo "${agent.model}" no está definido en la sección "models".`,
+      ),
+    );
+    console.error(
+      chalk.yellow(
+        `   Modelos configurados: ${Object.keys(models).join(", ") || "ninguno"}`,
+      ),
+    );
     process.exit(1);
   }
 
   // Verificar si hay API keys con placeholders
-  for (const [name, cfg] of Object.entries(models)) {
-    if (cfg.apiKey.includes("...") || cfg.apiKey.startsWith("tu_")) {
-      console.warn(chalk.magenta(`⚠️  Advertencia: La API Key para "${name}" parece ser un placeholder.`));
+  for (const [name, cfg] of Object.entries(models) as [string, ModelConfig][]) {
+    if (
+      cfg.apiKey &&
+      (cfg.apiKey.includes("...") || cfg.apiKey.startsWith("tu_"))
+    ) {
+      console.warn(
+        chalk.magenta(
+          `⚠️  Advertencia: La API Key para "${name}" parece ser un placeholder.`,
+        ),
+      );
     }
   }
 
@@ -140,6 +169,7 @@ export function loadConfig(configPath?: string): Config {
 }
 
 export function getConfig(): Config {
-  if (!_config) throw new Error("Config no inicializada. Llamá loadConfig() primero.");
+  if (!_config)
+    throw new Error("Config no inicializada. Llamá loadConfig() primero.");
   return _config;
 }
