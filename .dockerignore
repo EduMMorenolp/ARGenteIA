@@ -1,0 +1,15 @@
+node_modules
+dist
+ui/dist
+ui/node_modules
+memoryUser
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+.git
+.gitignore
+README.md
+CHANGELOG.md
+.agent
+temp

@@ -1,0 +1,13 @@
+services:
+  argenteia:
+    build: .
+    container_name: argenteia
+    ports:
+      - "19666:19666"
+    volumes:
+      - ./memoryUser:/app/memoryUser
+      - ./config.json:/app/config.json
+      - ./skills:/app/skills
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
