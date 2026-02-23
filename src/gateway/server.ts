@@ -250,6 +250,17 @@ export function createGateway(): GatewayServer {
           sessionId,
           messageCount: 0,
         });
+      } else if (msg.type === "user_update") {
+        const { upsertUser, listAllUsers } =
+          await import("../memory/user-db.ts");
+        upsertUser(msg.userId, {
+          name: msg.name,
+          timezone: msg.timezone,
+          telegram_user: msg.telegram_user,
+        });
+        console.log(chalk.green(`✅ Usuario actualizado: ${msg.userId}`));
+        // Enviar lista actualizada de usuarios
+        send(ws, { type: "list_users", users: listAllUsers() });
       } else if (msg.type === ("list_tasks" as any)) {
         const { getUserTasks } = await import("../memory/scheduler-db.ts");
         send(ws, {

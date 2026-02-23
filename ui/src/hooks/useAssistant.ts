@@ -125,6 +125,7 @@ export function useAssistant() {
       userId: guestId,
       name: "Invitado",
       timezone: "America/Argentina/Buenos_Aires",
+      telegram_user: null,
       created_at: new Date().toISOString(),
     });
   };
@@ -198,6 +199,27 @@ export function useAssistant() {
     } as any);
   };
 
+  const updateUser = (
+    name: string,
+    timezone: string,
+    telegram_user?: string,
+  ) => {
+    if (!currentUser) return;
+    send({
+      type: "user_update",
+      userId: currentUser.userId,
+      name,
+      timezone,
+      telegram_user,
+    });
+    setCurrentUser({
+      ...currentUser,
+      name,
+      timezone,
+      telegram_user: telegram_user || null,
+    });
+  };
+
   return {
     messages,
     inputText,
@@ -227,6 +249,7 @@ export function useAssistant() {
     identifyUser,
     continueAsGuest,
     registerUser,
+    updateUser,
     sendMessage,
     upsertExpert,
     deleteExpert,

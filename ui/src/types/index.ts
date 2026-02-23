@@ -11,16 +11,17 @@ export interface UserProfile {
   userId: string;
   name: string | null;
   timezone: string;
+  telegram_user: string | null;
   created_at: string;
 }
 
 export interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   text: string;
   model?: string;
-  type?: 'message' | 'command' | 'error';
-  origin?: 'web' | 'telegram';
+  type?: "message" | "command" | "error";
+  origin?: "web" | "telegram";
 }
 
 export interface WsMessage {
@@ -38,10 +39,10 @@ export interface WsMessage {
   tools?: string[];
   users?: UserProfile[];
   tasks?: any[];
-  origin?: 'web' | 'telegram';
+  origin?: "web" | "telegram";
   history?: Array<{
     role: string;
     text: string;
-    origin: 'web' | 'telegram';
+    origin: "web" | "telegram";
   }>;
 }

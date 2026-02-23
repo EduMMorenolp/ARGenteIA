@@ -1,4 +1,4 @@
-import type { KeyboardEvent, FormEvent } from "react";
+import { useState, type KeyboardEvent, type FormEvent } from "react";
 import {
   Zap,
   MessageSquare,
@@ -21,8 +21,10 @@ import { ChatInput } from "./components/chat/ChatInput";
 import { ExpertCreator } from "./components/modals/ExpertCreator";
 import { FeaturesOverlay } from "./components/modals/FeaturesOverlay";
 import { TaskEditor } from "./components/modals/TaskEditor";
+import { ProfileModal } from "./components/modals/ProfileModal";
 
 export default function App() {
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const {
     messages,
     inputText,
@@ -52,6 +54,7 @@ export default function App() {
     identifyUser,
     continueAsGuest,
     registerUser,
+    updateUser,
     sendMessage,
     upsertExpert,
     deleteExpert,
@@ -158,6 +161,7 @@ export default function App() {
         onLogout={logout}
         onOpenCreator={() => setIsCreatorOpen(true)}
         onOpenFeatures={() => setIsFeaturesOpen(true)}
+        onOpenProfile={() => setIsProfileOpen(true)}
         sendMessage={sendMessage}
         isWaiting={isWaiting}
       />
@@ -216,6 +220,14 @@ export default function App() {
           task={editingTask}
           onClose={() => setEditingTask(null)}
           onSave={updateTask}
+        />
+      )}
+
+      {isProfileOpen && currentUser && (
+        <ProfileModal
+          user={currentUser}
+          onClose={() => setIsProfileOpen(false)}
+          onSave={updateUser}
         />
       )}
     </div>
