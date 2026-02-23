@@ -26,6 +26,15 @@ export interface Message {
   origin?: "web" | "telegram";
 }
 
+export interface ScheduledTask {
+  id: number;
+  userId: string;
+  task: string;
+  cron: string;
+  nextRun?: string;
+  lastRun?: string;
+}
+
 export interface WsMessage {
   type: string;
   text?: string;
@@ -40,7 +49,7 @@ export interface WsMessage {
   experts?: Expert[];
   tools?: string[];
   users?: UserProfile[];
-  tasks?: any[];
+  tasks?: ScheduledTask[];
   origin?: "web" | "telegram";
   history?: Array<{
     role: string;

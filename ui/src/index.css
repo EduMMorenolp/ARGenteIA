@@ -1298,3 +1298,68 @@ textarea {
   font-weight: 500;
   animation: fadeIn 0.3s ease;
 }
+
+/* Delete Account Styles */
+.btn-danger {
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover {
+  background: #e60000;
+  transform: translateY(-1px);
+}
+
+.btn-danger-ghost {
+  background: transparent;
+  color: #ff4d4d;
+  border: 1px solid transparent;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.btn-danger-ghost:hover {
+  background: rgba(255, 77, 77, 0.1);
+  border-color: rgba(255, 77, 77, 0.2);
+}
+
+.delete-confirmation {
+  text-align: center;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.delete-confirmation h4 {
+  margin: 0;
+  color: #ff4d4d;
+  font-size: 1.2rem;
+}
+
+.delete-confirmation p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.delete-confirmation b {
+  color: var(--text-color);
+}

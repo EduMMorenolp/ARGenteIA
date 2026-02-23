@@ -70,3 +70,12 @@ export function listAllUsers(): UserProfile[] {
   const stmt = db.prepare("SELECT * FROM users ORDER BY created_at DESC");
   return stmt.all() as UserProfile[];
 }
+
+/**
+ * Elimina un usuario de la base de datos.
+ */
+export function deleteUser(userId: string): void {
+  const db = getDb();
+  const stmt = db.prepare("DELETE FROM users WHERE userId = ?");
+  stmt.run(userId);
+}

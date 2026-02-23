@@ -275,6 +275,13 @@ export function createGateway(): GatewayServer {
         console.log(chalk.green(`✅ Usuario actualizado: ${msg.userId}`));
         // Enviar lista actualizada de usuarios
         send(ws, { type: "list_users", users: listAllUsers() });
+      } else if (msg.type === "user_delete") {
+        const { deleteUser, listAllUsers } =
+          await import("../memory/user-db.ts");
+        deleteUser(msg.userId);
+        console.log(chalk.red(`🗑️ Usuario eliminado: ${msg.userId}`));
+        // Enviar lista actualizada
+        send(ws, { type: "list_users", users: listAllUsers() });
       } else if (msg.type === ("list_tasks" as any)) {
         const { getUserTasks } = await import("../memory/scheduler-db.ts");
         send(ws, {

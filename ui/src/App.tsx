@@ -63,6 +63,7 @@ export default function App() {
     handleInputChange,
     renderContent,
     logout,
+    deleteAccount,
   } = useAssistant();
 
   const quickCommands = [
@@ -228,6 +229,7 @@ export default function App() {
           user={currentUser}
           onClose={() => setIsProfileOpen(false)}
           onSave={updateUser}
+          onDelete={deleteAccount}
         />
       )}
     </div>

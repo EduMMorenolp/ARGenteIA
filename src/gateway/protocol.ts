@@ -15,6 +15,7 @@ export type WsMessageType =
   | "update_task" // cliente → servidor: editar tarea
   | "user_register" // cliente → servidor: crear nuevo usuario
   | "user_update" // cliente → servidor: actualizar datos de usuario
+  | "user_delete" // cliente → servidor: eliminar usuario
   | "identify"; // cliente → servidor: asociar sesión con userId
 
 export interface WsUserRegisterMessage {
@@ -35,6 +36,11 @@ export interface WsUserUpdateMessage {
   telegram_user?: string;
   telegram_token?: string;
   login_pin?: string;
+}
+
+export interface WsUserDeleteMessage {
+  type: "user_delete";
+  userId: string;
 }
 
 export interface WsUserMessage {
@@ -135,4 +141,5 @@ export type WsMessage =
   | WsUpdateTaskMessage
   | WsUserRegisterMessage
   | WsUserUpdateMessage
+  | WsUserDeleteMessage
   | WsIdentifyMessage;

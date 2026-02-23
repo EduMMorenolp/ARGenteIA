@@ -1,6 +1,12 @@
 import { useState, useRef, useCallback } from "react";
 import { marked } from "marked";
-import type { Message, Expert, UserProfile, WsMessage } from "../types";
+import type {
+  Message,
+  Expert,
+  UserProfile,
+  WsMessage,
+  ScheduledTask,
+} from "../types";
 import { useWebSocket } from "./useWebSocket";
 
 export function useAssistant() {
@@ -16,14 +22,14 @@ export function useAssistant() {
   const [experts, setExperts] = useState<Expert[]>([]);
   const [availableTools, setAvailableTools] = useState<string[]>([]);
   const [availableUsers, setAvailableUsers] = useState<UserProfile[]>([]);
-  const [scheduledTasks, setScheduledTasks] = useState<any[]>([]);
+  const [scheduledTasks, setScheduledTasks] = useState<ScheduledTask[]>([]);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
   const [selectedExpert, setSelectedExpert] = useState<string | null>(null);
   const [isCreatorOpen, setIsCreatorOpen] = useState(false);
   const [isFeaturesOpen, setIsFeaturesOpen] = useState(false);
   const [editingExpert, setEditingExpert] = useState<Expert | null>(null);
-  const [editingTask, setEditingTask] = useState<any | null>(null);
+  const [editingTask, setEditingTask] = useState<ScheduledTask | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -103,7 +109,7 @@ export function useAssistant() {
         case "list_users":
           if (msg.users) setAvailableUsers(msg.users);
           break;
-        case "list_tasks" as any:
+        case "list_tasks":
           if (msg.tasks) setScheduledTasks(msg.tasks);
           break;
       }
@@ -210,7 +216,7 @@ export function useAssistant() {
       telegram_token: telegram_token || null,
       login_pin: login_pin || "0000",
       created_at: new Date().toISOString(),
-    } as any);
+    });
   };
 
   const updateUser = (
@@ -238,6 +244,12 @@ export function useAssistant() {
       telegram_token: telegram_token || null,
       login_pin: login_pin || currentUser.login_pin,
     });
+  };
+
+  const deleteAccount = () => {
+    if (!currentUser) return;
+    send({ type: "user_delete", userId: currentUser.userId });
+    logout();
   };
 
   return {
@@ -278,5 +290,6 @@ export function useAssistant() {
     handleInputChange,
     renderContent,
     logout,
+    deleteAccount,
   };
 }
