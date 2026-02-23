@@ -42,6 +42,7 @@ export function getDb(): Database.Database {
       userId TEXT PRIMARY KEY,
       name TEXT,
       timezone TEXT DEFAULT 'America/Argentina/Buenos_Aires',
+      telegram_user TEXT,
       preferences TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
@@ -75,6 +76,13 @@ export function getDb(): Database.Database {
   // Migración: Asegurar columna 'experts' en 'sub_agents'
   try {
     _db.exec("ALTER TABLE sub_agents ADD COLUMN experts TEXT DEFAULT '[]'");
+  } catch {
+    // Ya existe o error ignorado
+  }
+
+  // Migración: Asegurar columna 'telegram_user' en 'users'
+  try {
+    _db.exec("ALTER TABLE users ADD COLUMN telegram_user TEXT");
   } catch {
     // Ya existe o error ignorado
   }

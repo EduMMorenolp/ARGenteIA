@@ -4,6 +4,7 @@ export interface UserProfile {
   userId: string;
   name: string | null;
   timezone: string;
+  telegram_user: string | null;
   preferences: string | null;
   created_at: string;
 }
@@ -20,22 +21,30 @@ export function getUser(userId: string): UserProfile | null {
 /**
  * Crea o actualiza los datos básicos de un usuario.
  */
-export function upsertUser(userId: string, data: Partial<Omit<UserProfile, 'userId' | 'created_at'>>): void {
+export function upsertUser(
+  userId: string,
+  data: Partial<Omit<UserProfile, "userId" | "created_at">>,
+): void {
   const db = getDb();
   const existing = getUser(userId);
 
   if (existing) {
-    const fields = Object.keys(data).map(k => `${k} = ?`).join(", ");
+    const fields = Object.keys(data)
+      .map((k) => `${k} = ?`)
+      .join(", ");
     const values = Object.values(data);
     const stmt = db.prepare(`UPDATE users SET ${fields} WHERE userId = ?`);
     stmt.run(...values, userId);
   } else {
-    const stmt = db.prepare("INSERT INTO users (userId, name, timezone, preferences) VALUES (?, ?, ?, ?)");
+    const stmt = db.prepare(
+      "INSERT INTO users (userId, name, timezone, telegram_user, preferences) VALUES (?, ?, ?, ?, ?)",
+    );
     stmt.run(
-      userId, 
-      data.name || null, 
-      data.timezone || 'America/Argentina/Buenos_Aires', 
-      data.preferences || null
+      userId,
+      data.name || null,
+      data.timezone || "America/Argentina/Buenos_Aires",
+      data.telegram_user || null,
+      data.preferences || null,
     );
   }
 }

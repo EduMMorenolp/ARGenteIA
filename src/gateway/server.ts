@@ -27,7 +27,6 @@ export function createGateway(): GatewayServer {
   app.use(express.static(uiPath));
   app.use(express.json());
 
-
   // Health check
   app.get("/health", (_req, res) => {
     res.json({ status: "ok", model: config.agent.model });
@@ -45,8 +44,8 @@ export function createGateway(): GatewayServer {
       const { loadSkills } = await import("../skills/loader.ts");
 
       const override = getExpert("__general__");
-      const allTools = getTools().map(t => t.function.name);
-      const allExpertsList = listExperts().map(e => e.name);
+      const allTools = getTools().map((t) => t.function.name);
+      const allExpertsList = listExperts().map((e) => e.name);
 
       if (override) {
         // Si el override no tiene herramientas, le mandamos todas para que aparezcan seleccionadas
@@ -62,7 +61,7 @@ export function createGateway(): GatewayServer {
 
       // Si no hay override, mandamos la config base merged con skills y todas las herramientas/expertos
       const skills = await loadSkills();
-      
+
       let initialPrompt = config.agent.systemPrompt || "";
       if (skills.length > 0) {
         initialPrompt += `\n\n${skills.join("\n\n")}`;
@@ -74,18 +73,18 @@ export function createGateway(): GatewayServer {
         system_prompt: initialPrompt,
         temperature: 0.7,
         tools: allTools,
-        experts: allExpertsList
+        experts: allExpertsList,
       };
     };
 
     // Enviar estado inicial
-    getGeneralConfig().then(genCfg => {
+    getGeneralConfig().then((genCfg) => {
       send(ws, {
         type: "status",
         model: config.agent.model,
         sessionId,
         messageCount: 0,
-        generalConfig: genCfg
+        generalConfig: genCfg,
       });
     });
 
@@ -96,7 +95,7 @@ export function createGateway(): GatewayServer {
 
     // Enviar lista de herramientas disponibles
     import("../tools/index.ts").then(({ getTools }) => {
-      const toolNames = getTools().map(t => t.function.name);
+      const toolNames = getTools().map((t) => t.function.name);
       send(ws, { type: "list_tools" as any, tools: toolNames } as any);
     });
 
@@ -105,13 +104,15 @@ export function createGateway(): GatewayServer {
       send(ws, { type: "list_users", users: listAllUsers() });
     });
 
-
     ws.on("message", async (data) => {
       let msg: WsMessage;
       try {
         msg = JSON.parse(data.toString()) as WsMessage;
       } catch {
-        send(ws, { type: "error", message: "Mensaje inválido (JSON malformado)" });
+        send(ws, {
+          type: "error",
+          message: "Mensaje inválido (JSON malformado)",
+        });
         return;
       }
 
@@ -127,8 +128,10 @@ export function createGateway(): GatewayServer {
         // Cambiar sessionId por el userId elegido
         const oldId = sessionId;
         sessionId = msg.userId;
-        console.log(chalk.cyan(`👤 WebChat identificado: ${oldId} -> ${sessionId}`));
-        
+        console.log(
+          chalk.cyan(`👤 WebChat identificado: ${oldId} -> ${sessionId}`),
+        );
+
         // Enviar confirmación de estado con el nuevo ID
         send(ws, {
           type: "status",
@@ -140,32 +143,35 @@ export function createGateway(): GatewayServer {
         // Enviar historial de la base de datos
         import("../memory/message-db.ts").then(({ getMessages }) => {
           const history = getMessages(sessionId);
-          send(ws, { 
+          send(ws, {
             type: "assistant_message", // Usar un tipo que el cliente entienda como histórico o extender
             text: "Cargando historial...",
             model: "sistema",
             sessionId,
-            history: history.map(m => ({
+            history: history.map((m) => ({
               role: m.role,
               text: m.content,
-              origin: m.origin
-            }))
+              origin: m.origin,
+            })),
           } as any);
         });
 
         // Enviar tareas programadas
         import("../memory/scheduler-db.ts").then(({ getUserTasks }) => {
-          send(ws, { type: "list_tasks" as any, tasks: getUserTasks(sessionId) } as any);
+          send(ws, {
+            type: "list_tasks" as any,
+            tasks: getUserTasks(sessionId),
+          } as any);
         });
       } else if (msg.type === "expert_update") {
-
-        const { listExperts, upsertExpert, deleteExpert } = await import("../memory/expert-db.ts");
+        const { listExperts, upsertExpert, deleteExpert } =
+          await import("../memory/expert-db.ts");
         if (msg.action === "list") {
           send(ws, { type: "list_experts", experts: listExperts() });
         } else if (msg.action === "upsert" && msg.expert) {
           upsertExpert(msg.expert);
           send(ws, { type: "list_experts", experts: listExperts() });
-          
+
           // Si es el asistente general, refrescar el estado global para el cliente
           if (msg.expert.name === "__general__") {
             const genCfg = await getGeneralConfig();
@@ -174,13 +180,13 @@ export function createGateway(): GatewayServer {
               model: genCfg.model,
               sessionId,
               messageCount: 0,
-              generalConfig: genCfg
+              generalConfig: genCfg,
             });
           }
         } else if (msg.action === "delete" && msg.name) {
           deleteExpert(msg.name);
           send(ws, { type: "list_experts", experts: listExperts() });
-          
+
           if (msg.name === "__general__") {
             const genCfg = await getGeneralConfig();
             send(ws, {
@@ -188,20 +194,26 @@ export function createGateway(): GatewayServer {
               model: genCfg.model,
               sessionId,
               messageCount: 0,
-              generalConfig: genCfg
+              generalConfig: genCfg,
             });
           }
         }
       } else if (msg.type === "delete_task") {
-        const { deleteTask, getUserTasks } = await import("../memory/scheduler-db.ts");
+        const { deleteTask, getUserTasks } =
+          await import("../memory/scheduler-db.ts");
         const { stopLocalTask } = await import("../agent/scheduler-manager.ts");
         if (deleteTask(msg.id, sessionId)) {
           stopLocalTask(msg.id);
-          send(ws, { type: "list_tasks" as any, tasks: getUserTasks(sessionId) } as any);
+          send(ws, {
+            type: "list_tasks" as any,
+            tasks: getUserTasks(sessionId),
+          } as any);
         }
       } else if (msg.type === "update_task") {
-        const { updateTask, getUserTasks } = await import("../memory/scheduler-db.ts");
-        const { stopLocalTask, scheduleLocalTask } = await import("../agent/scheduler-manager.ts");
+        const { updateTask, getUserTasks } =
+          await import("../memory/scheduler-db.ts");
+        const { stopLocalTask, scheduleLocalTask } =
+          await import("../agent/scheduler-manager.ts");
         if (updateTask(msg.id, sessionId, msg.task, msg.cron)) {
           stopLocalTask(msg.id);
           scheduleLocalTask({
@@ -210,15 +222,41 @@ export function createGateway(): GatewayServer {
             task: msg.task,
             cron: msg.cron,
             active: 1,
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
           });
-          send(ws, { type: "list_tasks" as any, tasks: getUserTasks(sessionId) } as any);
+          send(ws, {
+            type: "list_tasks" as any,
+            tasks: getUserTasks(sessionId),
+          } as any);
         }
-      } else if (msg.type === "list_tasks" as any) {
+      } else if (msg.type === "user_register") {
+        const { upsertUser, listAllUsers } =
+          await import("../memory/user-db.ts");
+        upsertUser(msg.userId, {
+          name: msg.name,
+          timezone: msg.timezone,
+          telegram_user: msg.telegram_user,
+        });
+        console.log(
+          chalk.green(`✅ Usuario registrado: ${msg.userId} (${msg.name})`),
+        );
+        // Enviar lista actualizada de usuarios a todos (o solo al que registró)
+        send(ws, { type: "list_users", users: listAllUsers() });
+        // También identificarlo automáticamente
+        sessionId = msg.userId;
+        send(ws, {
+          type: "status",
+          model: config.agent.model,
+          sessionId,
+          messageCount: 0,
+        });
+      } else if (msg.type === ("list_tasks" as any)) {
         const { getUserTasks } = await import("../memory/scheduler-db.ts");
-        send(ws, { type: "list_tasks" as any, tasks: getUserTasks(sessionId) } as any);
+        send(ws, {
+          type: "list_tasks" as any,
+          tasks: getUserTasks(sessionId),
+        } as any);
       }
-
     });
 
     ws.on("close", () => {
@@ -235,9 +273,17 @@ export function createGateway(): GatewayServer {
     new Promise((resolve) => {
       httpServer.listen(config.gateway.port, () => {
         console.log(chalk.green(`\n🤖 ARGenteIA`));
-        console.log(chalk.dim(`   Gateway: `) + chalk.white(`http://localhost:${config.gateway.port}`));
-        console.log(chalk.dim(`   WebChat: `) + chalk.white(`http://localhost:${config.gateway.port}`));
-        console.log(chalk.dim(`   Modelo:  `) + chalk.white(config.agent.model));
+        console.log(
+          chalk.dim(`   Gateway: `) +
+            chalk.white(`http://localhost:${config.gateway.port}`),
+        );
+        console.log(
+          chalk.dim(`   WebChat: `) +
+            chalk.white(`http://localhost:${config.gateway.port}`),
+        );
+        console.log(
+          chalk.dim(`   Modelo:  `) + chalk.white(config.agent.model),
+        );
         console.log();
         resolve();
       });

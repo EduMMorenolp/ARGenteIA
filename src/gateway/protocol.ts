@@ -1,19 +1,28 @@
 // Tipos del protocolo WebSocket entre el servidor y el cliente WebChat
 
 export type WsMessageType =
-  | "user_message"      // cliente → servidor: mensaje del usuario
+  | "user_message" // cliente → servidor: mensaje del usuario
   | "assistant_message" // servidor → cliente: respuesta del agente
-  | "typing"            // servidor → cliente: indicador de escritura
-  | "error"             // servidor → cliente: error
-  | "status"            // servidor → cliente: info de la sesión
-  | "command_result"    // servidor → cliente: resultado de un comando
-  | "list_experts"      // servidor → cliente: lista de expertos disponibles
-  | "expert_update"      // cliente → servidor: crear/actualizar experto
-  | "list_users"        // servidor → cliente: lista de usuarios existentes
-  | "list_tasks"        // servidor → cliente: lista de tareas programadas
-  | "delete_task"      // cliente → servidor: eliminar tarea
-  | "update_task"      // cliente → servidor: editar tarea
-  | "identify";          // cliente → servidor: asociar sesión con userId
+  | "typing" // servidor → cliente: indicador de escritura
+  | "error" // servidor → cliente: error
+  | "status" // servidor → cliente: info de la sesión
+  | "command_result" // servidor → cliente: resultado de un comando
+  | "list_experts" // servidor → cliente: lista de expertos disponibles
+  | "expert_update" // cliente → servidor: crear/actualizar experto
+  | "list_users" // servidor → cliente: lista de usuarios existentes
+  | "list_tasks" // servidor → cliente: lista de tareas programadas
+  | "delete_task" // cliente → servidor: eliminar tarea
+  | "update_task" // cliente → servidor: editar tarea
+  | "user_register" // cliente → servidor: crear nuevo usuario
+  | "identify"; // cliente → servidor: asociar sesión con userId
+
+export interface WsUserRegisterMessage {
+  type: "user_register";
+  userId: string;
+  name: string;
+  timezone: string;
+  telegram_user?: string;
+}
 
 export interface WsUserMessage {
   type: "user_message";
@@ -27,11 +36,11 @@ export interface WsAssistantMessage {
   text: string;
   model: string;
   sessionId: string;
-  origin?: 'web' | 'telegram';
+  origin?: "web" | "telegram";
   history?: Array<{
     role: string;
     text: string;
-    origin: 'web' | 'telegram';
+    origin: "web" | "telegram";
   }>;
 }
 
@@ -111,4 +120,5 @@ export type WsMessage =
   | WsListTasksMessage
   | WsDeleteTaskMessage
   | WsUpdateTaskMessage
+  | WsUserRegisterMessage
   | WsIdentifyMessage;
