@@ -16,9 +16,11 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ### Mejorado
 - **Arquitectura de UI/UX:**
+  - **Selector de Horarios Pro:** Rediseñado el editor de tareas para eliminar la necesidad de conocer formato CRON. Ahora incluye selectores numéricos de hora/minuto y chips interactivos para los días de la semana.
+  - **Botón de Cierre Premium:** Nuevo diseño circular para el botón "X" con animación de rotación y feedback visual mejorado.
+  - **Modal de Funcionalidades:** Rediseñado con descripciones técnicas precisas de los módulos del sistema.
+  - **Formularios & Foco:** Mejora en la validación visual y estados de foco (glow) en todos los modales.
   - Reorganización de la barra de comandos rápida (Estado, Ayuda, Limpiar, Funciones).
-  - Modal de "Funcionalidades" rediseñado con descripciones técnicas precisas de los módulos del sistema.
-  - Mejora en la validación visual de formularios y estados de foco en modales.
 - **Protocolo de Comunicación:** Sincronización proactiva de tareas programadas mediante el mensaje `list_tasks` al identificar el usuario.
 
 ### Corregido
