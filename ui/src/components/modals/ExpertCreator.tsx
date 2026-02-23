@@ -8,15 +8,25 @@ interface ExpertCreatorProps {
     onSave: (e: Expert) => void;
     initialData: Expert | null;
     availableTools: string[];
+    allExperts: Expert[];
 }
 
-export function ExpertCreator({ onClose, onSave, initialData, availableTools }: ExpertCreatorProps) {
-    const [formData, setFormData] = useState<Expert>(initialData || {
-        name: '',
-        model: 'openrouter/meta-llama/llama-3.3-70b-instruct',
-        system_prompt: '',
-        temperature: 0.7,
-        tools: []
+export function ExpertCreator({ onClose, onSave, initialData, availableTools, allExperts }: ExpertCreatorProps) {
+    const [formData, setFormData] = useState<Expert>(() => {
+        if (initialData) {
+            return {
+                ...initialData,
+                experts: initialData.experts || []
+            };
+        }
+        return {
+            name: '',
+            model: 'openrouter/meta-llama/llama-3.3-70b-instruct',
+            system_prompt: '',
+            temperature: 0.7,
+            tools: [],
+            experts: []
+        };
     });
 
     const handleTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -40,11 +50,24 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools }: 
         }
     };
 
+    const toggleExpert = (expertName: string) => {
+        const experts = formData.experts || [];
+        if (experts.includes(expertName)) {
+            setFormData({ ...formData, experts: experts.filter(e => e !== expertName) });
+        } else {
+            setFormData({ ...formData, experts: [...experts, expertName] });
+        }
+    };
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h3>{initialData ? 'Editar Experto' : 'Crear Nuevo Experto'}</h3>
+                    <h3>
+                        {formData.name === '__general__'
+                            ? 'Configurar Asistente General'
+                            : initialData ? 'Editar Experto' : 'Crear Nuevo Experto'}
+                    </h3>
                     <button className="icon-btn" onClick={onClose}><X size={18} /></button>
                 </div>
                 <div className="modal-body max-h-600">
@@ -63,9 +86,9 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools }: 
                         <input
                             type="text"
                             placeholder="Ej: Coder, Escritor..."
-                            value={formData.name}
+                            value={formData.name === '__general__' ? 'Asistente General' : formData.name}
                             onChange={e => setFormData({ ...formData, name: e.target.value })}
-                            disabled={!!initialData}
+                            disabled={!!initialData || formData.name === '__general__'}
                         />
                     </div>
 
@@ -83,6 +106,23 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools }: 
                             ))}
                         </div>
                     </div>
+
+                    {allExperts.length > 0 && (
+                        <div className="form-group">
+                            <label>Sub-Agentes (Expertos) que puede invocar</label>
+                            <div className="tools-selection-grid">
+                                {allExperts.map(exp => (
+                                    <button
+                                        key={exp.name}
+                                        className={`tool-chip expert-chip ${formData.experts?.includes(exp.name) ? 'selected' : ''}`}
+                                        onClick={() => toggleExpert(exp.name)}
+                                    >
+                                        🤖 {exp.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="form-group">
                         <label>Modelo (OpenRouter)</label>
@@ -112,7 +152,9 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools }: 
                 </div>
                 <div className="modal-footer">
                     <button className="btn-secondary" onClick={onClose}>Cancelar</button>
-                    <button className="btn-primary" onClick={() => onSave(formData)}>Guardar Experto</button>
+                    <button className="btn-primary" onClick={() => onSave(formData)}>
+                        {formData.name === '__general__' ? 'Guardar Cambios' : 'Guardar Experto'}
+                    </button>
                 </div>
             </div>
         </div>

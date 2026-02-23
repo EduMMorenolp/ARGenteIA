@@ -38,12 +38,55 @@ export function createGateway(): GatewayServer {
     let sessionId = `webchat-${Date.now()}`;
     console.log(chalk.cyan(`🌐 WebChat conectado [${sessionId}]`));
 
+    // Obtener configuración del asistente general (base + override)
+    const getGeneralConfig = async () => {
+      const { getExpert, listExperts } = await import("../memory/expert-db.ts");
+      const { getTools } = await import("../tools/index.ts");
+      const { loadSkills } = await import("../skills/loader.ts");
+
+      const override = getExpert("__general__");
+      const allTools = getTools().map(t => t.function.name);
+      const allExpertsList = listExperts().map(e => e.name);
+
+      if (override) {
+        // Si el override no tiene herramientas, le mandamos todas para que aparezcan seleccionadas
+        if (!override.tools || override.tools.length === 0) {
+          override.tools = allTools;
+        }
+        // Si el override no tiene expertos elegidos, le mandamos todos
+        if (!override.experts || override.experts.length === 0) {
+          override.experts = allExpertsList;
+        }
+        return override;
+      }
+
+      // Si no hay override, mandamos la config base merged con skills y todas las herramientas/expertos
+      const skills = await loadSkills();
+      
+      let initialPrompt = config.agent.systemPrompt || "";
+      if (skills.length > 0) {
+        initialPrompt += `\n\n${skills.join("\n\n")}`;
+      }
+
+      return {
+        name: "__general__",
+        model: config.agent.model,
+        system_prompt: initialPrompt,
+        temperature: 0.7,
+        tools: allTools,
+        experts: allExpertsList
+      };
+    };
+
     // Enviar estado inicial
-    send(ws, {
-      type: "status",
-      model: config.agent.model,
-      sessionId,
-      messageCount: 0,
+    getGeneralConfig().then(genCfg => {
+      send(ws, {
+        type: "status",
+        model: config.agent.model,
+        sessionId,
+        messageCount: 0,
+        generalConfig: genCfg
+      });
     });
 
     // Enviar lista de expertos inicial
@@ -122,9 +165,32 @@ export function createGateway(): GatewayServer {
         } else if (msg.action === "upsert" && msg.expert) {
           upsertExpert(msg.expert);
           send(ws, { type: "list_experts", experts: listExperts() });
+          
+          // Si es el asistente general, refrescar el estado global para el cliente
+          if (msg.expert.name === "__general__") {
+            const genCfg = await getGeneralConfig();
+            send(ws, {
+              type: "status",
+              model: genCfg.model,
+              sessionId,
+              messageCount: 0,
+              generalConfig: genCfg
+            });
+          }
         } else if (msg.action === "delete" && msg.name) {
           deleteExpert(msg.name);
           send(ws, { type: "list_experts", experts: listExperts() });
+          
+          if (msg.name === "__general__") {
+            const genCfg = await getGeneralConfig();
+            send(ws, {
+              type: "status",
+              model: genCfg.model,
+              sessionId,
+              messageCount: 0,
+              generalConfig: genCfg
+            });
+          }
         }
       } else if (msg.type === "delete_task") {
         const { deleteTask, getUserTasks } = await import("../memory/scheduler-db.ts");

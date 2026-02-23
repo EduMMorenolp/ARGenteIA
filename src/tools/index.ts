@@ -30,10 +30,17 @@ export function registerTool(def: ToolDefinition): void {
   registry.set(def.spec.function.name, def);
 }
 
-export function getTools(): ToolSpec[] {
-  return [...registry.values()]
-    .filter((t) => t.isEnabled())
-    .map((t) => t.spec);
+export function getTools(allowedTools?: string[]): ToolSpec[] {
+  const all = [...registry.values()]
+    .filter((t) => t.isEnabled());
+  
+  if (allowedTools && allowedTools.length > 0) {
+    return all
+      .filter((t) => allowedTools.includes(t.spec.function.name))
+      .map((t) => t.spec);
+  }
+
+  return all.map((t) => t.spec);
 }
 
 export async function executeTool(name: string, args: Record<string, unknown>, context: ToolContext): Promise<string> {

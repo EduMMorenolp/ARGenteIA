@@ -18,6 +18,7 @@ export default function App() {
   const {
     messages, inputText, setInputText, isTyping, userModel, messageCount, isWaiting, isConnected,
     experts, availableTools, availableUsers, scheduledTasks, currentUser, selectedExpert,
+    generalConfig,
     setSelectedExpert, isCreatorOpen, setIsCreatorOpen, isFeaturesOpen, setIsFeaturesOpen,
     editingExpert, setEditingExpert, editingTask, setEditingTask, textareaRef,
     identifyUser, continueAsGuest, sendMessage, upsertExpert, deleteExpert, deleteTask, updateTask,
@@ -74,6 +75,12 @@ export default function App() {
         selectedExpert={selectedExpert}
         onSelectExpert={setSelectedExpert}
         onEditExpert={(exp) => { setEditingExpert(exp); setIsCreatorOpen(true); }}
+        onEditGeneral={() => {
+          if (generalConfig) {
+            setEditingExpert({ ...generalConfig, name: '__general__' }); // Usar nombre interno
+            setIsCreatorOpen(true);
+          }
+        }}
         onDeleteExpert={deleteExpert}
         onEditTask={setEditingTask}
         onDeleteTask={deleteTask}
@@ -119,6 +126,7 @@ export default function App() {
           onSave={upsertExpert}
           initialData={editingExpert}
           availableTools={availableTools}
+          allExperts={experts}
         />
       )}
 

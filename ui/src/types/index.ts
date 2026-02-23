@@ -4,6 +4,7 @@ export interface Expert {
   system_prompt: string;
   temperature: number;
   tools?: string[];
+  experts?: string[];
 }
 
 export interface UserProfile {
@@ -27,6 +28,7 @@ export interface WsMessage {
   text?: string;
   model?: string;
   messageCount?: number;
+  generalConfig?: Expert;
   isTyping?: boolean;
   command?: string;
   result?: string;

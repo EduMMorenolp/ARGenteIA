@@ -10,6 +10,7 @@ interface SidebarProps {
     selectedExpert: string | null;
     onSelectExpert: (name: string | null) => void;
     onEditExpert: (exp: Expert) => void;
+    onEditGeneral: () => void;
     onDeleteExpert: (name: string) => void;
     onEditTask: (task: any) => void;
     onDeleteTask: (id: number) => void;
@@ -29,6 +30,7 @@ export function Sidebar({
     selectedExpert,
     onSelectExpert,
     onEditExpert,
+    onEditGeneral,
     onDeleteExpert,
     onEditTask,
     onDeleteTask,
@@ -75,15 +77,32 @@ export function Sidebar({
                         </button>
                     </div>
                     <div className="experts-list">
-                        <button
-                            className={`expert-item ${selectedExpert === null ? 'active' : ''}`}
-                            onClick={() => onSelectExpert(null)}
-                        >
-                            <div className="expert-avatar general"><Bot size={14} /></div>
-                            <div className="expert-info">
-                                <span className="expert-name">Asistente General</span>
+                        <div className={`expert-item-wrap ${selectedExpert === null ? 'active' : ''}`}>
+                            <button
+                                className="expert-item-main"
+                                onClick={() => onSelectExpert(null)}
+                            >
+                                <div className="expert-avatar general"><Bot size={14} /></div>
+                                <div className="expert-info">
+                                    <span className="expert-name">Asistente General</span>
+                                </div>
+                            </button>
+                            <div className="expert-actions">
+                                <button onClick={onEditGeneral} title="Configurar Asistente General">
+                                    <Edit2 size={12} />
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (confirm('¿Restablecer configuración original del Asistente General?')) {
+                                            onDeleteExpert('__general__');
+                                        }
+                                    }}
+                                    title="Restablecer original"
+                                >
+                                    <Plus size={12} style={{ transform: 'rotate(45deg)' }} />
+                                </button>
                             </div>
-                        </button>
+                        </div>
                         {experts.map((exp) => (
                             <div key={exp.name} className={`expert-item-wrap ${selectedExpert === exp.name ? 'active' : ''}`}>
                                 <button

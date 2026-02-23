@@ -127,6 +127,7 @@ async function handleTelegramCommand(chatId: number, cmd: string, sessionId: str
           model: model.trim(),
           system_prompt: systemPrompt,
           tools: [],
+          experts: [],
           temperature: 0.7
         });
         await bot!.sendMessage(chatId, `✅ Agente experto "*${name.trim()}*" creado/actualizado con éxito.`, { parse_mode: "Markdown" });

@@ -50,6 +50,7 @@ export interface WsStatusMessage {
   model: string;
   sessionId: string;
   messageCount: number;
+  generalConfig?: any;
 }
 
 export interface WsCommandResultMessage {

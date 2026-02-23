@@ -51,6 +51,7 @@ export function getDb(): Database.Database {
       model TEXT NOT NULL,
       system_prompt TEXT NOT NULL,
       tools TEXT DEFAULT '[]',
+      experts TEXT DEFAULT '[]',
       temperature REAL DEFAULT 0.7,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
@@ -70,6 +71,13 @@ export function getDb(): Database.Database {
     CREATE INDEX IF NOT EXISTS idx_sub_agents_name ON sub_agents(name);
     CREATE INDEX IF NOT EXISTS idx_messages_userId ON messages(userId);
   `);
+
+  // Migración: Asegurar columna 'experts' en 'sub_agents'
+  try {
+    _db.exec("ALTER TABLE sub_agents ADD COLUMN experts TEXT DEFAULT '[]'");
+  } catch {
+    // Ya existe o error ignorado
+  }
 
   return _db;
 }

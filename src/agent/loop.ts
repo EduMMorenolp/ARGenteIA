@@ -21,7 +21,12 @@ export interface AgentResponse {
 
 export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
   const config = getConfig();
-  const model = config.agent.model;
+  
+  // 0. Verificar si existe un override para el asistente general en la DB
+  const { getExpert } = await import("../memory/expert-db.ts");
+  const generalOverride = getExpert("__general__");
+
+  const model = generalOverride?.model || config.agent.model;
   const provider = detectProvider(model);
 
   // Añadir mensaje del usuario al historial en memoria
@@ -88,13 +93,28 @@ async function runOpenAI(
   const config = getConfig();
   const client = createClient(model, config) as OpenAI;
   const name = modelName(model);
-  const toolSpecs: ToolSpec[] = getTools();
+  
+  // 0. Obtener override si existe
+  const { getExpert } = await import("../memory/expert-db.ts");
+  const generalOverride = getExpert("__general__");
+
+  // Si hay override y tiene herramientas definidas, usarlas. Si no, todas las habilitadas.
+  const toolSpecs: ToolSpec[] = getTools(generalOverride?.tools);
   const tools = toolSpecs.length > 0 ? (toolSpecs as unknown as ChatCompletionTool[]) : undefined;
 
   // 1. Obtener perfil del usuario para personalizar el sistema
   const { getUser } = await import("../memory/user-db.ts");
+  const { loadSkills } = await import("../skills/loader.ts");
+  
   const userProfile = getUser(sessionId);
-  let systemPrompt = config.agent.systemPrompt || "Eres un asistente personal útil.";
+  const skills = await loadSkills();
+  
+  let systemPrompt = generalOverride?.system_prompt || config.agent.systemPrompt || "Eres un asistente personal útil.";
+
+  // Inyectar Skills solo si no están ya presentes (por ejemplo, en el override de la DB)
+  if (skills.length > 0 && !systemPrompt.includes("COMPETENCIAS Y HABILIDADES ADICIONALES")) {
+    systemPrompt += `\n\nCOMPETENCIAS Y HABILIDADES ADICIONALES:\n${skills.join("\n\n")}`;
+  }
 
   if (userProfile && userProfile.name) {
     systemPrompt += `\nESTÁS HABLANDO CON: ${userProfile.name}. Su zona horaria es: ${userProfile.timezone}.`;
@@ -107,7 +127,13 @@ async function runOpenAI(
 
   // 2. Información de Sub-Agentes (Expertos)
   const { listExperts } = await import("../memory/expert-db.ts");
-  const experts = listExperts();
+  let experts = listExperts();
+  
+  // Filtrar expertos si hay una restricción definida
+  if (generalOverride?.experts && generalOverride.experts.length > 0) {
+    experts = experts.filter(e => generalOverride.experts.includes(e.name));
+  }
+
   if (experts.length > 0) {
     systemPrompt += `\n\nTIENES ACCESO A UN EQUIPO DE EXPERTOS ESPECIALIZADOS. 
     Si el usuario requiere una tarea que encaje con alguno de estos expertos, USA la herramienta 'call_expert'.
@@ -131,6 +157,7 @@ async function runOpenAI(
       model: name,
       messages: loopMessages,
       max_tokens: maxTokens,
+      temperature: generalOverride?.temperature ?? 0.7,
       tools,
       tool_choice: tools ? "auto" : undefined,
     });
@@ -185,6 +212,7 @@ async function runOpenAI(
         model: name,
         messages: loopMessages,
         max_tokens: maxTokens,
+        temperature: generalOverride?.temperature ?? 0.7,
         tools,
       });
     }
@@ -196,6 +224,7 @@ async function runOpenAI(
         model: name,
         messages: loopMessages,
         max_tokens: maxTokens,
+        temperature: generalOverride?.temperature ?? 0.7,
       });
       return finalRes.choices[0]?.message?.content || "";
     }

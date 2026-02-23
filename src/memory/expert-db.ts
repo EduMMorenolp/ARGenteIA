@@ -5,6 +5,7 @@ export interface SubAgent {
   model: string;
   system_prompt: string;
   tools: string[]; // Se guarda como JSON en DB
+  experts: string[]; // Se guarda como JSON en DB
   temperature: number;
   created_at?: string;
 }
@@ -20,7 +21,8 @@ export function getExpert(name: string): SubAgent | null {
 
   return {
     ...row,
-    tools: JSON.parse(row.tools || "[]")
+    tools: JSON.parse(row.tools || "[]"),
+    experts: JSON.parse(row.experts || "[]")
   };
 }
 
@@ -30,12 +32,13 @@ export function getExpert(name: string): SubAgent | null {
 export function upsertExpert(agent: SubAgent): void {
   const db = getDb();
   const stmt = db.prepare(`
-    INSERT INTO sub_agents (name, model, system_prompt, tools, temperature)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO sub_agents (name, model, system_prompt, tools, experts, temperature)
+    VALUES (?, ?, ?, ?, ?, ?)
     ON CONFLICT(name) DO UPDATE SET
       model = excluded.model,
       system_prompt = excluded.system_prompt,
       tools = excluded.tools,
+      experts = excluded.experts,
       temperature = excluded.temperature
   `);
   stmt.run(
@@ -43,6 +46,7 @@ export function upsertExpert(agent: SubAgent): void {
     agent.model,
     agent.system_prompt,
     JSON.stringify(agent.tools || []),
+    JSON.stringify(agent.experts || []),
     agent.temperature ?? 0.7
   );
 }
@@ -52,10 +56,11 @@ export function upsertExpert(agent: SubAgent): void {
  */
 export function listExperts(): SubAgent[] {
   const db = getDb();
-  const rows = db.prepare("SELECT * FROM sub_agents ORDER BY name ASC").all() as any[];
+  const rows = db.prepare("SELECT * FROM sub_agents WHERE name != '__general__' ORDER BY name ASC").all() as any[];
   return rows.map(row => ({
     ...row,
-    tools: JSON.parse(row.tools || "[]")
+    tools: JSON.parse(row.tools || "[]"),
+    experts: JSON.parse(row.experts || "[]")
   }));
 }
 

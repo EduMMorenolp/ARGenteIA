@@ -9,6 +9,7 @@ export function useAssistant() {
   const [isTyping, setIsTyping] = useState(false);
   const [userModel, setUserModel] = useState('–');
   const [messageCount, setMessageCount] = useState(0);
+  const [generalConfig, setGeneralConfig] = useState<Expert | null>(null);
   const [isWaiting, setIsWaiting] = useState(false);
 
   // Management state
@@ -42,6 +43,7 @@ export function useAssistant() {
       case 'status':
         setUserModel(msg.model || '–');
         setMessageCount(msg.messageCount || 0);
+        if (msg.generalConfig) setGeneralConfig(msg.generalConfig);
         break;
       case 'typing':
         setIsTyping(!!msg.isTyping);
@@ -156,6 +158,7 @@ export function useAssistant() {
   return {
     messages, inputText, setInputText, isTyping, userModel, messageCount, isWaiting, isConnected,
     experts, availableTools, availableUsers, scheduledTasks, currentUser, selectedExpert,
+    generalConfig,
     setSelectedExpert, isCreatorOpen, setIsCreatorOpen, isFeaturesOpen, setIsFeaturesOpen,
     editingExpert, setEditingExpert, editingTask, setEditingTask, textareaRef,
     identifyUser, continueAsGuest, sendMessage, upsertExpert, deleteExpert, deleteTask, updateTask,
