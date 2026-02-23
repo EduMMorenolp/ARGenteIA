@@ -38,16 +38,16 @@ export function startTelegram(): void {
 
     console.log(chalk.magenta(`📱 Telegram [@${username}]: ${text.slice(0, 60)}`));
 
-    // Comandos
-    if (text.startsWith("/")) {
-      await handleTelegramCommand(chatId, text, sessionId);
-      return;
-    }
-
-    // Typing indicator
-    await bot!.sendChatAction(chatId, "typing");
-
     try {
+      // Comandos
+      if (text.startsWith("/")) {
+        await handleTelegramCommand(chatId, text, sessionId);
+        return;
+      }
+
+      // Typing indicator
+      await bot!.sendChatAction(chatId, "typing").catch(e => console.error("Error sendChatAction:", e.message));
+
       const result = await runAgent({
         sessionId,
         userText: text,
@@ -65,18 +65,21 @@ export function startTelegram(): void {
       // Telegram soporta Markdown básico
       await bot!.sendMessage(chatId, result.text, {
         parse_mode: "Markdown",
-      }).catch(async () => {
+      }).catch(async (e) => {
+        console.warn("Markdown failed, sending as plain text:", e.message);
         // Si falla el markdown, enviar como texto plano
-        await bot!.sendMessage(chatId, result.text);
+        await bot!.sendMessage(chatId, result.text).catch(e2 => console.error("Final sendMessage failed:", e2.message));
       });
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
-      await bot!.sendMessage(chatId, `❌ Error: ${errMsg}`);
+      console.error(chalk.red(`❌ Error procesando mensaje de Telegram (@${username}):`), errMsg);
+      await bot!.sendMessage(chatId, `❌ Error: ${errMsg}`).catch(() => {});
     }
   });
 
-  bot.on("polling_error", (err) => {
-    console.error(chalk.red("❌ Telegram polling error:"), err.message);
+  bot.on("polling_error", (err: any) => {
+    // Evitar dump de objeto completo si es circular
+    console.error(chalk.red("❌ Telegram polling error:"), err.message || "Error desconocido");
   });
 
   console.log(chalk.magenta(`📱 Telegram bot activo`));

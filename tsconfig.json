@@ -13,7 +13,7 @@
         "skipLibCheck": true,
         "resolveJsonModule": true,
         "allowImportingTsExtensions": true,
-        "noEmit": false
+        "noEmit": true
     },
     "include": [
         "src/**/*"

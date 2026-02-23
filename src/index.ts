@@ -36,3 +36,13 @@ process.on("SIGINT", () => {
 process.on("SIGTERM", () => {
   process.exit(0);
 });
+
+// Capturar errores no manejados para que no tiren dumps gigantes
+process.on("unhandledRejection", (reason: any) => {
+  console.error(chalk.red("💥 Unhandled Rejection:"), reason?.message || reason);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error(chalk.red("💥 Uncaught Exception:"), err.message);
+  // En producción podrías querer cerrar el proceso, pero aquí lo dejamos para ver logs
+});

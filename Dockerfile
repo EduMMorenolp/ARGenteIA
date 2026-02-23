@@ -9,7 +9,6 @@ RUN pnpm run build
 
 # --- Stage 2: Build the Backend ---
 FROM node:22-slim AS server-builder
-RUN npm install -g pnpm
 # Install tools for building native modules
 RUN apt-get update && apt-get install -y \
     python3 \
@@ -18,16 +17,16 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-# Allow build scripts for native modules
-RUN pnpm install --frozen-lockfile
+COPY package.json ./
+# Using npm here to avoid pnpm's virtual store paths in the bundle
+RUN npm install
 COPY . .
-RUN pnpm run build
+# Bundle backend
+RUN npx esbuild src/index.ts --bundle --platform=node --target=node22 --outfile=dist/index.js --external:better-sqlite3 --external:screenshot-desktop --format=esm --banner:js="import { createRequire as _createRequire } from 'module'; const require = _createRequire(import.meta.url); import { fileURLToPath as _fileURLToPath } from 'url'; import { dirname as _dirname_banner } from 'path'; const __filename = _fileURLToPath(import.meta.url); const __dirname = _dirname_banner(__filename);"
 
 # --- Stage 3: Production Image ---
 FROM node:22-slim
 WORKDIR /app
-RUN npm install -g pnpm
 
 # Install runtime dependencies for native modules
 RUN apt-get update && apt-get install -y \
@@ -39,15 +38,14 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Production dependencies only
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --prod --frozen-lockfile
+COPY package.json ./
+RUN npm install --omit=dev
 
 # Copy build artifacts
 COPY --from=server-builder /app/dist ./dist
 COPY --from=ui-builder /app/ui/dist ./ui/dist
 COPY skills ./skills
 COPY config.example.json ./config.example.json
-# We copy config.json if it exists, but volume is preferred
 COPY config.json* ./config.json
 
 # Ensure memory directory exists
