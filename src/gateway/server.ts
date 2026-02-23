@@ -237,6 +237,7 @@ export function createGateway(): GatewayServer {
           timezone: msg.timezone,
           telegram_user: msg.telegram_user,
           telegram_token: msg.telegram_token,
+          login_pin: msg.login_pin || "0000",
         });
         if (msg.telegram_token && config.channels.telegram) {
           config.channels.telegram.botToken = msg.telegram_token;
@@ -264,6 +265,7 @@ export function createGateway(): GatewayServer {
           timezone: msg.timezone,
           telegram_user: msg.telegram_user,
           telegram_token: msg.telegram_token,
+          login_pin: msg.login_pin,
         });
         if (msg.telegram_token && config.channels.telegram) {
           config.channels.telegram.botToken = msg.telegram_token;

@@ -6,6 +6,7 @@ export interface UserProfile {
   timezone: string;
   telegram_user: string | null;
   telegram_token: string | null;
+  login_pin: string;
   preferences: string | null;
   created_at: string;
 }
@@ -38,7 +39,7 @@ export function upsertUser(
     stmt.run(...values, userId);
   } else {
     const stmt = db.prepare(
-      "INSERT INTO users (userId, name, timezone, telegram_user, telegram_token, preferences) VALUES (?, ?, ?, ?, ?, ?)",
+      "INSERT INTO users (userId, name, timezone, telegram_user, telegram_token, login_pin, preferences) VALUES (?, ?, ?, ?, ?, ?, ?)",
     );
     stmt.run(
       userId,
@@ -46,6 +47,7 @@ export function upsertUser(
       data.timezone || "America/Argentina/Buenos_Aires",
       data.telegram_user || null,
       data.telegram_token || null,
+      data.login_pin || "0000",
       data.preferences || null,
     );
   }

@@ -1223,3 +1223,78 @@ textarea {
   border-top: 1px solid var(--border);
   padding-top: 24px;
 }
+
+/* PIN CARD styles */
+.pin-card {
+  max-width: 380px;
+}
+
+.user-avatar.big {
+  width: 80px;
+  height: 80px;
+  font-size: 2.5rem;
+  margin: 0 auto 1.5rem;
+  background: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 20px rgba(0, 150, 255, 0.3);
+}
+
+.pin-group {
+  margin: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pin-group input {
+  font-size: 2.5rem;
+  letter-spacing: 1rem;
+  text-align: center;
+  padding: 1rem;
+  width: 100%;
+  max-width: 240px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.pin-group input:focus {
+  border-color: var(--primary-color);
+  background: rgba(0, 150, 255, 0.1);
+  outline: none;
+  box-shadow: 0 0 15px rgba(0, 150, 255, 0.2);
+}
+
+.pin-group input.error {
+  border-color: #ff4d4d;
+  animation: shake 0.4s ease-in-out;
+  background: rgba(255, 77, 77, 0.05);
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-8px);
+  }
+  75% {
+    transform: translateX(8px);
+  }
+}
+
+.error-msg {
+  color: #ff4d4d;
+  font-size: 0.85rem;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease;
+}

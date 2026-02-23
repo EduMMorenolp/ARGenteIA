@@ -127,6 +127,7 @@ export function useAssistant() {
       timezone: "America/Argentina/Buenos_Aires",
       telegram_user: null,
       telegram_token: null,
+      login_pin: "0000",
       created_at: new Date().toISOString(),
     });
   };
@@ -190,6 +191,7 @@ export function useAssistant() {
     timezone: string,
     telegram_user?: string,
     telegram_token?: string,
+    login_pin?: string,
   ) => {
     send({
       type: "user_register",
@@ -198,6 +200,7 @@ export function useAssistant() {
       timezone,
       telegram_user,
       telegram_token,
+      login_pin,
     });
     setCurrentUser({
       userId,
@@ -205,6 +208,7 @@ export function useAssistant() {
       timezone,
       telegram_user: telegram_user || null,
       telegram_token: telegram_token || null,
+      login_pin: login_pin || "0000",
       created_at: new Date().toISOString(),
     } as any);
   };
@@ -214,6 +218,7 @@ export function useAssistant() {
     timezone: string,
     telegram_user?: string,
     telegram_token?: string,
+    login_pin?: string,
   ) => {
     if (!currentUser) return;
     send({
@@ -223,6 +228,7 @@ export function useAssistant() {
       timezone,
       telegram_user,
       telegram_token,
+      login_pin,
     });
     setCurrentUser({
       ...currentUser,
@@ -230,6 +236,7 @@ export function useAssistant() {
       timezone,
       telegram_user: telegram_user || null,
       telegram_token: telegram_token || null,
+      login_pin: login_pin || currentUser.login_pin,
     });
   };
 

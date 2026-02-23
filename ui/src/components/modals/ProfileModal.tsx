@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, User, Globe, MessageSquare, Zap } from "lucide-react";
+import { X, User, Globe, MessageSquare, Zap, Lock } from "lucide-react";
 import type { UserProfile } from "../../types";
 
 interface ProfileModalProps {
@@ -10,6 +10,7 @@ interface ProfileModalProps {
     timezone: string,
     telegramUser: string,
     telegramToken: string,
+    loginPin: string,
   ) => void;
 }
 
@@ -20,10 +21,12 @@ export function ProfileModal({ user, onClose, onSave }: ProfileModalProps) {
   );
   const [telegramUser, setTelegramUser] = useState(user.telegram_user || "");
   const [telegramToken, setTelegramToken] = useState(user.telegram_token || "");
+  const [loginPin, setLoginPin] = useState(user.login_pin || "0000");
 
   const handleSave = () => {
     if (!name.trim()) return;
-    onSave(name, timezone, telegramUser, telegramToken);
+    if (loginPin.length !== 4) return;
+    onSave(name, timezone, telegramUser, telegramToken, loginPin);
     onClose();
   };
 
@@ -101,6 +104,25 @@ export function ProfileModal({ user, onClose, onSave }: ProfileModalProps) {
             </span>
           </div>
 
+          <div className="form-group">
+            <label>
+              <Lock size={14} /> PIN de Seguridad (4 dígitos)
+            </label>
+            <input
+              type="text"
+              maxLength={4}
+              value={loginPin}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                setLoginPin(val);
+              }}
+              placeholder="0000"
+            />
+            <span className="field-hint">
+              Se te pedirá este PIN para ingresar a la web.
+            </span>
+          </div>
+
           <div className="info-box">
             <span className="info-label">ID de Sistema:</span>
             <code className="info-value">{user.userId}</code>
@@ -113,7 +135,7 @@ export function ProfileModal({ user, onClose, onSave }: ProfileModalProps) {
           <button
             className="btn-primary"
             onClick={handleSave}
-            disabled={!name.trim()}
+            disabled={!name.trim() || loginPin.length !== 4}
           >
             Guardar Cambios
           </button>

@@ -44,6 +44,7 @@ export function getDb(): Database.Database {
       timezone TEXT DEFAULT 'America/Argentina/Buenos_Aires',
       telegram_user TEXT,
       telegram_token TEXT,
+      login_pin TEXT DEFAULT '0000',
       preferences TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
@@ -89,6 +90,11 @@ export function getDb(): Database.Database {
   }
   try {
     _db.exec("ALTER TABLE users ADD COLUMN telegram_token TEXT");
+  } catch {
+    // Ya existe o error ignorado
+  }
+  try {
+    _db.exec("ALTER TABLE users ADD COLUMN login_pin TEXT DEFAULT '0000'");
   } catch {
     // Ya existe o error ignorado
   }
