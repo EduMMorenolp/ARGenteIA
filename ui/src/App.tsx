@@ -613,6 +613,7 @@ const TOOL_LABELS: Record<string, string> = {
   'update_profile': '👤 Perfil Usuario',
   'call_expert': '🤖 Llamar Experto',
   'get_weather': '🌦️ Consultar Clima',
+  'capture_pc_screenshot': '📸 Captura de Pantalla',
   'delegate_task': '🤝 Delegar Tarea'
 };
 
