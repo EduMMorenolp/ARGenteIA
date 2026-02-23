@@ -3,6 +3,8 @@ import chalk from "chalk";
 
 export interface ToolContext {
   sessionId: string;
+  origin?: "web" | "telegram";
+  telegramChatId?: number;
 }
 
 // Tipo compatible con OpenAI function calling
@@ -16,7 +18,10 @@ export interface ToolSpec {
 }
 
 // Registro de herramientas
-type ToolHandler = (args: Record<string, unknown>, context: ToolContext) => Promise<string>;
+type ToolHandler = (
+  args: Record<string, unknown>,
+  context: ToolContext,
+) => Promise<string>;
 
 interface ToolDefinition {
   spec: ToolSpec;
@@ -31,9 +36,8 @@ export function registerTool(def: ToolDefinition): void {
 }
 
 export function getTools(allowedTools?: string[]): ToolSpec[] {
-  const all = [...registry.values()]
-    .filter((t) => t.isEnabled());
-  
+  const all = [...registry.values()].filter((t) => t.isEnabled());
+
   if (allowedTools && allowedTools.length > 0) {
     return all
       .filter((t) => allowedTools.includes(t.spec.function.name))
@@ -43,10 +47,15 @@ export function getTools(allowedTools?: string[]): ToolSpec[] {
   return all.map((t) => t.spec);
 }
 
-export async function executeTool(name: string, args: Record<string, unknown>, context: ToolContext): Promise<string> {
+export async function executeTool(
+  name: string,
+  args: Record<string, unknown>,
+  context: ToolContext,
+): Promise<string> {
   const tool = registry.get(name);
   if (!tool) return `Error: herramienta "${name}" no encontrada.`;
-  if (!tool.isEnabled()) return `Error: herramienta "${name}" está deshabilitada.`;
+  if (!tool.isEnabled())
+    return `Error: herramienta "${name}" está deshabilitada.`;
 
   try {
     const result = await tool.handler(args, context);

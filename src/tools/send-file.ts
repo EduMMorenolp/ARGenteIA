@@ -11,17 +11,20 @@ export function registerSendFile(config: Config): void {
       type: "function",
       function: {
         name: "send_file_telegram",
-        description: "Envía un archivo local al usuario a través de Telegram. Úsalo cuando el usuario pida un archivo (documento, imagen, excel, etc.).\nIMPORTANTE: Usa siempre rutas absolutas o usa '$HOME' para referirte a la carpeta del usuario. NO pongas comillas extra dentro del parámetro path.",
+        description:
+          "Envía un archivo local al usuario a través de Telegram. Úsalo cuando el usuario pida un archivo (documento, imagen, excel, etc.).\nIMPORTANTE: Usa siempre rutas absolutas o usa '$HOME' para referirte a la carpeta del usuario. NO pongas comillas extra dentro del parámetro path.",
         parameters: {
           type: "object",
           properties: {
             path: {
               type: "string",
-              description: "Ruta al archivo. Ejemplo: '$HOME\\Downloads\\archivo.xlsx' o 'C:\\Users\\admin\\file.txt'",
+              description:
+                "Ruta al archivo. Ejemplo: '$HOME\\Downloads\\archivo.xlsx' o 'C:\\Users\\admin\\file.txt'",
             },
             caption: {
               type: "string",
-              description: "Opcional: Un mensaje de texto para acompañar al archivo.",
+              description:
+                "Opcional: Un mensaje de texto para acompañar al archivo.",
             },
           },
           required: ["path"],
@@ -33,12 +36,17 @@ export function registerSendFile(config: Config): void {
       const caption = String(args["caption"] ?? "");
 
       // Eliminar comillas accidentales que el modelo a veces pone alrededor de la ruta
-      if ((rawPath.startsWith('"') && rawPath.endsWith('"')) || (rawPath.startsWith("'") && rawPath.endsWith("'"))) {
+      if (
+        (rawPath.startsWith('"') && rawPath.endsWith('"')) ||
+        (rawPath.startsWith("'") && rawPath.endsWith("'"))
+      ) {
         rawPath = rawPath.slice(1, -1);
       }
-      
+
       // Resolver ~ o $HOME
-      const homeDir = process.env[process.platform === "win32" ? "USERPROFILE" : "HOME"] || "";
+      const homeDir =
+        process.env[process.platform === "win32" ? "USERPROFILE" : "HOME"] ||
+        "";
       if (rawPath.startsWith("~")) {
         rawPath = rawPath.replace("~", homeDir);
       } else if (rawPath.includes("$HOME")) {
@@ -67,15 +75,21 @@ export function registerSendFile(config: Config): void {
         return "Error: El bot de Telegram no está activo o configurado.";
       }
 
-      // Extraer chatId de la sessionId (formato: telegram-123456)
-      if (!context.sessionId.startsWith("telegram-")) {
+      // 1. Usar telegramChatId directamente si existe en el contexto
+      let chatId: string | number | undefined = context.telegramChatId;
+
+      // 2. Fallback: Extraer de sessionId si tiene el prefijo clásico
+      if (!chatId && context.sessionId.startsWith("telegram-")) {
+        chatId = context.sessionId.replace("telegram-", "");
+      }
+
+      if (!chatId) {
         return "Error: Esta herramienta solo funciona en conversaciones de Telegram.";
       }
-      const chatId = context.sessionId.replace("telegram-", "");
 
       try {
-        await bot.sendDocument(chatId, filePath, { 
-          caption
+        await bot.sendDocument(chatId, filePath, {
+          caption,
         });
         return `Archivo "${filePath.split(/[\\/]/).pop()}" enviado correctamente a Telegram.`;
       } catch (err: any) {

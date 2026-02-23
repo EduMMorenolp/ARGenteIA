@@ -96,6 +96,7 @@ export function startTelegram(): void {
         sessionId: effectiveUserId,
         userText: text,
         origin: "telegram",
+        telegramChatId: chatId,
         onTyping: async (isTyping) => {
           if (isTyping)
             await bot!.sendChatAction(chatId, "typing").catch(() => {});

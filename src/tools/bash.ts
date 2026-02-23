@@ -9,9 +9,9 @@ function detectPowerShell(override?: string): string {
 
   // Rutas comunes en Windows
   const candidates = [
-    "pwsh",                                                      // PowerShell 7 (en PATH)
-    "powershell",                                                // PS 5 (en PATH)
-    "C:\\Program Files\\PowerShell\\7\\pwsh.exe",                // PS 7 instalado
+    "pwsh", // PowerShell 7 (en PATH)
+    "powershell", // PS 5 (en PATH)
+    "C:\\Program Files\\PowerShell\\7\\pwsh.exe", // PS 7 instalado
     "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", // PS 5 clásico
   ];
 
@@ -58,7 +58,7 @@ export function registerBash(config: Config): void {
             command: {
               type: "string",
               description: isWindows
-                ? "Comando completo de PowerShell. Usa comillas para rutas: \"$HOME\\Downloads\\file (1).txt\""
+                ? 'Comando completo de PowerShell. Usa comillas para rutas: "$HOME\\Downloads\\file (1).txt"'
                 : "Comando completo de bash.",
             },
           },
@@ -75,13 +75,25 @@ export function registerBash(config: Config): void {
 
       // Aliases PowerShell → nombres cortos para la allowlist
       const psAliases: Record<string, string> = {
-        "get-childitem": "ls", "dir": "ls", "get-content": "cat",
-        "get-location": "pwd", "get-date": "date", "select-string": "grep",
-        "write-output": "echo", "get-process": "ps",
+        "get-childitem": "ls",
+        dir: "ls",
+        "get-content": "cat",
+        "get-location": "pwd",
+        "get-date": "date",
+        "select-string": "grep",
+        "write-output": "echo",
+        "get-process": "ps",
+        ni: "new-item",
+        "new-item": "new-item",
       };
 
-      const normalizedBase = (psAliases[baseCmd.toLowerCase()] ?? baseCmd).toLowerCase();
-      if (!allowed.includes(normalizedBase) && !allowed.includes(baseCmd.toLowerCase())) {
+      const normalizedBase = (
+        psAliases[baseCmd.toLowerCase()] ?? baseCmd
+      ).toLowerCase();
+      if (
+        !allowed.includes(normalizedBase) &&
+        !allowed.includes(baseCmd.toLowerCase())
+      ) {
         return `Error: el comando "${baseCmd}" no está permitido. Comandos permitidos: ${config.tools.bash.allowlist.join(", ")}`;
       }
 
@@ -92,10 +104,14 @@ export function registerBash(config: Config): void {
           const exe = _psExe ?? "powershell";
           // Forzar UTF-8 en la entrada/salida de la sesión de PS
           const utf8Cmd = `$OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; ${command}`;
-          proc = spawn(exe, ["-NoProfile", "-NonInteractive", "-Command", utf8Cmd], {
-            windowsHide: true,
-            env: { ...process.env, LANG: "es_ES.UTF-8" },
-          });
+          proc = spawn(
+            exe,
+            ["-NoProfile", "-NonInteractive", "-Command", utf8Cmd],
+            {
+              windowsHide: true,
+              env: { ...process.env, LANG: "es_ES.UTF-8" },
+            },
+          );
         } else {
           proc = spawn("/bin/bash", ["-c", command], {
             env: { ...process.env },
@@ -105,8 +121,12 @@ export function registerBash(config: Config): void {
         let stdout = "";
         let stderr = "";
 
-        proc.stdout?.on("data", (d: Buffer) => { stdout += d.toString("utf8"); });
-        proc.stderr?.on("data", (d: Buffer) => { stderr += d.toString("utf8"); });
+        proc.stdout?.on("data", (d: Buffer) => {
+          stdout += d.toString("utf8");
+        });
+        proc.stderr?.on("data", (d: Buffer) => {
+          stderr += d.toString("utf8");
+        });
 
         const timer = setTimeout(() => {
           proc.kill();
@@ -116,9 +136,15 @@ export function registerBash(config: Config): void {
         proc.on("close", (code) => {
           clearTimeout(timer);
           const output = (stdout + stderr).trim();
-          console.log(chalk.dim(`   [bash] exit=${code}, output="${output.slice(0, 120)}"`));
-          if (!output) resolve(`(comando ejecutado sin salida, código ${code})`);
-          else if (output.length > 3000) resolve(output.slice(0, 3000) + "\n[... salida truncada]");
+          console.log(
+            chalk.dim(
+              `   [bash] exit=${code}, output="${output.slice(0, 120)}"`,
+            ),
+          );
+          if (!output)
+            resolve(`(comando ejecutado sin salida, código ${code})`);
+          else if (output.length > 3000)
+            resolve(output.slice(0, 3000) + "\n[... salida truncada]");
           else resolve(output);
         });
 
