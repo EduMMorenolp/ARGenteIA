@@ -91,152 +91,178 @@ async function runOpenAI(
   sessionId: string,
 ): Promise<string> {
   const config = getConfig();
-  const client = createClient(model, config) as OpenAI;
-  const name = modelName(model);
   
-  // 0. Obtener override si existe
-  const { getExpert } = await import("../memory/expert-db.ts");
-  const generalOverride = getExpert("__general__");
+  // 0. Preparar lista de modelos (el principal primero, luego el resto como fallback)
+  const allAvailableModels = Object.keys(config.models);
+  const modelsToTry = [model, ...allAvailableModels.filter(m => m !== model)];
 
-  // Si hay override y tiene herramientas definidas, usarlas. Si no, todas las habilitadas.
-  const toolSpecs: ToolSpec[] = getTools(generalOverride?.tools);
-  const tools = toolSpecs.length > 0 ? (toolSpecs as unknown as ChatCompletionTool[]) : undefined;
-
-  // 1. Obtener perfil del usuario para personalizar el sistema
-  const { getUser } = await import("../memory/user-db.ts");
-  const { loadSkills } = await import("../skills/loader.ts");
-  
-  const userProfile = getUser(sessionId);
-  const skills = await loadSkills();
-  
-  let systemPrompt = generalOverride?.system_prompt || config.agent.systemPrompt || "Eres un asistente personal útil.";
-
-  // Inyectar Skills solo si no están ya presentes (por ejemplo, en el override de la DB)
-  if (skills.length > 0 && !systemPrompt.includes("COMPETENCIAS Y HABILIDADES ADICIONALES")) {
-    systemPrompt += `\n\nCOMPETENCIAS Y HABILIDADES ADICIONALES:\n${skills.join("\n\n")}`;
-  }
-
-  if (userProfile && userProfile.name) {
-    systemPrompt += `\nESTÁS HABLANDO CON: ${userProfile.name}. Su zona horaria es: ${userProfile.timezone}.`;
-  } else {
-    systemPrompt += `\nESTE ES UN USUARIO NUEVO. NO TIENES SU PERFIL.
-    INSTRUCCIÓN CRÍTICA: Antes de cualquier otra cosa, preséntate brevemente como ARGenteIA y dile al usuario que necesitas configurar su perfil. 
-    Pídele amablemente su NOMBRE y confirma su zona horaria (por defecto Argentina/BsAs). 
-    Cuando te dé los datos, usa la herramienta 'update_profile'.`;
-  }
-
-  // 2. Información de Sub-Agentes (Expertos)
-  const { listExperts } = await import("../memory/expert-db.ts");
-  let experts = listExperts();
-  
-  // Filtrar expertos si hay una restricción definida
-  if (generalOverride?.experts && generalOverride.experts.length > 0) {
-    experts = experts.filter(e => generalOverride.experts.includes(e.name));
-  }
-
-  if (experts.length > 0) {
-    systemPrompt += `\n\nTIENES ACCESO A UN EQUIPO DE EXPERTOS ESPECIALIZADOS. 
-    Si el usuario requiere una tarea que encaje con alguno de estos expertos, USA la herramienta 'call_expert'.
-    Expertos disponibles:
-    ${experts.map(e => `- ${e.name}: ${e.system_prompt.slice(0, 100)}... (Modelo: ${e.model})`).join("\n    ")}
+  for (let mIdx = 0; mIdx < modelsToTry.length; mIdx++) {
+    const currentModel = modelsToTry[mIdx];
+    const client = createClient(currentModel, config) as OpenAI;
+    const name = modelName(currentModel);
     
-    REGLA: Prefiere delegar tareas técnicas, de redacción creativa o de investigación a estos expertos para mejores resultados.`;
-  }
+    // 1. Obtener override/perfil/herramientas (necesario en cada intento por si cambian)
+    const { getExpert } = await import("../memory/expert-db.ts");
+    const generalOverride = getExpert("__general__");
+    const toolSpecs: ToolSpec[] = getTools(generalOverride?.tools);
+    const tools = toolSpecs.length > 0 ? (toolSpecs as unknown as ChatCompletionTool[]) : undefined;
 
-  // Clonar historial para el loop y añadir system prompt dinámico
-  let loopMessages: ChatCompletionMessageParam[] = [
-    { role: "system", content: systemPrompt },
-    ...messages
-  ];
-  let iterations = 0;
-  const MAX_ITERATIONS = 6;
+    const { getUser } = await import("../memory/user-db.ts");
+    const { loadSkills } = await import("../skills/loader.ts");
+    const userProfile = getUser(sessionId);
+    const skills = await loadSkills();
+    
+    let systemPrompt = generalOverride?.system_prompt || config.agent.systemPrompt || "Eres un asistente personal útil.";
 
-  try {
-    // Primera llamada
-    let response = await client.chat.completions.create({
-      model: name,
-      messages: loopMessages,
-      max_tokens: maxTokens,
-      temperature: generalOverride?.temperature ?? 0.7,
-      tools,
-      tool_choice: tools ? "auto" : undefined,
-    });
+    if (skills.length > 0 && !systemPrompt.includes("COMPETENCIAS Y HABILIDADES ADICIONALES")) {
+      systemPrompt += `\n\nCOMPETENCIAS Y HABILIDADES ADICIONALES:\n${skills.join("\n\n")}`;
+    }
 
-    while (iterations < MAX_ITERATIONS) {
-      iterations++;
-      const assistantMsg = response.choices[0]?.message;
-      if (!assistantMsg) break;
+    if (userProfile && userProfile.name) {
+      systemPrompt += `\nESTÁS HABLANDO CON: ${userProfile.name}. Su zona horaria es: ${userProfile.timezone}.`;
+    } else {
+      systemPrompt += `\nESTE ES UN USUARIO NUEVO. NO TIENES SU PERFIL.
+      INSTRUCCIÓN CRÍTICA: Antes de cualquier otra cosa, preséntate brevemente como ARGenteIA y dile al usuario que necesitas configurar su perfil. 
+      Pídele amablemente su NOMBRE y confirma su zona horaria (por defecto Argentina/BsAs). 
+      Cuando te dé los datos, usa la herramienta 'update_profile'.`;
+    }
 
-      // Importante: OpenRouter requiere content string (no null) si hay tool_calls
-      const msgToPush = { 
-        role: "assistant",
-        content: assistantMsg.content || "", 
-        tool_calls: assistantMsg.tool_calls 
-      } as ChatCompletionMessageParam;
+    const { listExperts } = await import("../memory/expert-db.ts");
+    let experts = listExperts();
+    if (generalOverride?.experts && generalOverride.experts.length > 0) {
+      experts = experts.filter(e => generalOverride.experts.includes(e.name));
+    }
+    if (experts.length > 0) {
+      systemPrompt += `\n\nTIENES ACCESO A UN EQUIPO DE EXPERTOS ESPECIALIZADOS. 
+      Si el usuario requiere una tarea que encaje con alguno de estos expertos, USA la herramienta 'call_expert'.
+      Expertos disponibles:
+      ${experts.map(e => `- ${e.name}: ${e.system_prompt.slice(0, 100)}... (Modelo: ${e.model})`).join("\n    ")}
       
-      loopMessages.push(msgToPush);
+      REGLA: Prefiere delegar tareas técnicas, de redacción creativa o de investigación a estos expertos para mejores resultados.`;
+    }
 
-      // Si no hay tools calls, terminamos el loop
-      if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
-        if (assistantMsg.content) return assistantMsg.content;
-        // Si no hay contenido y no hay tools, pedimos una respuesta forzada
-        break; 
+    let loopMessages: ChatCompletionMessageParam[] = [
+      { role: "system", content: systemPrompt },
+      ...messages
+    ];
+    let iterations = 0;
+    const MAX_ITERATIONS = 6;
+
+    try {
+      const callWithRetry = async (messages: ChatCompletionMessageParam[], useTools: boolean) => {
+        let retries = 3;
+        let delay = 2000;
+        
+        while (retries > 0) {
+          try {
+            return await client.chat.completions.create({
+              model: name,
+              messages,
+              max_tokens: maxTokens,
+              temperature: generalOverride?.temperature ?? 0.7,
+              tools: useTools ? tools : undefined,
+              tool_choice: useTools && tools ? "auto" : undefined,
+            });
+          } catch (err: any) {
+            if (err.status === 429 && retries > 1) {
+              console.warn(chalk.yellow(`   ⚠️ [${currentModel}] Límite alcanzado. Reintentando en ${delay/1000}s...`));
+              await new Promise(resolve => setTimeout(resolve, delay));
+              retries--;
+              delay *= 2;
+              continue;
+            }
+            throw err;
+          }
+        }
+        throw new Error("429"); // Simplificado para capturar arriba
+      };
+
+      let response = await callWithRetry(loopMessages, true);
+
+      while (iterations < MAX_ITERATIONS) {
+        iterations++;
+        const assistantMsg = response.choices[0]?.message;
+        if (!assistantMsg) break;
+
+        const msgToPush = { 
+          role: "assistant",
+          content: assistantMsg.content || "", 
+          tool_calls: assistantMsg.tool_calls 
+        } as ChatCompletionMessageParam;
+        
+        loopMessages.push(msgToPush);
+
+        if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
+          if (assistantMsg.content) return assistantMsg.content;
+          break; 
+        }
+
+        const toolResults: ChatCompletionMessageParam[] = [];
+        for (const toolCall of assistantMsg.tool_calls) {
+          const fn = (toolCall as any).function;
+          if (!fn) continue;
+          let args: Record<string, unknown> = {};
+          try {
+            args = typeof fn.arguments === "string" ? JSON.parse(fn.arguments) : fn.arguments;
+          } catch { args = {}; }
+
+          console.log(chalk.yellow(`   🔧 Tool: ${fn.name}`), args);
+          const result = await executeTool(fn.name, args, { sessionId });
+          console.log(chalk.cyan(`   💡 Result: ${String(result).slice(0, 70)}...`));
+
+          toolResults.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: String(result),
+          });
+        }
+
+        loopMessages.push(...toolResults);
+        response = await callWithRetry(loopMessages, true);
       }
 
-      // Ejecutar herramientas
-      const toolResults: ChatCompletionMessageParam[] = [];
-      for (const toolCall of assistantMsg.tool_calls) {
-        // Narrowing para TypeScript
-        const fn = (toolCall as any).function;
-        if (!fn) continue;
-        let args: Record<string, unknown> = {};
-        try {
-          args = typeof fn.arguments === "string" ? JSON.parse(fn.arguments) : fn.arguments;
-        } catch { args = {}; }
-
-        console.log(chalk.yellow(`   🔧 Tool: ${fn.name}`), args);
-        const result = await executeTool(fn.name, args, { sessionId });
-        console.log(chalk.cyan(`   💡 Result: ${String(result).slice(0, 70)}...`));
-
-        toolResults.push({
-          role: "tool",
-          tool_call_id: toolCall.id,
-          content: String(result),
-        });
+      if (!response.choices[0]?.message?.content) {
+        loopMessages.push({ role: "system", content: "Por favor, responde al usuario basándote en la información obtenida anteriormente." });
+        const finalRes = await callWithRetry(loopMessages, false);
+        return finalRes.choices[0]?.message?.content || "";
       }
 
-      loopMessages.push(...toolResults);
+      return response.choices[0].message.content;
 
-      // Siguiente iteración
-      response = await client.chat.completions.create({
-        model: name,
-        messages: loopMessages,
-        max_tokens: maxTokens,
-        temperature: generalOverride?.temperature ?? 0.7,
-        tools,
-      });
+    } catch (err: any) {
+      const isRateLimit = err.status === 429 || err.message === "429";
+      const isProviderError = err.status === 401 || err.status === 402 || err.status === 404 || err.status === 503;
+      
+      // Si es un error de cuota (429), auth (401), pago (402), política (404) o servicio (503) y tenemos más modelos...
+      if ((isRateLimit || isProviderError) && mIdx < modelsToTry.length - 1) {
+        const errorType = err.status || err.message;
+        const msg = err.status === 401 ? "Auth Error" : 
+                    err.status === 404 ? "Not Found/Policy" : 
+                    err.status === 429 ? "Rate Limit" : `Status ${errorType}`;
+        
+        console.error(chalk.red(`   🚨 Modelo [${currentModel}] falló (${msg}). Probando fallback con [${modelsToTry[mIdx + 1]}]...`));
+        continue; // Siguiente modelo en el loop for
+      }
+
+      // Errores finales si ya no quedan modelos o es un error grave
+      if (err.status === 404) {
+        throw new Error("Error 404: OpenRouter no encuentra el endpoint. Revisa tu configuración de privacidad en OpenRouter (permite 'Free model publication').");
+      }
+      if (err.status === 401) {
+        throw new Error("Error 401: API Key inválida o usuario no encontrado en OpenRouter. Revisa tu sk-or-key en config.json.");
+      }
+      if (err.status === 402) {
+        throw new Error("Error 402: El modelo requiere créditos o ha cambiado de política.");
+      }
+      if (isRateLimit) {
+        throw new Error("Todos los modelos gratuitos están saturados (429). Por favor, intenta de nuevo en unos minutos o usa un modelo de pago.");
+      }
+      
+      throw err;
     }
-
-    // Si salimos del loop sin respuesta textual, forzamos una última llamada pidiendo texto
-    if (!response.choices[0]?.message?.content) {
-      loopMessages.push({ role: "system", content: "Por favor, responde al usuario basándote en la información obtenida anteriormente." });
-      const finalRes = await client.chat.completions.create({
-        model: name,
-        messages: loopMessages,
-        max_tokens: maxTokens,
-        temperature: generalOverride?.temperature ?? 0.7,
-      });
-      return finalRes.choices[0]?.message?.content || "";
-    }
-
-    return response.choices[0].message.content;
-
-  } catch (err: any) {
-    if (err.status === 400 || err.status === 422) {
-      throw new Error(`Error de formato del modelo (${err.status}). Intenta /reset.`);
-    }
-    throw err;
   }
+
+  throw new Error("No se pudo obtener respuesta de ningún modelo configurado.");
 }
 
 async function runAnthropic(_model: string, _messages: any[], _tokens: number): Promise<string> {
