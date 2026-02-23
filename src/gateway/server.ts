@@ -293,8 +293,12 @@ export function createGateway(): GatewayServer {
 
   // ─── Start ─────────────────────────────────────────────────────────────────
   const start = (): Promise<void> =>
-    new Promise((resolve) => {
-      httpServer.listen(config.gateway.port, () => {
+    new Promise(async (resolve) => {
+      httpServer.listen(config.gateway.port, async () => {
+        const { getExpert } = await import("../memory/expert-db.ts");
+        const generalOverride = getExpert("__general__");
+        const activeModel = generalOverride?.model || config.agent.model;
+
         console.log(chalk.green(`\n🤖 ARGenteIA`));
         console.log(
           chalk.dim(`   Gateway: `) +
@@ -305,7 +309,9 @@ export function createGateway(): GatewayServer {
             chalk.white(`http://localhost:${config.gateway.port}`),
         );
         console.log(
-          chalk.dim(`   Modelo:  `) + chalk.white(config.agent.model),
+          chalk.dim(`   Modelo:  `) +
+            chalk.white(activeModel) +
+            (generalOverride ? chalk.yellow(" (DB override)") : ""),
         );
         console.log();
         resolve();
