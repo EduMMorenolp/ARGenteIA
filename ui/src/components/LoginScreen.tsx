@@ -10,6 +10,7 @@ interface LoginScreenProps {
     name: string,
     timezone: string,
     telegramUser: string,
+    telegramToken: string,
   ) => void;
 }
 
@@ -25,6 +26,7 @@ export function LoginScreen({
     name: "",
     timezone: "America/Argentina/Buenos_Aires",
     telegramUser: "",
+    telegramToken: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -35,6 +37,7 @@ export function LoginScreen({
       formData.name,
       formData.timezone,
       formData.telegramUser,
+      formData.telegramToken,
     );
   };
 
@@ -94,6 +97,20 @@ export function LoginScreen({
                 }
                 placeholder="@tu_usuario"
               />
+            </div>
+            <div className="form-group">
+              <label>Token del Bot de Telegram (opcional)</label>
+              <input
+                type="password"
+                value={formData.telegramToken}
+                onChange={(e) =>
+                  setFormData({ ...formData, telegramToken: e.target.value })
+                }
+                placeholder="123456:ABC..."
+              />
+              <span className="field-hint">
+                Permite que el asistente use tu propio bot.
+              </span>
             </div>
 
             <div className="form-actions">

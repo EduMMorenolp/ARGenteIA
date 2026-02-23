@@ -23,6 +23,7 @@ export interface WsUserRegisterMessage {
   name: string;
   timezone: string;
   telegram_user?: string;
+  telegram_token?: string;
 }
 
 export interface WsUserUpdateMessage {
@@ -31,6 +32,7 @@ export interface WsUserUpdateMessage {
   name?: string;
   timezone?: string;
   telegram_user?: string;
+  telegram_token?: string;
 }
 
 export interface WsUserMessage {

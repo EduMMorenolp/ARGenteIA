@@ -236,7 +236,13 @@ export function createGateway(): GatewayServer {
           name: msg.name,
           timezone: msg.timezone,
           telegram_user: msg.telegram_user,
+          telegram_token: msg.telegram_token,
         });
+        if (msg.telegram_token && config.channels.telegram) {
+          config.channels.telegram.botToken = msg.telegram_token;
+          const { startTelegram } = await import("../channels/telegram.ts");
+          startTelegram();
+        }
         console.log(
           chalk.green(`✅ Usuario registrado: ${msg.userId} (${msg.name})`),
         );
@@ -257,7 +263,13 @@ export function createGateway(): GatewayServer {
           name: msg.name,
           timezone: msg.timezone,
           telegram_user: msg.telegram_user,
+          telegram_token: msg.telegram_token,
         });
+        if (msg.telegram_token && config.channels.telegram) {
+          config.channels.telegram.botToken = msg.telegram_token;
+          const { startTelegram } = await import("../channels/telegram.ts");
+          startTelegram();
+        }
         console.log(chalk.green(`✅ Usuario actualizado: ${msg.userId}`));
         // Enviar lista actualizada de usuarios
         send(ws, { type: "list_users", users: listAllUsers() });

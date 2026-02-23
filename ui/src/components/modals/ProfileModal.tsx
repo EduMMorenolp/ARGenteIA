@@ -1,11 +1,16 @@
 import { useState } from "react";
-import { X, User, Globe, MessageSquare } from "lucide-react";
+import { X, User, Globe, MessageSquare, Zap } from "lucide-react";
 import type { UserProfile } from "../../types";
 
 interface ProfileModalProps {
   user: UserProfile;
   onClose: () => void;
-  onSave: (name: string, timezone: string, telegramUser: string) => void;
+  onSave: (
+    name: string,
+    timezone: string,
+    telegramUser: string,
+    telegramToken: string,
+  ) => void;
 }
 
 export function ProfileModal({ user, onClose, onSave }: ProfileModalProps) {
@@ -14,10 +19,11 @@ export function ProfileModal({ user, onClose, onSave }: ProfileModalProps) {
     user.timezone || "America/Argentina/Buenos_Aires",
   );
   const [telegramUser, setTelegramUser] = useState(user.telegram_user || "");
+  const [telegramToken, setTelegramToken] = useState(user.telegram_token || "");
 
   const handleSave = () => {
     if (!name.trim()) return;
-    onSave(name, timezone, telegramUser);
+    onSave(name, timezone, telegramUser, telegramToken);
     onClose();
   };
 
@@ -77,6 +83,21 @@ export function ProfileModal({ user, onClose, onSave }: ProfileModalProps) {
             />
             <span className="field-hint">
               Vincula tu cuenta con el bot de Telegram.
+            </span>
+          </div>
+
+          <div className="form-group">
+            <label>
+              <Zap size={14} /> Token del Bot de Telegram (API Key)
+            </label>
+            <input
+              type="password"
+              value={telegramToken}
+              onChange={(e) => setTelegramToken(e.target.value)}
+              placeholder="123456789:ABCDEF..."
+            />
+            <span className="field-hint">
+              Si lo cambias, el bot se reiniciará con el nuevo token.
             </span>
           </div>
 

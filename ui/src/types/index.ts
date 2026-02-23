@@ -12,6 +12,7 @@ export interface UserProfile {
   name: string | null;
   timezone: string;
   telegram_user: string | null;
+  telegram_token: string | null;
   created_at: string;
 }
 

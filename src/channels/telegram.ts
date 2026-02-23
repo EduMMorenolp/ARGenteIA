@@ -25,27 +25,57 @@ export function startTelegram(): void {
     return;
   }
 
+  if (bot) {
+    console.log(chalk.gray("📱 Reiniciando bot de Telegram..."));
+    bot.stopPolling();
+  }
+
   bot = new TelegramBot(tgConfig.botToken, { polling: true });
 
   bot.on("message", async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text ?? "";
-    const username = msg.from?.username ?? msg.from?.first_name ?? "";
-    const sessionId = `telegram-${chatId}`;
+    const username = msg.from?.username ?? "";
+    const firstName = msg.from?.first_name ?? "";
 
-    // Verificar allowlist
-    if (
-      tgConfig.allowFrom.length > 0 &&
-      !tgConfig.allowFrom.includes(username)
-    ) {
+    // Buscar si el usuario existe en la DB (por username de telegram)
+    const { listAllUsers } = await import("../memory/user-db.ts");
+    const allUsers = listAllUsers();
+
+    // Normalizar: quitar @ para comparar
+    const cleanUsername = username.replace(/^@/, "").toLowerCase();
+
+    const dbUser = allUsers.find((u) => {
+      const dbTgUser = (u.telegram_user || "").replace(/^@/, "").toLowerCase();
+      return dbTgUser === cleanUsername && cleanUsername !== "";
+    });
+
+    const effectiveUserId = dbUser ? dbUser.userId : `telegram-${chatId}`;
+
+    const isAuthorized =
+      tgConfig.allowFrom.includes(username) ||
+      tgConfig.allowFrom.includes(cleanUsername) ||
+      !!dbUser;
+
+    if (!isAuthorized) {
       console.log(
-        chalk.yellow(`⚠️  Telegram: mensaje rechazado de @${username}`),
+        chalk.yellow(
+          `⚠️  Telegram: mensaje rechazado de @${username || firstName} (ID: ${chatId})`,
+        ),
       );
       await bot!.sendMessage(
         chatId,
-        "Lo siento, no estás autorizado para usar este asistente.",
+        "Lo siento, no estás autorizado para usar este asistente. Por favor, regístrate en la WebChat primero e incluye tu usuario de Telegram.",
       );
       return;
+    }
+
+    if (dbUser) {
+      console.log(
+        chalk.blue(
+          `👤 Telegram identificado: @${username} -> ${effectiveUserId}`,
+        ),
+      );
     }
 
     console.log(
@@ -54,7 +84,7 @@ export function startTelegram(): void {
 
     // Comandos
     if (text.startsWith("/")) {
-      await handleTelegramCommand(chatId, text, sessionId);
+      await handleTelegramCommand(chatId, text, effectiveUserId);
       return;
     }
 
@@ -63,7 +93,7 @@ export function startTelegram(): void {
 
     try {
       const result = await runAgent({
-        sessionId,
+        sessionId: effectiveUserId,
         userText: text,
         origin: "telegram",
         onTyping: async (isTyping) => {
