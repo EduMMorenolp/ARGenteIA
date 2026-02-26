@@ -23,10 +23,12 @@ import { FeaturesOverlay } from "./components/modals/FeaturesOverlay";
 import { TaskEditor } from "./components/modals/TaskEditor";
 import { ProfileModal } from "./components/modals/ProfileModal";
 import { ModelManager } from "./components/modals/ModelManager";
+import { ChatSidebar } from "./components/layout/ChatSidebar";
 
 export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isModelsOpen, setIsModelsOpen] = useState(false);
+  const [isChatSidebarOpen, setIsChatSidebarOpen] = useState(true);
   const {
     messages,
     inputText,
@@ -69,6 +71,15 @@ export default function App() {
     availableModels,
     upsertModel,
     deleteModel,
+    // Chat
+    chats,
+    channelChats,
+    activeChatId,
+    createChat,
+    deleteChat,
+    renameChat,
+    togglePinChat,
+    switchChat,
   } = useAssistant();
 
   const quickCommands = [
@@ -142,7 +153,7 @@ export default function App() {
   }
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${!isChatSidebarOpen ? "chats-closed" : ""}`}>
       <Sidebar
         quickCommands={quickCommands}
         experts={experts}
@@ -202,6 +213,19 @@ export default function App() {
           textareaRef={textareaRef}
         />
       </main>
+
+      <ChatSidebar
+        chats={chats}
+        channelChats={channelChats}
+        activeChatId={activeChatId}
+        onSelectChat={switchChat}
+        onCreateChat={() => createChat()}
+        onDeleteChat={deleteChat}
+        onRenameChat={renameChat}
+        onTogglePin={togglePinChat}
+        isOpen={isChatSidebarOpen}
+        onToggleOpen={() => setIsChatSidebarOpen(!isChatSidebarOpen)}
+      />
 
       {isCreatorOpen && (
         <ExpertCreator

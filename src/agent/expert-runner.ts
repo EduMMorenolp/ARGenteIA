@@ -9,7 +9,8 @@ import chalk from 'chalk';
 export interface ExpertRequest {
   expertName: string;
   task: string;
-  userId?: string; // ID del usuario que solicita la tarea
+  userId?: string;
+  chatId?: string;
 }
 
 /**
@@ -29,6 +30,7 @@ export async function runExpert(
   if (req.userId) {
     saveMessage({
       userId: req.userId,
+      chatId: req.chatId,
       role: 'user',
       content: `[Experto: ${req.expertName}] ${req.task}`,
       origin: 'web',
@@ -106,7 +108,10 @@ export async function runExpert(
         }
 
         console.log(chalk.yellow(`   🔧 [Expert ${expert.name}] Tool: ${fn.name}`), args);
-        const result = await executeTool(fn.name, args, { sessionId: req.userId || 'expert-call' });
+        const result = await executeTool(fn.name, args, {
+          sessionId: req.chatId || req.userId || 'expert-call',
+          origin: 'web',
+        });
 
         toolResults.push({
           role: 'tool',
@@ -125,8 +130,23 @@ export async function runExpert(
       });
     }
 
+    const finalResponse =
+      response.choices[0]?.message?.content || 'El experto no devolvió ninguna respuesta.';
+
+    // Persistir respuesta si tenemos un userId
+    if (req.userId) {
+      saveMessage({
+        userId: req.userId,
+        chatId: req.chatId,
+        role: 'assistant',
+        content: finalResponse,
+        origin: 'web',
+        expertName: expert.name,
+      });
+    }
+
     return {
-      text: response.choices[0]?.message?.content || 'El experto no devolvió ninguna respuesta.',
+      text: finalResponse,
       usage: response.usage,
       latencyMs: Date.now() - startTime,
     };

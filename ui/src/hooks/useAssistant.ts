@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { marked } from "marked";
 import type {
   Message,
@@ -7,6 +7,7 @@ import type {
   UserProfile,
   WsMessage,
   ScheduledTask,
+  ChatInfo,
 } from "../types";
 import { useWebSocket } from "./useWebSocket";
 
@@ -28,6 +29,9 @@ export function useAssistant() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
   const [selectedExpert, setSelectedExpert] = useState<string | null>(null);
+  const [chats, setChats] = useState<ChatInfo[]>([]);
+  const [channelChats, setChannelChats] = useState<ChatInfo[]>([]);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [isCreatorOpen, setIsCreatorOpen] = useState(false);
   const [isFeaturesOpen, setIsFeaturesOpen] = useState(false);
   const [editingExpert, setEditingExpert] = useState<Expert | null>(null);
@@ -44,11 +48,12 @@ export function useAssistant() {
       origin?: "web" | "telegram",
       usage?: any,
       latencyMs?: number,
+      id?: string,
     ) => {
       setMessages((prev) => [
         ...prev,
         {
-          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          id: id || Date.now().toString() + Math.random().toString(36).substr(2, 9),
           role,
           text,
           model,
@@ -73,9 +78,19 @@ export function useAssistant() {
         case "typing":
           setIsTyping(!!msg.isTyping);
           break;
+        case "list_chats":
+          if (msg.chats) setChats(msg.chats);
+          if (msg.channelChats) setChannelChats(msg.channelChats);
+          break;
         case "assistant_message":
           setIsTyping(false);
           setIsWaiting(false);
+
+          // Si el mensaje trae chatId y no tenemos uno activo, lo activamos
+          if (msg.chatId && !activeChatId) {
+            setActiveChatId(msg.chatId);
+          }
+
           if (msg.history && msg.history.length > 0) {
             const historicalMessages = msg.history.map((m) => ({
               id: "hist-" + Math.random().toString(36).substr(2, 9),
@@ -131,13 +146,16 @@ export function useAssistant() {
           break;
       }
     },
-    [addMessage],
+    [addMessage, activeChatId],
   );
 
   const { isConnected, send } = useWebSocket(handleServerMessage);
 
   const identifyUser = (user: UserProfile) => {
     setMessages([]);
+    setChats([]);
+    setChannelChats([]);
+    setActiveChatId(null);
     send({ type: "identify", userId: user.userId });
     setCurrentUser(user);
   };
@@ -165,7 +183,8 @@ export function useAssistant() {
       send({
         type: "user_message",
         text,
-        expertName: selectedExpert,
+        expertName: selectedExpert || undefined,
+        chatId: activeChatId || undefined,
       });
 
       setIsWaiting(true);
@@ -173,7 +192,7 @@ export function useAssistant() {
       setInputText("");
       if (textareaRef.current) textareaRef.current.style.height = "auto";
     },
-    [addMessage, send, selectedExpert],
+    [addMessage, send, selectedExpert, activeChatId],
   );
 
   const upsertExpert = (expert: Expert) => {
@@ -218,8 +237,76 @@ export function useAssistant() {
 
   const logout = () => {
     setMessages([]);
+    setChats([]);
+    setChannelChats([]);
+    setActiveChatId(null);
     setCurrentUser(null);
   };
+
+  // ─── Funciones de Chat ───────────────────────────────────────────────────
+
+  const createChat = (title?: string) => {
+    send({
+      type: "chat_update",
+      action: "create",
+      expertName: selectedExpert || null,
+      title,
+    });
+  };
+
+  const deleteChat = (chatId: string) => {
+    if (activeChatId === chatId) {
+      setActiveChatId(null);
+      setMessages([]);
+    }
+    send({
+      type: "chat_update",
+      action: "delete",
+      chatId,
+      expertName: selectedExpert || null,
+    });
+  };
+
+  const renameChat = (chatId: string, title: string) => {
+    send({
+      type: "chat_update",
+      action: "rename",
+      chatId,
+      title,
+      expertName: selectedExpert || null,
+    });
+  };
+
+  const togglePinChat = (chatId: string) => {
+    send({
+      type: "chat_update",
+      action: "pin",
+      chatId,
+      expertName: selectedExpert || null,
+    });
+  };
+
+  const switchChat = (chatId: string) => {
+    setActiveChatId(chatId);
+    setMessages([]); // Limpiar para cargar historia
+    send({ type: "switch_chat", chatId });
+  };
+
+  // Cada vez que cambia el experto, pedir lista de chats de ese experto
+  useEffect(() => {
+    if (currentUser) {
+      // Usar setTimeout para evitar el error de setState en el cuerpo del efecto
+      setTimeout(() => {
+        setMessages([]);
+        setActiveChatId(null);
+        send({
+          type: "chat_update",
+          action: "list",
+          expertName: selectedExpert || null,
+        });
+      }, 0);
+    }
+  }, [selectedExpert, currentUser, send]);
 
   const registerUser = (
     userId: string,
@@ -324,5 +411,14 @@ export function useAssistant() {
     availableModels,
     upsertModel,
     deleteModel,
+    // Chat
+    chats,
+    channelChats,
+    activeChatId,
+    createChat,
+    deleteChat,
+    renameChat,
+    togglePinChat,
+    switchChat,
   };
 }

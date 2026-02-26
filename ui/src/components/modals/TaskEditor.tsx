@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import type { ScheduledTask } from '../../types';
 
 interface TaskEditorProps {
-    task: any;
+    task: ScheduledTask;
     onClose: () => void;
     onSave: (id: number, task: string, cron: string) => void;
 }

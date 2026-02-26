@@ -126,6 +126,7 @@ export function createGateway(): GatewayServer {
         await handleWebChatMessage({
           ws,
           sessionId,
+          chatId: msg.chatId,
           text: msg.text,
           expertName: msg.expertName,
           send,
@@ -144,19 +145,15 @@ export function createGateway(): GatewayServer {
           messageCount: 0,
         });
 
-        // Enviar historial de la base de datos
-        import('../memory/message-db.ts').then(({ getMessages }) => {
-          const history = getMessages(sessionId);
+        // Enviar lista de chats
+        import('../memory/chat-db.ts').then(({ listChats, listChannelChats, getOrCreateChannelChat }) => {
+          // Asegurar que exista el canal de Telegram
+          getOrCreateChannelChat(sessionId, 'telegram');
+          
           send(ws, {
-            type: 'assistant_message', // Usar un tipo que el cliente entienda como histórico o extender
-            text: 'Cargando historial...',
-            model: 'sistema',
-            sessionId,
-            history: history.map((m) => ({
-              role: m.role,
-              text: m.content,
-              origin: m.origin,
-            })),
+            type: 'list_chats',
+            chats: listChats(sessionId),
+            channelChats: listChannelChats(sessionId)
           } as unknown as WsMessage);
         });
 
@@ -298,6 +295,39 @@ export function createGateway(): GatewayServer {
             send(client, { type: 'list_models', models: listModels() } as unknown as WsMessage);
           }
         });
+      } else if (msg.type === 'switch_chat') {
+        const { getMessages } = await import('../memory/message-db.ts');
+        const history = getMessages(msg.chatId);
+        send(ws, {
+          type: 'assistant_message',
+          text: 'Cargando historial...',
+          model: 'sistema',
+          sessionId,
+          history: history.map((m) => ({
+            role: m.role,
+            text: m.content,
+            origin: m.origin,
+          })),
+        } as unknown as WsMessage);
+      } else if (msg.type === 'chat_update') {
+        const { createChat, renameChat, deleteChat, togglePin, listChats, listChannelChats } = await import('../memory/chat-db.ts');
+        
+        if (msg.action === 'create') {
+          createChat(sessionId, msg.expertName, msg.title);
+        } else if (msg.action === 'rename' && msg.chatId && msg.title) {
+          renameChat(msg.chatId, msg.title);
+        } else if (msg.action === 'delete' && msg.chatId) {
+          deleteChat(msg.chatId);
+        } else if (msg.action === 'pin' && msg.chatId) {
+          togglePin(msg.chatId);
+        }
+
+        // Re-enviar lista de chats actualizada
+        send(ws, {
+          type: 'list_chats',
+          chats: listChats(sessionId, msg.expertName),
+          channelChats: listChannelChats(sessionId)
+        } as unknown as WsMessage);
       }
     });
 

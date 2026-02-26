@@ -14,6 +14,16 @@ export interface ModelConfig {
   created_at?: string;
 }
 
+export interface ChatInfo {
+  id: string;
+  title: string;
+  origin: "web" | "telegram";
+  expertName: string | null;
+  pinned: boolean;
+  updated_at: string;
+  lastMessage?: string;
+}
+
 export interface UserProfile {
   userId: string;
   name: string | null;
@@ -37,6 +47,7 @@ export interface Message {
     total_tokens: number;
   };
   latencyMs?: number;
+  content?: string;
 }
 
 export interface ScheduledTask {
@@ -71,9 +82,13 @@ export interface WsMessage {
     total_tokens: number;
   };
   latencyMs?: number;
-  history?: Array<{
+    history?: Array<{
     role: string;
     text: string;
     origin: "web" | "telegram";
   }>;
+  chats?: ChatInfo[];
+  channelChats?: ChatInfo[];
+  chatId?: string;
+  action?: string;
 }

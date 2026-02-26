@@ -14,7 +14,7 @@ export function useWebSocket(onMessage: (msg: WsMessage) => void) {
     socket.onopen = () => setIsConnected(true);
     socket.onclose = () => {
       setIsConnected(false);
-      setTimeout(connect, 3000);
+      setTimeout(() => connect(), 3000);
     };
     socket.onerror = () => setIsConnected(false);
     socket.onmessage = (event) => {
@@ -32,7 +32,7 @@ export function useWebSocket(onMessage: (msg: WsMessage) => void) {
     return () => ws.current?.close();
   }, [connect]);
 
-  const send = useCallback((data: any) => {
+  const send = useCallback((data: Record<string, unknown> | WsMessage) => {
     if (ws.current?.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify(data));
     }

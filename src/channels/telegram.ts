@@ -2,7 +2,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import chalk from 'chalk';
 import { getConfig } from '../config/index.ts';
 import { runAgent } from '../agent/loop.ts';
-import { resetSession, getHistory } from '../memory/session.ts';
+import { resetSession } from '../memory/session.ts';
 import { getTools } from '../tools/index.ts';
 import { loadSkills } from '../skills/loader.ts';
 
@@ -84,8 +84,12 @@ export function startTelegram(): void {
     await bot!.sendChatAction(chatId, 'typing');
 
     try {
+      const { getOrCreateChannelChat } = await import('../memory/chat-db.ts');
+      const channelChat = getOrCreateChannelChat(effectiveUserId, 'telegram');
+
       const result = await runAgent({
-        sessionId: effectiveUserId,
+        userId: effectiveUserId,
+        chatId: channelChat.id,
         userText: text,
         origin: 'telegram',
         telegramChatId: chatId,
@@ -216,10 +220,13 @@ async function handleTelegramCommand(
       break;
     }
 
-    case '/reset':
-      resetSession(sessionId);
+    case '/reset': {
+      const { getOrCreateChannelChat } = await import('../memory/chat-db.ts');
+      const channelChat = getOrCreateChannelChat(sessionId, 'telegram');
+      resetSession(channelChat.id);
       await bot!.sendMessage(chatId, '✅ Sesión reiniciada.');
       break;
+    }
 
     case '/model':
       if (!arg) {
@@ -253,7 +260,10 @@ async function handleTelegramCommand(
     }
 
     case '/status': {
-      const history = getHistory(sessionId);
+      const { getOrCreateChannelChat } = await import('../memory/chat-db.ts');
+      const channelChat = getOrCreateChannelChat(sessionId, 'telegram');
+      const { getMessages } = await import('../memory/message-db.ts');
+      const history = getMessages(channelChat.id);
       await bot!.sendMessage(
         chatId,
         `📊 <b>Estado:</b>\nModelo: <code>${config.agent.model}</code>\nMensajes: ${history.length}`,

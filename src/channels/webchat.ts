@@ -9,7 +9,8 @@ import type { WsMessage } from '../gateway/protocol.ts';
 
 interface WebChatHandlerOpts {
   ws: WebSocket;
-  sessionId: string;
+  sessionId: string; // userId
+  chatId?: string;
   text: string;
   send: (ws: WebSocket, msg: WsMessage) => void;
   expertName?: string;
@@ -30,25 +31,28 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
 
   try {
     let result;
+    const { getMessages } = await import('../memory/message-db.ts');
+    const { getChat, renameChat, createChat } = await import('../memory/chat-db.ts');
+
+    // 1. Asegurar chatId
+    let currentChatId = opts.chatId;
+    if (!currentChatId) {
+      const newChat = createChat(sessionId, opts.expertName);
+      currentChatId = newChat.id;
+    }
+
+    const messages = getMessages(currentChatId);
+    const isFirstMessage = messages.length === 0;
 
     // Si el usuario seleccionó un experto específico, vamos directo a él
     if (opts.expertName) {
       const { runExpert } = await import('../agent/expert-runner.ts');
-      const { saveMessage } = await import('../memory/message-db.ts');
 
       const resultExpert = await runExpert({
         expertName: opts.expertName,
         task: opts.text,
         userId: sessionId,
-      });
-
-      // Persistir respuesta del experto
-      saveMessage({
-        userId: sessionId,
-        role: 'assistant',
-        content: resultExpert.text,
-        origin: 'web',
-        expertName: opts.expertName,
+        chatId: currentChatId,
       });
 
       result = {
@@ -59,11 +63,24 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
       };
     } else {
       result = await runAgent({
-        sessionId,
+        userId: sessionId,
+        chatId: currentChatId,
         userText: text,
         origin: 'web',
         onTyping: (isTyping) => send(ws, { type: 'typing', isTyping }),
       });
+    }
+
+    // Auto-naming si es el primer mensaje
+    if (isFirstMessage) {
+      const chat = getChat(currentChatId);
+      if (chat && chat.title === 'Nuevo chat') {
+        // Generar título sugerido (primeros 30 chars del mensaje)
+        const suggestedTitle = text.slice(0, 30) + (text.length > 30 ? '...' : '');
+        renameChat(currentChatId, suggestedTitle);
+        // Notificar al cliente que el chat cambió de nombre si es necesario
+        // En este caso, el cliente probablemente recibirá la lista actualizada pronto o la actualizará él mismo
+      }
     }
 
     send(ws, {
@@ -72,7 +89,8 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
       model: result.model,
       usage: result.usage,
       latencyMs: result.latencyMs,
-      sessionId,
+      sessionId, // userId
+      chatId: currentChatId,
       origin: 'web',
     });
   } catch (err) {

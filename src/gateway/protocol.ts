@@ -5,6 +5,15 @@ export type SubAgentInfo = Record<string, unknown>;
 export type UserInfo = Record<string, unknown>;
 export type TaskInfo = Record<string, unknown>;
 export type ModelInfo = { name: string; apiKey?: string; baseUrl?: string; created_at?: string };
+export type ChatInfo = {
+  id: string;
+  title: string;
+  origin: string;
+  expertName: string | null;
+  pinned: number;
+  updated_at: string;
+  lastMessage?: string;
+};
 
 export type WsMessageType =
   | 'user_message' // cliente → servidor: mensaje del usuario
@@ -24,7 +33,10 @@ export type WsMessageType =
   | 'user_delete' // cliente → servidor: eliminar usuario
   | 'identify' // cliente → servidor: asociar sesión con userId
   | 'list_models' // servidor → cliente: lista de modelos disponibles
-  | 'model_update'; // cliente → servidor: crear/actualizar/eliminar modelo
+  | 'model_update' // cliente → servidor: crear/actualizar/eliminar modelo
+  | 'list_chats' // servidor → cliente: lista de chats del usuario
+  | 'chat_update' // cliente → servidor: crear/renombrar/eliminar/pin chat
+  | 'switch_chat'; // cliente → servidor: cambiar al chat seleccionado
 
 export interface WsUserRegisterMessage {
   type: 'user_register';
@@ -56,6 +68,7 @@ export interface WsUserMessage {
   text: string;
   sessionId?: string;
   expertName?: string; // Si se define, el mensaje va directo a este experto
+  chatId?: string;
 }
 
 export interface WsAssistantMessage {
@@ -170,4 +183,26 @@ export type WsMessage =
   | WsUserDeleteMessage
   | WsIdentifyMessage
   | WsListModelsMessage
-  | WsModelUpdateMessage;
+  | WsModelUpdateMessage
+  | WsListChatsMessage
+  | WsChatUpdateMessage
+  | WsSwitchChatMessage;
+
+export interface WsListChatsMessage {
+  type: 'list_chats';
+  chats: ChatInfo[];
+  channelChats: ChatInfo[];
+}
+
+export interface WsChatUpdateMessage {
+  type: 'chat_update';
+  action: 'create' | 'rename' | 'delete' | 'pin';
+  chatId?: string;
+  title?: string;
+  expertName?: string | null;
+}
+
+export interface WsSwitchChatMessage {
+  type: 'switch_chat';
+  chatId: string;
+}

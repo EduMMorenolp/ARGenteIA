@@ -10,12 +10,18 @@ import {
   User,
   Server,
 } from "lucide-react";
-import type { Expert, ModelConfig } from "../../types";
+import type { Expert, ModelConfig, ScheduledTask } from "../../types";
+
+interface QuickCommand {
+  label: string;
+  cmd: string;
+  icon: React.ReactNode;
+}
 
 interface SidebarProps {
-  quickCommands: any[];
+  quickCommands: QuickCommand[];
   experts: Expert[];
-  scheduledTasks: any[];
+  scheduledTasks: ScheduledTask[];
   userModel: string;
   isConnected: boolean;
   selectedExpert: string | null;
@@ -23,7 +29,7 @@ interface SidebarProps {
   onEditExpert: (exp: Expert) => void;
   onEditGeneral: () => void;
   onDeleteExpert: (name: string) => void;
-  onEditTask: (task: any) => void;
+  onEditTask: (task: ScheduledTask) => void;
   onDeleteTask: (id: number) => void;
   onLogout: () => void;
   onOpenCreator: () => void;

@@ -13,7 +13,8 @@ import { loadPrompt } from '../promptsSystem/index.ts';
 import chalk from 'chalk';
 
 export interface AgentOptions {
-  sessionId: string;
+  userId: string;
+  chatId: string;
   userText: string;
   onTyping?: (isTyping: boolean) => void;
   origin?: 'web' | 'telegram'; // Origen del mensaje
@@ -37,22 +38,23 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
   const model = generalOverride?.model || config.agent.model;
   const provider = detectProvider(model);
 
-  // Añadir mensaje del usuario al historial en memoria
+  // Añadir mensaje del usuario al historial en memoria (aislado por chatId)
   addMessage(
-    opts.sessionId,
+    opts.chatId,
     { role: 'user', content: opts.userText },
     config.agent.maxContextMessages,
   );
 
   // Persistir en base de datos
   saveMessage({
-    userId: opts.sessionId,
+    userId: opts.userId,
+    chatId: opts.chatId,
     role: 'user',
     content: opts.userText,
     origin: opts.origin || 'web',
   });
 
-  const messages = getHistory(opts.sessionId);
+  const messages = getHistory(opts.chatId);
 
   opts.onTyping?.(true);
 

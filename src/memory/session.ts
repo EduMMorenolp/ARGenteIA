@@ -1,21 +1,21 @@
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
-// Historial de sesiones en memoria (por sessionId)
+// Historial de sesiones en memoria (por chatId)
 const sessions = new Map<string, ChatCompletionMessageParam[]>();
 
-export function getHistory(sessionId: string): ChatCompletionMessageParam[] {
-  if (!sessions.has(sessionId)) {
-    sessions.set(sessionId, []);
+export function getHistory(chatId: string): ChatCompletionMessageParam[] {
+  if (!sessions.has(chatId)) {
+    sessions.set(chatId, []);
   }
-  return sessions.get(sessionId)!;
+  return sessions.get(chatId)!;
 }
 
 export function addMessage(
-  sessionId: string,
+  chatId: string,
   msg: ChatCompletionMessageParam,
   maxMessages: number = 40,
 ): void {
-  const history = getHistory(sessionId);
+  const history = getHistory(chatId);
   history.push(msg);
 
   if (history.length > maxMessages) {
@@ -24,8 +24,8 @@ export function addMessage(
   }
 }
 
-export function resetSession(sessionId: string): void {
-  sessions.set(sessionId, []);
+export function resetSession(chatId: string): void {
+  sessions.set(chatId, []);
 }
 
 export function getSessionCount(): number {

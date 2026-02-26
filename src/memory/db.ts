@@ -62,6 +62,7 @@ export function getDb(): Database.Database {
     CREATE TABLE IF NOT EXISTS messages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       userId TEXT NOT NULL,
+      chatId TEXT,
       role TEXT NOT NULL,
       content TEXT NOT NULL,
       origin TEXT DEFAULT 'web',
@@ -76,10 +77,22 @@ export function getDb(): Database.Database {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS chats (
+      id TEXT PRIMARY KEY,
+      userId TEXT NOT NULL,
+      title TEXT DEFAULT 'Nuevo chat',
+      origin TEXT DEFAULT 'web',
+      expertName TEXT,
+      pinned INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_user_facts_userId ON user_facts(userId);
     CREATE INDEX IF NOT EXISTS idx_tasks_userId ON scheduled_tasks(userId);
     CREATE INDEX IF NOT EXISTS idx_sub_agents_name ON sub_agents(name);
     CREATE INDEX IF NOT EXISTS idx_messages_userId ON messages(userId);
+    CREATE INDEX IF NOT EXISTS idx_chats_userId ON chats(userId);
   `);
 
   // Migración: Asegurar columna 'experts' en 'sub_agents'
@@ -104,6 +117,20 @@ export function getDb(): Database.Database {
     _db.exec("ALTER TABLE users ADD COLUMN login_pin TEXT DEFAULT '0000'");
   } catch {
     // Ya existe o error ignorado
+  }
+
+  // Migración: Agregar chatId a messages
+  try {
+    _db.exec('ALTER TABLE messages ADD COLUMN chatId TEXT');
+  } catch {
+    // Ya existe
+  }
+
+  // Ahora sí, crear el índice para chatId
+  try {
+    _db.exec('CREATE INDEX IF NOT EXISTS idx_messages_chatId ON messages(chatId)');
+  } catch {
+    // Ya existe o error
   }
 
   return _db;
