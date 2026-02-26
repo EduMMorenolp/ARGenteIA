@@ -85,7 +85,7 @@ export function useAssistant() {
               text: m.text,
               origin: m.origin,
             }));
-            setMessages((prev) => [...prev, ...historicalMessages]);
+            setMessages(historicalMessages);
           } else if (msg.text && msg.text !== "Cargando historial...") {
             addMessage(
               "assistant",
@@ -137,11 +137,13 @@ export function useAssistant() {
   const { isConnected, send } = useWebSocket(handleServerMessage);
 
   const identifyUser = (user: UserProfile) => {
+    setMessages([]);
     send({ type: "identify", userId: user.userId });
     setCurrentUser(user);
   };
 
   const continueAsGuest = () => {
+    setMessages([]);
     const guestId = `guest-${Math.random().toString(36).substr(2, 9)}`;
     send({ type: "identify", userId: guestId });
     setCurrentUser({
@@ -214,7 +216,10 @@ export function useAssistant() {
     __html: marked.parse(text) as string,
   });
 
-  const logout = () => setCurrentUser(null);
+  const logout = () => {
+    setMessages([]);
+    setCurrentUser(null);
+  };
 
   const registerUser = (
     userId: string,
