@@ -5,6 +5,7 @@ import type {
   ChatCompletionMessageParam,
   ChatCompletionTool,
 } from 'openai/resources/chat/completions';
+import type { CompletionUsage } from 'openai/resources/completions';
 import { getTools, executeTool, type ToolSpec } from '../tools/index.ts';
 import { addMessage, getHistory } from '../memory/session.ts';
 import { saveMessage } from '../memory/message-db.ts';
@@ -21,11 +22,7 @@ export interface AgentOptions {
 export interface AgentResponse {
   text: string;
   model: string;
-  usage?: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
+  usage?: CompletionUsage;
   latencyMs?: number;
 }
 
@@ -62,7 +59,7 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
     let responseText = '';
 
     const startTime = Date.now();
-    let result: { text: string; usage?: Record<string, unknown> };
+    let result: { text: string; usage?: CompletionUsage };
 
     if (provider === 'anthropic') {
       const text = await runAnthropic(model, messages, config.agent.maxTokens);
@@ -119,7 +116,7 @@ async function runOpenAI(
   messages: ChatCompletionMessageParam[],
   maxTokens: number,
   opts: AgentOptions,
-): Promise<{ text: string; usage?: Record<string, unknown> }> {
+): Promise<{ text: string; usage?: CompletionUsage }> {
   const config = getConfig();
   const sessionId = opts.sessionId;
 
@@ -286,7 +283,7 @@ async function runOpenAI(
             'Por favor, responde al usuario basándote en la información obtenida anteriormente.',
         });
         const finalRes = await callWithRetry(loopMessages, false);
-        return finalRes.choices[0]?.message?.content || '';
+        return { text: finalRes.choices[0]?.message?.content || '', usage: undefined };
       }
 
       return {

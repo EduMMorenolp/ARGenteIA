@@ -2,6 +2,7 @@ import { getConfig } from '../config/index.ts';
 import { createClient, modelName } from './models.ts';
 import type OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import type { CompletionUsage } from 'openai/resources/completions';
 import { getExpert } from '../memory/expert-db.ts';
 import { saveMessage } from '../memory/message-db.ts';
 import chalk from 'chalk';
@@ -17,7 +18,7 @@ export interface ExpertRequest {
  */
 export async function runExpert(
   req: ExpertRequest,
-): Promise<{ text: string; usage?: Record<string, unknown>; latencyMs: number }> {
+): Promise<{ text: string; usage?: CompletionUsage; latencyMs: number }> {
   const startTime = Date.now();
   const expert = getExpert(req.expertName);
   if (!expert) {
