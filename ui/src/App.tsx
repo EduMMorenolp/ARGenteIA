@@ -28,6 +28,7 @@ import { ChatSidebar } from "./components/layout/ChatSidebar";
 export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isModelsOpen, setIsModelsOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isChatSidebarOpen, setIsChatSidebarOpen] = useState(true);
   const {
     messages,
@@ -153,7 +154,7 @@ export default function App() {
   }
 
   return (
-    <div className={`app-container ${!isChatSidebarOpen ? "chats-closed" : ""}`}>
+    <div className={`app-container ${!isSidebarOpen ? "sidebar-closed" : ""} ${!isChatSidebarOpen ? "chats-closed" : ""}`}>
       <Sidebar
         quickCommands={quickCommands}
         experts={experts}
@@ -183,6 +184,8 @@ export default function App() {
         isWaiting={isWaiting}
         availableModels={availableModels}
         onOpenModels={() => setIsModelsOpen(true)}
+        isOpen={isSidebarOpen}
+        onToggleOpen={() => setIsSidebarOpen(!isSidebarOpen)}
       />
 
       <main className="chat-area">
