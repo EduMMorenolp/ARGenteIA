@@ -9,6 +9,7 @@ import type { CompletionUsage } from 'openai/resources/completions';
 import { getTools, executeTool, type ToolSpec } from '../tools/index.ts';
 import { addMessage, getHistory } from '../memory/session.ts';
 import { saveMessage } from '../memory/message-db.ts';
+import { loadPrompt } from '../promptsSystem/index.ts';
 import chalk from 'chalk';
 
 export interface AgentOptions {
@@ -152,10 +153,7 @@ async function runOpenAI(
     if (userProfile && userProfile.name) {
       systemPrompt += `\nESTÁS HABLANDO CON: ${userProfile.name}. Su zona horaria es: ${userProfile.timezone}.`;
     } else {
-      systemPrompt += `\nESTE ES UN USUARIO NUEVO. NO TIENES SU PERFIL.
-      INSTRUCCIÓN CRÍTICA: Antes de cualquier otra cosa, preséntate brevemente como ARGenteIA y dile al usuario que necesitas configurar su perfil. 
-      Pídele amablemente su NOMBRE y confirma su zona horaria (por defecto Argentina/BsAs). 
-      Cuando te dé los datos, usa la herramienta 'update_profile'.`;
+      systemPrompt += '\n' + loadPrompt('onboarding');
     }
 
     const { listExperts } = await import('../memory/expert-db.ts');
@@ -164,19 +162,16 @@ async function runOpenAI(
       experts = experts.filter((e) => generalOverride.experts.includes(e.name));
     }
     if (experts.length > 0) {
-      systemPrompt += `\n\nTIENES ACCESO A UN EQUIPO DE EXPERTOS ESPECIALIZADOS. 
-      Si el usuario requiere una tarea que encaje con alguno de estos expertos, USA la herramienta 'call_expert'.
-      Expertos disponibles:
-      ${experts.map((e) => `- ${e.name}: ${e.system_prompt.slice(0, 100)}... (Modelo: ${e.model})`).join('\n    ')}
-      
-      REGLA: Prefiere delegar tareas técnicas, de redacción creativa o de investigación a estos expertos para mejores resultados.`;
+      const expertsList = experts
+        .map((e) => `- ${e.name}: ${e.system_prompt.slice(0, 100)}... (Modelo: ${e.model})`)
+        .join('\n    ');
+      systemPrompt += '\n\n' + loadPrompt('experts-delegation', { expertsList });
     }
 
-    systemPrompt += `\n\nORIGEN DEL MENSAJE: Estas hablando por el canal ${opts.origin || 'web'}.`;
     if (opts.origin === 'telegram') {
-      systemPrompt += `\nINSTRUCCIÓN: Como estás en Telegram, usa la herramienta 'send_file_telegram' si el usuario te pide que le envíes un archivo.`;
+      systemPrompt += '\n\n' + loadPrompt('channel-telegram');
     } else {
-      systemPrompt += `\nINSTRUCCIÓN: Como estás en el navegador (WebChat), si el usuario te pide un archivo, dile que puedes dárselo por Telegram si vincula su cuenta o simplemente dale la ruta local si está en su propia PC.`;
+      systemPrompt += '\n\n' + loadPrompt('channel-web');
     }
 
     const loopMessages: ChatCompletionMessageParam[] = [
@@ -279,8 +274,7 @@ async function runOpenAI(
       if (!response.choices[0]?.message?.content) {
         loopMessages.push({
           role: 'system',
-          content:
-            'Por favor, responde al usuario basándote en la información obtenida anteriormente.',
+          content: loadPrompt('fallback'),
         });
         const finalRes = await callWithRetry(loopMessages, false);
         return { text: finalRes.choices[0]?.message?.content || '', usage: undefined };

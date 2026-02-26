@@ -1,6 +1,7 @@
 import os from 'node:os';
 import { getConfig } from '../config/index.ts';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import { loadPrompt } from '../promptsSystem/index.ts';
 
 /**
  * Genera un bloque de contexto del sistema operativo inyectado automáticamente.
@@ -18,39 +19,26 @@ function buildSystemContext(): string {
   const platform = isWindows ? 'Windows' : 'Linux/macOS';
   const shell = isWindows ? 'PowerShell' : 'bash';
 
-  // Rutas clave del sistema real
   const sep = isWindows ? '\\' : '/';
   const downloads = isWindows ? `${homeDir}${sep}Downloads` : `${homeDir}/Downloads`;
   const documents = isWindows ? `${homeDir}${sep}Documents` : `${homeDir}/Documents`;
   const desktop = isWindows ? `${homeDir}${sep}Desktop` : `${homeDir}/Desktop`;
 
-  return `## Entorno del sistema
+  // Cargar instrucciones de shell según el OS
+  const shellInstructions = isWindows
+    ? loadPrompt('shell-windows', { downloads })
+    : loadPrompt('shell-linux', { downloads });
 
-- **OS:** ${platform}
-- **Shell:** ${shell}
-- **Usuario:** ${username}
-- **Home:** \`${homeDir}\`
-- **Descargas:** \`${downloads}\`
-- **Documentos:** \`${documents}\`
-- **Escritorio:** \`${desktop}\`
-
-${
-  isWindows
-    ? `### Bash en Windows = PowerShell
-
-Cuando uses la herramienta \`bash\`, escribí comandos de PowerShell completos:
-- Listar descargas: \`Get-ChildItem "${downloads}" | Sort-Object LastWriteTime -Descending | Select-Object -First 5\`
-- Ver archivo: \`Get-Content "ruta\\archivo.txt"\`
-- Fecha actual: \`Get-Date\`
-- Usuario: \`$env:USERNAME\`
-
-No uses sintaxis de Linux (\`ls -lt\`, \`head\`, \`~\`) — en PowerShell no funciona así.`
-    : `### Bash en Linux/macOS
-
-- Listar descargas: \`ls -lt "${downloads}" | head -5\`
-- Ver archivo: \`cat /ruta/archivo.txt\`
-- Fecha actual: \`date\``
-}`;
+  return loadPrompt('system-context', {
+    platform,
+    shell,
+    username,
+    homeDir,
+    downloads,
+    documents,
+    desktop,
+    shellInstructions,
+  });
 }
 
 /**
