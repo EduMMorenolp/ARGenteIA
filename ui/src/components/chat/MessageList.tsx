@@ -81,6 +81,32 @@ export function MessageList({
                             >
                                 {msg.role === 'user' ? msg.text : null}
                             </div>
+
+                            {msg.role === 'assistant' && (msg.latencyMs || msg.usage) && (
+                                <div className="msg-footer" style={{
+                                    fontSize: '10px',
+                                    opacity: 0.5,
+                                    marginTop: '8px',
+                                    display: 'flex',
+                                    gap: '12px',
+                                    borderTop: '1px solid rgba(255,255,255,0.05)',
+                                    paddingTop: '6px'
+                                }}>
+                                    {msg.latencyMs && (
+                                        <span>⏱️ {(() => {
+                                            const sec = msg.latencyMs / 1000;
+                                            if (sec < 60) return `${sec.toFixed(2)}s`;
+                                            const min = sec / 60;
+                                            if (min < 60) return `${min.toFixed(1)}m`;
+                                            const hr = min / 60;
+                                            return `${hr.toFixed(1)}h`;
+                                        })()}</span>
+                                    )}
+                                    {msg.usage && (
+                                        <span>💎 {msg.usage.total_tokens} tokens</span>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -40,6 +40,8 @@ export function useAssistant() {
       model?: string,
       type: "message" | "command" | "error" = "message",
       origin?: "web" | "telegram",
+      usage?: any,
+      latencyMs?: number,
     ) => {
       setMessages((prev) => [
         ...prev,
@@ -50,6 +52,8 @@ export function useAssistant() {
           model,
           type,
           origin,
+          usage,
+          latencyMs,
         },
       ]);
     },
@@ -81,7 +85,15 @@ export function useAssistant() {
             }));
             setMessages((prev) => [...prev, ...historicalMessages]);
           } else if (msg.text && msg.text !== "Cargando historial...") {
-            addMessage("assistant", msg.text, msg.model, "message", msg.origin);
+            addMessage(
+              "assistant",
+              msg.text,
+              msg.model,
+              "message",
+              msg.origin,
+              msg.usage,
+              msg.latencyMs,
+            );
           }
           setMessageCount((prev) => prev + 1);
           break;

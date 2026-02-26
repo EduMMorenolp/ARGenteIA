@@ -24,6 +24,12 @@ export interface Message {
   model?: string;
   type?: "message" | "command" | "error";
   origin?: "web" | "telegram";
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+  latencyMs?: number;
 }
 
 export interface ScheduledTask {
@@ -51,6 +57,12 @@ export interface WsMessage {
   users?: UserProfile[];
   tasks?: ScheduledTask[];
   origin?: "web" | "telegram";
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+  latencyMs?: number;
   history?: Array<{
     role: string;
     text: string;

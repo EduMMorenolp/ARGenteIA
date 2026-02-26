@@ -21,6 +21,12 @@ export interface AgentOptions {
 export interface AgentResponse {
   text: string;
   model: string;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+  latencyMs?: number;
 }
 
 export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
@@ -55,20 +61,26 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
   try {
     let responseText = "";
 
+    const startTime = Date.now();
+    let result: { text: string; usage?: any };
+
     if (provider === "anthropic") {
-      responseText = await runAnthropic(
+      const text = await runAnthropic(
         model,
         messages,
         config.agent.maxTokens,
       );
+      result = { text };
     } else {
-      responseText = await runOpenAI(
+      result = await runOpenAI(
         model,
         messages,
         config.agent.maxTokens,
         opts,
       );
     }
+    const latencyMs = Date.now() - startTime;
+    responseText = result.text;
 
     // Si por alguna razón sigue vacío, forzar algo
     if (!responseText || responseText.trim() === "") {
@@ -91,7 +103,12 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
       origin: opts.origin || "web",
     });
 
-    return { text: responseText, model };
+    return { 
+      text: responseText, 
+      model, 
+      usage: result.usage,
+      latencyMs 
+    };
   } catch (err: any) {
     console.error(chalk.red("   ❌ Error en runAgent:"), err.message);
     const msg = err.message || "Error desconocido";
@@ -111,7 +128,7 @@ async function runOpenAI(
   messages: ChatCompletionMessageParam[],
   maxTokens: number,
   opts: AgentOptions,
-): Promise<string> {
+): Promise<{ text: string; usage?: any }> {
   const config = getConfig();
   const sessionId = opts.sessionId;
 
@@ -239,7 +256,12 @@ async function runOpenAI(
         loopMessages.push(msgToPush);
 
         if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
-          if (assistantMsg.content) return assistantMsg.content;
+          if (assistantMsg.content) {
+            return { 
+              text: assistantMsg.content, 
+              usage: response.usage 
+            };
+          }
           break;
         }
 
@@ -288,7 +310,10 @@ async function runOpenAI(
         return finalRes.choices[0]?.message?.content || "";
       }
 
-      return response.choices[0].message.content;
+      return { 
+        text: response.choices[0].message.content, 
+        usage: response.usage 
+      };
     } catch (err: any) {
       const isRateLimit = err.status === 429 || err.message === "429";
       const isProviderError =

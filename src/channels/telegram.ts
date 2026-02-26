@@ -150,8 +150,8 @@ async function handleTelegramCommand(
     case "/help":
       await bot!.sendMessage(
         chatId,
-        `🤖 *ARGenteIA — Menú de Ayuda*\n\n🔹 *Comandos de Sistema:*\n• /reset — Limpiar historial\n• /model — Ver/cambiar modelo\n• /ollama — Listar modelos locales\n• /status — Estado actual\n• /tools — Herramientas disponibles\n• /skills — Skills cargadas\n• /ayuda — Mostrar este menú\n\n🔹 *Gestión de Expertos:*\n• /agentes — Listar expertos\n• /crear_agente <nombre>|<modelo>|<prompt> — Crea experto\n• /borrar_agente <nombre> — Elimina experto\n\n⏰ *Tareas Programadas:*\n• /tareas — Listar tus tareas\n• /borrar_tarea <ID> — Eliminar tarea por ID`,
-        { parse_mode: "Markdown" },
+        `🤖 <b>ARGenteIA — Menú de Ayuda</b>\n\n🔹 <b>Comandos de Sistema:</b>\n• /reset — Limpiar historial\n• /model — Ver/cambiar modelo\n• /ollama — Listar modelos locales\n• /status — Estado actual\n• /tools — Herramientas disponibles\n• /skills — Skills cargadas\n• /ayuda — Mostrar este menú\n\n🔹 <b>Gestión de Expertos:</b>\n• /agentes — Listar expertos\n• /crear_agente &lt;nombre&gt;|&lt;modelo&gt;|&lt;prompt&gt; — Crea experto\n• /borrar_agente &lt;nombre&gt; — Elimina experto\n\n⏰ <b>Tareas Programadas:</b>\n• /tareas — Listar tus tareas\n• /borrar_tarea &lt;ID&gt; — Eliminar tarea por ID`,
+        { parse_mode: "HTML" },
       );
       break;
 
@@ -167,13 +167,13 @@ async function handleTelegramCommand(
         const list = experts
           .map(
             (e) =>
-              `• *${e.name}* (\`${e.model}\`)\n  _${e.system_prompt.slice(0, 50)}..._`,
+              `• <b>${e.name}</b> (<code>${e.model}</code>)\n  <i>${e.system_prompt.slice(0, 50).replace(/</g, "&lt;").replace(/>/g, "&gt;")}...</i>`,
           )
           .join("\n\n");
         await bot!.sendMessage(
           chatId,
-          `🤖 *Agentes Expertos Disponibles:*\n\n${list}`,
-          { parse_mode: "Markdown" },
+          `🤖 <b>Agentes Expertos Disponibles:</b>\n\n${list}`,
+          { parse_mode: "HTML" },
         );
       }
       break;
@@ -265,11 +265,11 @@ async function handleTelegramCommand(
           "⚠️ No se pudieron obtener modelos de Ollama. Asegúrate de que Ollama esté corriendo localmente.",
         );
       } else {
-        const list = ollamaModels.map((m) => `• \`${m}\``).join("\n");
+        const list = ollamaModels.map((m) => `• <code>${m}</code>`).join("\n");
         await bot!.sendMessage(
           chatId,
-          `🦙 *Modelos de Ollama Disponibles:*\n\n${list}\n\n_Para usar uno, agrégalo a tu config.json o cámbialo con /model si ya existe._`,
-          { parse_mode: "Markdown" },
+          `🦙 <b>Modelos de Ollama Disponibles:</b>\n\n${list}\n\n<i>Para usar uno, agrégalo a tu config.json o cámbialo con /model si ya existe.</i>`,
+          { parse_mode: "HTML" },
         );
       }
       break;
@@ -279,8 +279,8 @@ async function handleTelegramCommand(
       const history = getHistory(sessionId);
       await bot!.sendMessage(
         chatId,
-        `📊 *Estado:*\nModelo: \`${config.agent.model}\`\nMensajes: ${history.length}`,
-        { parse_mode: "Markdown" },
+        `📊 <b>Estado:</b>\nModelo: <code>${config.agent.model}</code>\nMensajes: ${history.length}`,
+        { parse_mode: "HTML" },
       );
       break;
     }
@@ -290,9 +290,9 @@ async function handleTelegramCommand(
       if (tools.length === 0) {
         await bot!.sendMessage(chatId, "No hay herramientas habilitadas.");
       } else {
-        const list = tools.map((t) => `• *${t.function.name}*`).join("\n");
-        await bot!.sendMessage(chatId, `🔧 *Herramientas:*\n${list}`, {
-          parse_mode: "Markdown",
+        const list = tools.map((t) => `• <b>${t.function.name}</b>`).join("\n");
+        await bot!.sendMessage(chatId, `🔧 <b>Herramientas:</b>\n${list}`, {
+          parse_mode: "HTML",
         });
       }
       break;
@@ -314,12 +314,12 @@ async function handleTelegramCommand(
         );
       } else {
         const list = tasks
-          .map((t) => `• *[ID ${t.id}]* "${t.task}"\n  ⏰ \`${t.cron}\``)
+          .map((t) => `• <b>[ID ${t.id}]</b> "${t.task}"\n  ⏰ <code>${t.cron}</code>`)
           .join("\n\n");
         await bot!.sendMessage(
           chatId,
-          `📅 *Tus Tareas Programadas:*\n\n${list}`,
-          { parse_mode: "Markdown" },
+          `📅 <b>Tus Tareas Programadas:</b>\n\n${list}`,
+          { parse_mode: "HTML" },
         );
       }
       break;
@@ -360,8 +360,8 @@ async function handleTelegramCommand(
       } else {
         await bot!.sendMessage(
           chatId,
-          `👤 *Tu Perfil:*\n• Nombre: ${user.name || "Sin nombre"}\n• Zona Horaria: \`${user.timezone}\`\n• Creado: ${user.created_at}`,
-          { parse_mode: "Markdown" },
+          `👤 <b>Tu Perfil:</b>\n• Nombre: ${user.name || "Sin nombre"}\n• Zona Horaria: <code>${user.timezone}</code>\n• Creado: ${user.created_at}`,
+          { parse_mode: "HTML" },
         );
       }
       break;

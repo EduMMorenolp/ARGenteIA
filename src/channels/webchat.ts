@@ -38,7 +38,7 @@ export async function handleWebChatMessage(
       const { runExpert } = await import("../agent/expert-runner.ts");
       const { saveMessage } = await import("../memory/message-db.ts");
 
-      const response = await runExpert({
+      const resultExpert = await runExpert({
         expertName: (opts as any).expertName,
         task: opts.text,
         userId: sessionId,
@@ -48,12 +48,17 @@ export async function handleWebChatMessage(
       saveMessage({
         userId: sessionId,
         role: "assistant",
-        content: response,
+        content: resultExpert.text,
         origin: "web",
         expertName: (opts as any).expertName,
       });
 
-      result = { text: response, model: `Expert: ${(opts as any).expertName}` };
+      result = { 
+        text: resultExpert.text, 
+        model: `Expert: ${(opts as any).expertName}`,
+        usage: resultExpert.usage,
+        latencyMs: resultExpert.latencyMs
+      };
     } else {
       result = await runAgent({
         sessionId,
@@ -67,6 +72,8 @@ export async function handleWebChatMessage(
       type: "assistant_message",
       text: result.text,
       model: result.model,
+      usage: result.usage,
+      latencyMs: result.latencyMs,
       sessionId,
       origin: "web",
     });

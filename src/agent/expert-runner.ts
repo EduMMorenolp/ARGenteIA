@@ -15,7 +15,8 @@ export interface ExpertRequest {
  * Ejecuta una tarea específica usando un sub-agente (experto).
  * Los expertos tienen su propio modelo y prompt de sistema.
  */
-export async function runExpert(req: ExpertRequest): Promise<string> {
+export async function runExpert(req: ExpertRequest): Promise<{ text: string; usage?: any; latencyMs: number }> {
+  const startTime = Date.now();
   const expert = getExpert(req.expertName);
   if (!expert) {
     throw new Error(`Experto "${req.expertName}" no encontrado en la base de datos.`);
@@ -77,7 +78,13 @@ export async function runExpert(req: ExpertRequest): Promise<string> {
       } as ChatCompletionMessageParam);
 
       if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
-        if (assistantMsg.content) return assistantMsg.content;
+        if (assistantMsg.content) {
+          return { 
+            text: assistantMsg.content, 
+            usage: response.usage,
+            latencyMs: Date.now() - startTime
+          };
+        }
         break;
       }
 
@@ -108,7 +115,11 @@ export async function runExpert(req: ExpertRequest): Promise<string> {
       });
     }
 
-    return response.choices[0]?.message?.content || "El experto no devolvió ninguna respuesta.";
+    return { 
+      text: response.choices[0]?.message?.content || "El experto no devolvió ninguna respuesta.",
+      usage: response.usage,
+      latencyMs: Date.now() - startTime
+    };
   } catch (err: any) {
     console.error(chalk.red(`   ❌ Error en experto ${expert.name}:`), err.message);
     throw new Error(`Error del experto ${expert.name}: ${err.message}`);
