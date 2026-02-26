@@ -7,6 +7,13 @@ export interface Expert {
   experts?: string[];
 }
 
+export interface ModelConfig {
+  name: string;
+  apiKey?: string;
+  baseUrl?: string;
+  created_at?: string;
+}
+
 export interface UserProfile {
   userId: string;
   name: string | null;
@@ -56,6 +63,7 @@ export interface WsMessage {
   tools?: string[];
   users?: UserProfile[];
   tasks?: ScheduledTask[];
+  models?: ModelConfig[];
   origin?: "web" | "telegram";
   usage?: {
     prompt_tokens: number;

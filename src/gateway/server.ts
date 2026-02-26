@@ -93,6 +93,12 @@ export function createGateway(): GatewayServer {
       send(ws, { type: 'list_experts', experts: listExperts() });
     });
 
+    // Enviar lista de modelos disponibles
+    import('../memory/model-db.ts').then(({ listModels, seedModelsFromConfig }) => {
+      seedModelsFromConfig();
+      send(ws, { type: 'list_models', models: listModels() } as unknown as WsMessage);
+    });
+
     // Enviar lista de herramientas disponibles
     import('../tools/index.ts').then(({ getTools }) => {
       const toolNames = getTools().map((t) => t.function.name);
@@ -277,6 +283,21 @@ export function createGateway(): GatewayServer {
           type: 'list_tasks',
           tasks: getUserTasks(sessionId),
         } as unknown as WsMessage);
+      } else if (msg.type === ('model_update' as unknown as string)) {
+        const { listModels, upsertModel, deleteModel } = await import('../memory/model-db.ts');
+        if (msg.action === 'upsert' && msg.model) {
+          upsertModel(msg.model);
+          console.log(chalk.green(`📦 Modelo guardado: ${msg.model.name}`));
+        } else if (msg.action === 'delete' && msg.name) {
+          deleteModel(msg.name);
+          console.log(chalk.red(`🗑️ Modelo eliminado: ${msg.name}`));
+        }
+        // Broadcast lista actualizada a todos los clientes
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            send(client, { type: 'list_models', models: listModels() } as unknown as WsMessage);
+          }
+        });
       }
     });
 

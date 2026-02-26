@@ -22,9 +22,11 @@ import { ExpertCreator } from "./components/modals/ExpertCreator";
 import { FeaturesOverlay } from "./components/modals/FeaturesOverlay";
 import { TaskEditor } from "./components/modals/TaskEditor";
 import { ProfileModal } from "./components/modals/ProfileModal";
+import { ModelManager } from "./components/modals/ModelManager";
 
 export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isModelsOpen, setIsModelsOpen] = useState(false);
   const {
     messages,
     inputText,
@@ -64,6 +66,9 @@ export default function App() {
     renderContent,
     logout,
     deleteAccount,
+    availableModels,
+    upsertModel,
+    deleteModel,
   } = useAssistant();
 
   const quickCommands = [
@@ -165,6 +170,8 @@ export default function App() {
         onOpenProfile={() => setIsProfileOpen(true)}
         sendMessage={sendMessage}
         isWaiting={isWaiting}
+        availableModels={availableModels}
+        onOpenModels={() => setIsModelsOpen(true)}
       />
 
       <main className="chat-area">
@@ -206,6 +213,7 @@ export default function App() {
           initialData={editingExpert}
           availableTools={availableTools}
           allExperts={experts}
+          availableModels={availableModels}
         />
       )}
 
@@ -230,6 +238,15 @@ export default function App() {
           onClose={() => setIsProfileOpen(false)}
           onSave={updateUser}
           onDelete={deleteAccount}
+        />
+      )}
+
+      {isModelsOpen && (
+        <ModelManager
+          models={availableModels}
+          onClose={() => setIsModelsOpen(false)}
+          onSave={upsertModel}
+          onDelete={deleteModel}
         />
       )}
     </div>

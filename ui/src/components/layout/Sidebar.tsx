@@ -8,8 +8,9 @@ import {
   LogOut,
   Cpu,
   User,
+  Server,
 } from "lucide-react";
-import type { Expert } from "../../types";
+import type { Expert, ModelConfig } from "../../types";
 
 interface SidebarProps {
   quickCommands: any[];
@@ -30,6 +31,8 @@ interface SidebarProps {
   onOpenProfile: () => void;
   sendMessage: (cmd: string) => void;
   isWaiting: boolean;
+  availableModels: ModelConfig[];
+  onOpenModels: () => void;
 }
 
 export function Sidebar({
@@ -51,6 +54,8 @@ export function Sidebar({
   onOpenProfile,
   sendMessage,
   isWaiting,
+  availableModels,
+  onOpenModels,
 }: SidebarProps) {
   return (
     <aside className="sidebar">
@@ -182,6 +187,18 @@ export function Sidebar({
                 </div>
               ))
             )}
+          </div>
+        </div>
+
+        <div className="nav-section">
+          <div className="section-header">
+            <span className="section-title">Modelos</span>
+            <button className="icon-btn-sm" onClick={onOpenModels}>
+              <Server size={12} />
+            </button>
+          </div>
+          <div className="models-summary" onClick={onOpenModels} style={{ cursor: 'pointer' }}>
+            <span className="model-count">{availableModels.length} modelos configurados</span>
           </div>
         </div>
       </nav>

@@ -4,6 +4,7 @@
 export type SubAgentInfo = Record<string, unknown>;
 export type UserInfo = Record<string, unknown>;
 export type TaskInfo = Record<string, unknown>;
+export type ModelInfo = { name: string; apiKey?: string; baseUrl?: string; created_at?: string };
 
 export type WsMessageType =
   | 'user_message' // cliente → servidor: mensaje del usuario
@@ -21,7 +22,9 @@ export type WsMessageType =
   | 'user_register' // cliente → servidor: crear nuevo usuario
   | 'user_update' // cliente → servidor: actualizar datos de usuario
   | 'user_delete' // cliente → servidor: eliminar usuario
-  | 'identify'; // cliente → servidor: asociar sesión con userId
+  | 'identify' // cliente → servidor: asociar sesión con userId
+  | 'list_models' // servidor → cliente: lista de modelos disponibles
+  | 'model_update'; // cliente → servidor: crear/actualizar/eliminar modelo
 
 export interface WsUserRegisterMessage {
   type: 'user_register';
@@ -137,6 +140,18 @@ export interface WsUpdateTaskMessage {
   cron: string;
 }
 
+export interface WsListModelsMessage {
+  type: 'list_models';
+  models: ModelInfo[];
+}
+
+export interface WsModelUpdateMessage {
+  type: 'model_update';
+  action: 'upsert' | 'delete';
+  model?: { name: string; apiKey?: string; baseUrl?: string };
+  name?: string;
+}
+
 export type WsMessage =
   | WsUserMessage
   | WsAssistantMessage
@@ -153,4 +168,6 @@ export type WsMessage =
   | WsUserRegisterMessage
   | WsUserUpdateMessage
   | WsUserDeleteMessage
-  | WsIdentifyMessage;
+  | WsIdentifyMessage
+  | WsListModelsMessage
+  | WsModelUpdateMessage;

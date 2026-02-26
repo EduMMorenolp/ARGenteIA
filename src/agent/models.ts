@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import type { Config } from '../config/index.ts';
+import { getModel } from '../memory/model-db.ts';
 
 // Proveedor detectado a partir del nombre del modelo
 export type ModelProvider = 'openai' | 'anthropic' | 'ollama';
@@ -24,30 +25,48 @@ export function modelName(modelKey: string): string {
 // Crea el cliente correcto según el modelo activo
 export function createClient(modelKey: string, config: Config): OpenAI | Anthropic {
   const provider = detectProvider(modelKey);
-  let modelCfg = config.models[modelKey];
 
-  // Si el modelo no está en config pero es de Ollama, intentamos ser dinámicos
-  if (!modelCfg && provider === 'ollama') {
-    // Buscamos si hay alguna otra entrada de ollama para copiar el baseUrl
-    const otherOllamaKey = Object.keys(config.models).find((k) => k.startsWith('ollama/'));
-    const baseUrl = config.models[otherOllamaKey || '']?.baseUrl || 'http://localhost:11434/v1';
+  // 1. Buscar en la DB primero
+  let apiKey: string | undefined;
+  let baseUrl: string | undefined;
 
-    modelCfg = {
-      apiKey: 'ollama',
-      baseUrl: baseUrl,
-    };
+  try {
+    const dbModel = getModel(modelKey);
+    if (dbModel) {
+      apiKey = dbModel.apiKey;
+      baseUrl = dbModel.baseUrl;
+    }
+  } catch {
+    // DB no disponible aún, usar config
   }
 
-  if (!modelCfg) throw new Error(`Modelo "${modelKey}" no encontrado en config.models`);
+  // 2. Fallback a config.json
+  if (!apiKey && !baseUrl) {
+    const modelCfg = config.models[modelKey];
+    if (modelCfg) {
+      apiKey = modelCfg.apiKey;
+      baseUrl = modelCfg.baseUrl;
+    }
+  }
+
+  // 3. Si es Ollama y aún no tenemos config, buscar baseUrl de otro modelo Ollama
+  if (!apiKey && !baseUrl && provider === 'ollama') {
+    const otherOllamaKey = Object.keys(config.models).find((k) => k.startsWith('ollama/'));
+    baseUrl = config.models[otherOllamaKey || '']?.baseUrl || 'http://localhost:11434/v1';
+    apiKey = 'ollama';
+  }
+
+  if (!apiKey && !baseUrl)
+    throw new Error(`Modelo "${modelKey}" no encontrado en DB ni en config.models`);
 
   if (provider === 'anthropic') {
-    return new Anthropic({ apiKey: modelCfg.apiKey || '' });
+    return new Anthropic({ apiKey: apiKey || '' });
   }
 
   // Ollama y OpenRouter son compatibles con el SDK de OpenAI
   return new OpenAI({
-    apiKey: modelCfg.apiKey || 'ollama',
-    baseURL: modelCfg.baseUrl,
+    apiKey: apiKey || 'ollama',
+    baseURL: baseUrl,
   });
 }
 

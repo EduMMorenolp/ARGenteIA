@@ -3,6 +3,7 @@ import { marked } from "marked";
 import type {
   Message,
   Expert,
+  ModelConfig,
   UserProfile,
   WsMessage,
   ScheduledTask,
@@ -21,6 +22,7 @@ export function useAssistant() {
   // Management state
   const [experts, setExperts] = useState<Expert[]>([]);
   const [availableTools, setAvailableTools] = useState<string[]>([]);
+  const [availableModels, setAvailableModels] = useState<ModelConfig[]>([]);
   const [availableUsers, setAvailableUsers] = useState<UserProfile[]>([]);
   const [scheduledTasks, setScheduledTasks] = useState<ScheduledTask[]>([]);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -124,6 +126,9 @@ export function useAssistant() {
         case "list_tasks":
           if (msg.tasks) setScheduledTasks(msg.tasks);
           break;
+        case "list_models":
+          if (msg.models) setAvailableModels(msg.models);
+          break;
       }
     },
     [addMessage],
@@ -189,6 +194,14 @@ export function useAssistant() {
   const updateTask = (id: number, task: string, cron: string) => {
     send({ type: "update_task", id, task, cron });
     setEditingTask(null);
+  };
+
+  const upsertModel = (model: ModelConfig) => {
+    send({ type: "model_update", action: "upsert", model });
+  };
+
+  const deleteModel = (name: string) => {
+    send({ type: "model_update", action: "delete", name });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -303,5 +316,8 @@ export function useAssistant() {
     renderContent,
     logout,
     deleteAccount,
+    availableModels,
+    upsertModel,
+    deleteModel,
   };
 }

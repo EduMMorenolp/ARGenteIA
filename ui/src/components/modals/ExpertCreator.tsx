@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import type { Expert } from '../../types';
+import type { Expert, ModelConfig } from '../../types';
 import { TEMPLATES, TOOL_LABELS } from '../../constants';
 
 interface ExpertCreatorProps {
@@ -9,9 +9,10 @@ interface ExpertCreatorProps {
     initialData: Expert | null;
     availableTools: string[];
     allExperts: Expert[];
+    availableModels: ModelConfig[];
 }
 
-export function ExpertCreator({ onClose, onSave, initialData, availableTools, allExperts }: ExpertCreatorProps) {
+export function ExpertCreator({ onClose, onSave, initialData, availableTools, allExperts, availableModels }: ExpertCreatorProps) {
     const [formData, setFormData] = useState<Expert>(() => {
         if (initialData) {
             return {
@@ -125,12 +126,19 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
                     )}
 
                     <div className="form-group">
-                        <label>Modelo (OpenRouter)</label>
-                        <input
-                            type="text"
+                        <label>Modelo</label>
+                        <select
                             value={formData.model}
                             onChange={e => setFormData({ ...formData, model: e.target.value })}
-                        />
+                        >
+                            {availableModels.length === 0 ? (
+                                <option value={formData.model}>{formData.model}</option>
+                            ) : (
+                                availableModels.map(m => (
+                                    <option key={m.name} value={m.name}>{m.name}</option>
+                                ))
+                            )}
+                        </select>
                     </div>
                     <div className="form-group">
                         <label>Instrucciones (Prompt)</label>
