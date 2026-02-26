@@ -294,18 +294,18 @@ export function useAssistant() {
 
   // Cada vez que cambia el experto, pedir lista de chats de ese experto
   useEffect(() => {
-    if (currentUser) {
-      // Usar setTimeout para evitar el error de setState en el cuerpo del efecto
-      setTimeout(() => {
-        setMessages([]);
-        setActiveChatId(null);
-        send({
-          type: "chat_update",
-          action: "list",
-          expertName: selectedExpert || null,
-        });
-      }, 0);
-    }
+    if (!currentUser) return;
+
+    // Si cambiamos de experto, reseteamos la vista actual
+    setMessages([]);
+    setActiveChatId(null);
+
+    // Pedir lista
+    send({
+      type: "chat_update",
+      action: "list",
+      expertName: selectedExpert || null,
+    });
   }, [selectedExpert, currentUser, send]);
 
   const registerUser = (
