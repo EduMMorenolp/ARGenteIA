@@ -2,6 +2,38 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [1.5.0] - 2026-02-26
+
+### Añadido
+- **Gestión de Modelos desde la Web:**
+  - Nueva tabla `models` en SQLite para persistir modelos configurados (nombre, API Key, Base URL).
+  - Módulo CRUD completo (`model-db.ts`) con seed automático desde `config.json` al primer arranque.
+  - **Modal "Gestión de Modelos"** en la WebChat para agregar, editar y eliminar modelos sin tocar archivos de configuración.
+  - **Badges de proveedor** con colores diferenciados (OpenRouter, Ollama, Anthropic, OpenAI).
+  - **Botón de visibilidad** (👁) para mostrar/ocultar API Keys en el formulario.
+  - Sección **"Modelos"** en el Sidebar con contador y acceso rápido al manager.
+- **Dropdown de Modelos en Editores:**
+  - El campo "Modelo" en el editor de expertos y del Asistente General ahora es un `<select>` desplegable que lista todos los modelos de la DB en vez de un input de texto libre.
+- **Resolución Dinámica de Credenciales:**
+  - `createClient()` busca primero en la DB y luego en `config.json` como fallback, permitiendo gestionar modelos sin reiniciar el servidor.
+- **Protocolo WS extendido:**
+  - Nuevos mensajes `list_models` y `model_update` con broadcast automático a todos los clientes conectados.
+- **ESLint + Prettier:**
+  - Configuración completa de ESLint v9 (flat config) con `typescript-eslint` y `eslint-config-prettier`.
+  - `.prettierrc` y `.prettierignore` para formateo consistente.
+  - Scripts `lint`, `lint:fix`, `format` y `format:check` en `package.json`.
+
+### Mejorado
+- **Type Safety:** Reemplazo masivo de `any` por tipos específicos (`CompletionUsage`, `Record<string, unknown>`, `unknown` en catch blocks) en todo el backend.
+- **Error Handling:** Estandarización de `catch (err: unknown)` con mensajes descriptivos en todas las herramientas y canales.
+- **Formato HTML en Telegram:** Migración de Markdown a HTML para evitar problemas con caracteres especiales como guiones bajos.
+
+### Corregido
+- Errores de tipos `CompletionUsage` vs `Record<string, unknown>` en `loop.ts` y `expert-runner.ts`.
+- `no-async-promise-executor` en `server.ts`.
+- Imports no utilizados y variables `@ts-ignore` reemplazadas por `@ts-expect-error`.
+- Empty catch blocks y parámetros no usados prefijados con `_`.
+
 ## [1.4.0] - 2026-02-22
 
 ### Añadido
