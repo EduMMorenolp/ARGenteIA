@@ -1,4 +1,7 @@
-import { getDb } from "./db.ts";
+import { getDb } from './db.ts';
+import type Database from 'better-sqlite3';
+
+type DbRow = Database.RunResult & Record<string, unknown>;
 
 export interface SubAgent {
   name: string;
@@ -15,14 +18,14 @@ export interface SubAgent {
  */
 export function getExpert(name: string): SubAgent | null {
   const db = getDb();
-  const stmt = db.prepare("SELECT * FROM sub_agents WHERE name = ?");
-  const row = stmt.get(name) as any;
+  const stmt = db.prepare('SELECT * FROM sub_agents WHERE name = ?');
+  const row = stmt.get(name) as DbRow | undefined;
   if (!row) return null;
 
   return {
     ...row,
-    tools: JSON.parse(row.tools || "[]"),
-    experts: JSON.parse(row.experts || "[]")
+    tools: JSON.parse(row.tools || '[]'),
+    experts: JSON.parse(row.experts || '[]'),
   };
 }
 
@@ -47,7 +50,7 @@ export function upsertExpert(agent: SubAgent): void {
     agent.system_prompt,
     JSON.stringify(agent.tools || []),
     JSON.stringify(agent.experts || []),
-    agent.temperature ?? 0.7
+    agent.temperature ?? 0.7,
   );
 }
 
@@ -56,11 +59,13 @@ export function upsertExpert(agent: SubAgent): void {
  */
 export function listExperts(): SubAgent[] {
   const db = getDb();
-  const rows = db.prepare("SELECT * FROM sub_agents WHERE name != '__general__' ORDER BY name ASC").all() as any[];
-  return rows.map(row => ({
+  const rows = db
+    .prepare("SELECT * FROM sub_agents WHERE name != '__general__' ORDER BY name ASC")
+    .all() as DbRow[];
+  return rows.map((row) => ({
     ...row,
-    tools: JSON.parse(row.tools || "[]"),
-    experts: JSON.parse(row.experts || "[]")
+    tools: JSON.parse(row.tools || '[]'),
+    experts: JSON.parse(row.experts || '[]'),
   }));
 }
 
@@ -69,6 +74,6 @@ export function listExperts(): SubAgent[] {
  */
 export function deleteExpert(name: string): void {
   const db = getDb();
-  const stmt = db.prepare("DELETE FROM sub_agents WHERE name = ?");
+  const stmt = db.prepare('DELETE FROM sub_agents WHERE name = ?');
   stmt.run(name);
 }

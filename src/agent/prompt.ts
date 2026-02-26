@@ -1,6 +1,6 @@
-import os from "node:os";
-import { getConfig } from "../config/index.ts";
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import os from 'node:os';
+import { getConfig } from '../config/index.ts';
+import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 /**
  * Genera un bloque de contexto del sistema operativo inyectado automáticamente.
@@ -10,19 +10,19 @@ function buildSystemContext(): string {
   const config = getConfig();
   const bashCfg = config.tools.bash;
 
-  if (!bashCfg.enabled) return "";
+  if (!bashCfg.enabled) return '';
 
   const homeDir = os.homedir();
   const username = os.userInfo().username;
-  const isWindows = bashCfg.os === "windows";
-  const platform = isWindows ? "Windows" : "Linux/macOS";
-  const shell = isWindows ? "PowerShell" : "bash";
+  const isWindows = bashCfg.os === 'windows';
+  const platform = isWindows ? 'Windows' : 'Linux/macOS';
+  const shell = isWindows ? 'PowerShell' : 'bash';
 
   // Rutas clave del sistema real
-  const sep = isWindows ? "\\" : "/";
+  const sep = isWindows ? '\\' : '/';
   const downloads = isWindows ? `${homeDir}${sep}Downloads` : `${homeDir}/Downloads`;
   const documents = isWindows ? `${homeDir}${sep}Documents` : `${homeDir}/Documents`;
-  const desktop   = isWindows ? `${homeDir}${sep}Desktop`   : `${homeDir}/Desktop`;
+  const desktop = isWindows ? `${homeDir}${sep}Desktop` : `${homeDir}/Desktop`;
 
   return `## Entorno del sistema
 
@@ -34,7 +34,9 @@ function buildSystemContext(): string {
 - **Documentos:** \`${documents}\`
 - **Escritorio:** \`${desktop}\`
 
-${isWindows ? `### Bash en Windows = PowerShell
+${
+  isWindows
+    ? `### Bash en Windows = PowerShell
 
 Cuando uses la herramienta \`bash\`, escribí comandos de PowerShell completos:
 - Listar descargas: \`Get-ChildItem "${downloads}" | Sort-Object LastWriteTime -Descending | Select-Object -First 5\`
@@ -42,11 +44,13 @@ Cuando uses la herramienta \`bash\`, escribí comandos de PowerShell completos:
 - Fecha actual: \`Get-Date\`
 - Usuario: \`$env:USERNAME\`
 
-No uses sintaxis de Linux (\`ls -lt\`, \`head\`, \`~\`) — en PowerShell no funciona así.` : `### Bash en Linux/macOS
+No uses sintaxis de Linux (\`ls -lt\`, \`head\`, \`~\`) — en PowerShell no funciona así.`
+    : `### Bash en Linux/macOS
 
 - Listar descargas: \`ls -lt "${downloads}" | head -5\`
 - Ver archivo: \`cat /ruta/archivo.txt\`
-- Fecha actual: \`date\``}`;
+- Fecha actual: \`date\``
+}`;
 }
 
 /**
@@ -62,9 +66,9 @@ export async function buildSystemPrompt(skills: string[]): Promise<string> {
 
   const parts: string[] = [base];
   if (sysCtx) parts.push(sysCtx);
-  if (skills.length > 0) parts.push(`# Skills adicionales\n\n${skills.join("\n\n---\n\n")}`);
+  if (skills.length > 0) parts.push(`# Skills adicionales\n\n${skills.join('\n\n---\n\n')}`);
 
-  return parts.join("\n\n");
+  return parts.join('\n\n');
 }
 
 /**

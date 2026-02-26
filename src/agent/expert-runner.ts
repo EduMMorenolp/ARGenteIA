@@ -1,10 +1,10 @@
-import { getConfig } from "../config/index.ts";
-import { createClient, modelName } from "./models.ts";
-import type OpenAI from "openai";
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import { getExpert } from "../memory/expert-db.ts";
-import { saveMessage } from "../memory/message-db.ts";
-import chalk from "chalk";
+import { getConfig } from '../config/index.ts';
+import { createClient, modelName } from './models.ts';
+import type OpenAI from 'openai';
+import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import { getExpert } from '../memory/expert-db.ts';
+import { saveMessage } from '../memory/message-db.ts';
+import chalk from 'chalk';
 export interface ExpertRequest {
   expertName: string;
   task: string;
@@ -15,7 +15,9 @@ export interface ExpertRequest {
  * Ejecuta una tarea específica usando un sub-agente (experto).
  * Los expertos tienen su propio modelo y prompt de sistema.
  */
-export async function runExpert(req: ExpertRequest): Promise<{ text: string; usage?: any; latencyMs: number }> {
+export async function runExpert(
+  req: ExpertRequest,
+): Promise<{ text: string; usage?: Record<string, unknown>; latencyMs: number }> {
   const startTime = Date.now();
   const expert = getExpert(req.expertName);
   if (!expert) {
@@ -26,13 +28,13 @@ export async function runExpert(req: ExpertRequest): Promise<{ text: string; usa
   if (req.userId) {
     saveMessage({
       userId: req.userId,
-      role: "user",
+      role: 'user',
       content: `[Experto: ${req.expertName}] ${req.task}`,
-      origin: "web",
-      expertName: req.expertName
+      origin: 'web',
+      expertName: req.expertName,
     });
   }
-  
+
   console.log(chalk.magenta(`   🤖 Invocando experto: ${expert.name} (${expert.model})`));
 
   const config = getConfig();
@@ -40,17 +42,18 @@ export async function runExpert(req: ExpertRequest): Promise<{ text: string; usa
   const name = modelName(expert.model);
 
   // 1. Configurar herramientas disponibles para este experto
-  const { getTools, executeTool } = await import("../tools/index.ts");
+  const { getTools, executeTool } = await import('../tools/index.ts');
   const allTools = getTools();
-  
+
   // Filtrar herramientas si el experto tiene una lista definida
-  const tools = expert.tools && expert.tools.length > 0
-    ? allTools.filter(t => expert.tools.includes(t.function.name))
-    : [];
+  const tools =
+    expert.tools && expert.tools.length > 0
+      ? allTools.filter((t) => expert.tools.includes(t.function.name))
+      : [];
 
   const messages: ChatCompletionMessageParam[] = [
-    { role: "system", content: expert.system_prompt },
-    { role: "user", content: Array.isArray(req.task) ? JSON.stringify(req.task) : req.task }
+    { role: 'system', content: expert.system_prompt },
+    { role: 'user', content: Array.isArray(req.task) ? JSON.stringify(req.task) : req.task },
   ];
 
   try {
@@ -62,8 +65,8 @@ export async function runExpert(req: ExpertRequest): Promise<{ text: string; usa
       messages,
       max_tokens: config.agent.maxTokens,
       temperature: expert.temperature ?? 0.7,
-      tools: tools.length > 0 ? (tools as any) : undefined,
-      tool_choice: tools.length > 0 ? "auto" : undefined,
+      tools: tools.length > 0 ? (tools as unknown as OpenAI.Chat.ChatCompletionTool[]) : undefined,
+      tool_choice: tools.length > 0 ? 'auto' : undefined,
     });
 
     while (iterations < MAX_ITERATIONS) {
@@ -72,17 +75,17 @@ export async function runExpert(req: ExpertRequest): Promise<{ text: string; usa
       if (!assistantMsg) break;
 
       messages.push({
-        role: "assistant",
-        content: assistantMsg.content || "",
-        tool_calls: assistantMsg.tool_calls
+        role: 'assistant',
+        content: assistantMsg.content || '',
+        tool_calls: assistantMsg.tool_calls,
       } as ChatCompletionMessageParam);
 
       if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
         if (assistantMsg.content) {
-          return { 
-            text: assistantMsg.content, 
+          return {
+            text: assistantMsg.content,
             usage: response.usage,
-            latencyMs: Date.now() - startTime
+            latencyMs: Date.now() - startTime,
           };
         }
         break;
@@ -90,16 +93,22 @@ export async function runExpert(req: ExpertRequest): Promise<{ text: string; usa
 
       const toolResults: ChatCompletionMessageParam[] = [];
       for (const toolCall of assistantMsg.tool_calls) {
-        const fn = (toolCall as any).function;
+        const fn = (
+          toolCall as unknown as { id: string; function: { name: string; arguments: string } }
+        ).function;
         if (!fn) continue;
-        let args = {};
-        try { args = typeof fn.arguments === "string" ? JSON.parse(fn.arguments) : fn.arguments; } catch {}
+        let args: Record<string, unknown> = {};
+        try {
+          args = typeof fn.arguments === 'string' ? JSON.parse(fn.arguments) : fn.arguments;
+        } catch {
+          /* parse error, use defaults */
+        }
 
         console.log(chalk.yellow(`   🔧 [Expert ${expert.name}] Tool: ${fn.name}`), args);
-        const result = await executeTool(fn.name, args, { sessionId: req.userId || "expert-call" });
-        
+        const result = await executeTool(fn.name, args, { sessionId: req.userId || 'expert-call' });
+
         toolResults.push({
-          role: "tool",
+          role: 'tool',
           tool_call_id: toolCall.id,
           content: String(result),
         });
@@ -111,18 +120,18 @@ export async function runExpert(req: ExpertRequest): Promise<{ text: string; usa
         model: name,
         messages,
         max_tokens: config.agent.maxTokens,
-        tools: tools as any,
+        tools: tools as unknown as OpenAI.Chat.ChatCompletionTool[],
       });
     }
 
-    return { 
-      text: response.choices[0]?.message?.content || "El experto no devolvió ninguna respuesta.",
+    return {
+      text: response.choices[0]?.message?.content || 'El experto no devolvió ninguna respuesta.',
       usage: response.usage,
-      latencyMs: Date.now() - startTime
+      latencyMs: Date.now() - startTime,
     };
-  } catch (err: any) {
-    console.error(chalk.red(`   ❌ Error en experto ${expert.name}:`), err.message);
-    throw new Error(`Error del experto ${expert.name}: ${err.message}`);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(chalk.red(`   ❌ Error en experto ${expert.name}:`), message);
+    throw new Error(`Error del experto ${expert.name}: ${message}`);
   }
 }
-

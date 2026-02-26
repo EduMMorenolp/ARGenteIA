@@ -1,4 +1,4 @@
-import { getDb } from "./db.ts";
+import { getDb } from './db.ts';
 
 export interface Fact {
   id: number;
@@ -12,7 +12,7 @@ export interface Fact {
  */
 export function saveFact(userId: string, fact: string): void {
   const db = getDb();
-  const stmt = db.prepare("INSERT INTO user_facts (userId, fact) VALUES (?, ?)");
+  const stmt = db.prepare('INSERT INTO user_facts (userId, fact) VALUES (?, ?)');
   stmt.run(userId, fact);
 }
 
@@ -21,7 +21,7 @@ export function saveFact(userId: string, fact: string): void {
  */
 export function getFacts(userId: string): Fact[] {
   const db = getDb();
-  const stmt = db.prepare("SELECT * FROM user_facts WHERE userId = ? ORDER BY created_at DESC");
+  const stmt = db.prepare('SELECT * FROM user_facts WHERE userId = ? ORDER BY created_at DESC');
   return stmt.all(userId) as Fact[];
 }
 
@@ -30,7 +30,7 @@ export function getFacts(userId: string): Fact[] {
  */
 export function deleteFact(id: number, userId: string): boolean {
   const db = getDb();
-  const stmt = db.prepare("DELETE FROM user_facts WHERE id = ? AND userId = ?");
+  const stmt = db.prepare('DELETE FROM user_facts WHERE id = ? AND userId = ?');
   const result = stmt.run(id, userId);
   return result.changes > 0;
 }

@@ -1,7 +1,7 @@
-import Database from "better-sqlite3";
-import { resolve, dirname } from "node:path";
-import { existsSync, mkdirSync } from "node:fs";
-import { getConfig } from "../config/index.ts";
+import Database from 'better-sqlite3';
+import { resolve, dirname } from 'node:path';
+import { existsSync, mkdirSync } from 'node:fs';
+import { getConfig } from '../config/index.ts';
 
 let _db: Database.Database | null = null;
 
@@ -18,7 +18,7 @@ export function getDb(): Database.Database {
   }
 
   _db = new Database(dbPath);
-  _db.pragma("journal_mode = WAL");
+  _db.pragma('journal_mode = WAL');
 
   // Crear tablas si no existen
   _db.exec(`
@@ -84,12 +84,12 @@ export function getDb(): Database.Database {
 
   // Migración: Asegurar columna 'telegram_user' en 'users'
   try {
-    _db.exec("ALTER TABLE users ADD COLUMN telegram_user TEXT");
+    _db.exec('ALTER TABLE users ADD COLUMN telegram_user TEXT');
   } catch {
     // Ya existe o error ignorado
   }
   try {
-    _db.exec("ALTER TABLE users ADD COLUMN telegram_token TEXT");
+    _db.exec('ALTER TABLE users ADD COLUMN telegram_token TEXT');
   } catch {
     // Ya existe o error ignorado
   }

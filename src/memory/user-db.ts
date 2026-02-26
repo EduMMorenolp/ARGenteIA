@@ -1,4 +1,4 @@
-import { getDb } from "./db.ts";
+import { getDb } from './db.ts';
 
 export interface UserProfile {
   userId: string;
@@ -16,7 +16,7 @@ export interface UserProfile {
  */
 export function getUser(userId: string): UserProfile | null {
   const db = getDb();
-  const stmt = db.prepare("SELECT * FROM users WHERE userId = ?");
+  const stmt = db.prepare('SELECT * FROM users WHERE userId = ?');
   return stmt.get(userId) as UserProfile | null;
 }
 
@@ -25,7 +25,7 @@ export function getUser(userId: string): UserProfile | null {
  */
 export function upsertUser(
   userId: string,
-  data: Partial<Omit<UserProfile, "userId" | "created_at">>,
+  data: Partial<Omit<UserProfile, 'userId' | 'created_at'>>,
 ): void {
   const db = getDb();
   const existing = getUser(userId);
@@ -33,21 +33,21 @@ export function upsertUser(
   if (existing) {
     const fields = Object.keys(data)
       .map((k) => `${k} = ?`)
-      .join(", ");
+      .join(', ');
     const values = Object.values(data);
     const stmt = db.prepare(`UPDATE users SET ${fields} WHERE userId = ?`);
     stmt.run(...values, userId);
   } else {
     const stmt = db.prepare(
-      "INSERT INTO users (userId, name, timezone, telegram_user, telegram_token, login_pin, preferences) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      'INSERT INTO users (userId, name, timezone, telegram_user, telegram_token, login_pin, preferences) VALUES (?, ?, ?, ?, ?, ?, ?)',
     );
     stmt.run(
       userId,
       data.name || null,
-      data.timezone || "America/Argentina/Buenos_Aires",
+      data.timezone || 'America/Argentina/Buenos_Aires',
       data.telegram_user || null,
       data.telegram_token || null,
-      data.login_pin || "0000",
+      data.login_pin || '0000',
       data.preferences || null,
     );
   }
@@ -58,7 +58,7 @@ export function upsertUser(
  */
 export function updateTimeZone(userId: string, timezone: string): void {
   const db = getDb();
-  const stmt = db.prepare("UPDATE users SET timezone = ? WHERE userId = ?");
+  const stmt = db.prepare('UPDATE users SET timezone = ? WHERE userId = ?');
   stmt.run(timezone, userId);
 }
 
@@ -67,7 +67,7 @@ export function updateTimeZone(userId: string, timezone: string): void {
  */
 export function listAllUsers(): UserProfile[] {
   const db = getDb();
-  const stmt = db.prepare("SELECT * FROM users ORDER BY created_at DESC");
+  const stmt = db.prepare('SELECT * FROM users ORDER BY created_at DESC');
   return stmt.all() as UserProfile[];
 }
 
@@ -76,6 +76,6 @@ export function listAllUsers(): UserProfile[] {
  */
 export function deleteUser(userId: string): void {
   const db = getDb();
-  const stmt = db.prepare("DELETE FROM users WHERE userId = ?");
+  const stmt = db.prepare('DELETE FROM users WHERE userId = ?');
   stmt.run(userId);
 }

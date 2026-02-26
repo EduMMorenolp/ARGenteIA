@@ -1,39 +1,38 @@
-import { resolve } from "node:path";
-import { existsSync, statSync } from "node:fs";
-import type { Config } from "../config/index.ts";
-import { registerTool } from "./index.ts";
-import { getBot } from "../channels/telegram.ts";
+import { resolve } from 'node:path';
+import { existsSync, statSync } from 'node:fs';
+import type { Config } from '../config/index.ts';
+import { registerTool } from './index.ts';
+import { getBot } from '../channels/telegram.ts';
 
-export function registerSendFile(config: Config): void {
+export function registerSendFile(_config: Config): void {
   registerTool({
     isEnabled: () => true, // Habilitado si Telegram lo está
     spec: {
-      type: "function",
+      type: 'function',
       function: {
-        name: "send_file_telegram",
+        name: 'send_file_telegram',
         description:
           "Envía un archivo local al usuario a través de Telegram. Úsalo cuando el usuario pida un archivo (documento, imagen, excel, etc.).\nIMPORTANTE: Usa siempre rutas absolutas o usa '$HOME' para referirte a la carpeta del usuario. NO pongas comillas extra dentro del parámetro path.",
         parameters: {
-          type: "object",
+          type: 'object',
           properties: {
             path: {
-              type: "string",
+              type: 'string',
               description:
                 "Ruta al archivo. Ejemplo: '$HOME\\Downloads\\archivo.xlsx' o 'C:\\Users\\admin\\file.txt'",
             },
             caption: {
-              type: "string",
-              description:
-                "Opcional: Un mensaje de texto para acompañar al archivo.",
+              type: 'string',
+              description: 'Opcional: Un mensaje de texto para acompañar al archivo.',
             },
           },
-          required: ["path"],
+          required: ['path'],
         },
       },
     },
     handler: async (args, context) => {
-      let rawPath = String(args["path"] ?? "").trim();
-      const caption = String(args["caption"] ?? "");
+      let rawPath = String(args['path'] ?? '').trim();
+      const caption = String(args['caption'] ?? '');
 
       // Eliminar comillas accidentales que el modelo a veces pone alrededor de la ruta
       if (
@@ -44,12 +43,10 @@ export function registerSendFile(config: Config): void {
       }
 
       // Resolver ~ o $HOME
-      const homeDir =
-        process.env[process.platform === "win32" ? "USERPROFILE" : "HOME"] ||
-        "";
-      if (rawPath.startsWith("~")) {
-        rawPath = rawPath.replace("~", homeDir);
-      } else if (rawPath.includes("$HOME")) {
+      const homeDir = process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'] || '';
+      if (rawPath.startsWith('~')) {
+        rawPath = rawPath.replace('~', homeDir);
+      } else if (rawPath.includes('$HOME')) {
         rawPath = rawPath.replace(/\$HOME/g, homeDir);
       }
 
@@ -72,19 +69,19 @@ export function registerSendFile(config: Config): void {
 
       const bot = getBot();
       if (!bot) {
-        return "Error: El bot de Telegram no está activo o configurado.";
+        return 'Error: El bot de Telegram no está activo o configurado.';
       }
 
       // 1. Usar telegramChatId directamente si existe en el contexto
       let chatId: string | number | undefined = context.telegramChatId;
 
       // 2. Fallback: Extraer de sessionId si tiene el prefijo clásico
-      if (!chatId && context.sessionId.startsWith("telegram-")) {
-        chatId = context.sessionId.replace("telegram-", "");
+      if (!chatId && context.sessionId.startsWith('telegram-')) {
+        chatId = context.sessionId.replace('telegram-', '');
       }
 
       if (!chatId) {
-        return "Error: Esta herramienta solo funciona en conversaciones de Telegram.";
+        return 'Error: Esta herramienta solo funciona en conversaciones de Telegram.';
       }
 
       try {
@@ -92,8 +89,8 @@ export function registerSendFile(config: Config): void {
           caption,
         });
         return `Archivo "${filePath.split(/[\\/]/).pop()}" enviado correctamente a Telegram.`;
-      } catch (err: any) {
-        return `Error al enviar el archivo por Telegram: ${err.message}`;
+      } catch (err: unknown) {
+        return `Error al enviar el archivo por Telegram: ${err instanceof Error ? err.message : String(err)}`;
       }
     },
   });

@@ -1,4 +1,4 @@
-import { getDb } from "./db.ts";
+import { getDb } from './db.ts';
 
 export interface StoredMessage {
   id?: number;

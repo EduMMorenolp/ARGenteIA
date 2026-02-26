@@ -1,37 +1,38 @@
-import type { Config } from "../config/index.ts";
-import { registerTool } from "./index.ts";
+import type { Config } from '../config/index.ts';
+import { registerTool } from './index.ts';
 
 export function registerWebSearch(config: Config): void {
   registerTool({
     isEnabled: () => config.tools.webSearch.enabled,
     spec: {
-      type: "function",
+      type: 'function',
       function: {
-        name: "web_search",
-        description: "Busca información en DuckDuckGo. Úsalo para obtener información actualizada o responder preguntas sobre hechos recientes.",
+        name: 'web_search',
+        description:
+          'Busca información en DuckDuckGo. Úsalo para obtener información actualizada o responder preguntas sobre hechos recientes.',
         parameters: {
-          type: "object",
+          type: 'object',
           properties: {
             query: {
-              type: "string",
-              description: "La consulta de búsqueda",
+              type: 'string',
+              description: 'La consulta de búsqueda',
             },
           },
-          required: ["query"],
+          required: ['query'],
         },
       },
     },
     handler: async (args, _context) => {
-      const query = String(args["query"] ?? "").trim();
+      const query = String(args['query'] ?? '').trim();
       if (!query) {
-        return "Error: La consulta de búsqueda está vacía. Por favor, proporciona un término para buscar.";
+        return 'Error: La consulta de búsqueda está vacía. Por favor, proporciona un término para buscar.';
       }
-      
+
       const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_redirect=1&no_html=1&skip_disambig=1`;
 
       try {
         const resp = await fetch(url, {
-          headers: { "User-Agent": "AsistentePersonal/1.0" },
+          headers: { 'User-Agent': 'AsistentePersonal/1.0' },
         });
 
         if (!resp.ok) {
@@ -45,36 +46,36 @@ export function registerWebSearch(config: Config): void {
 
         const data = JSON.parse(text) as Record<string, unknown>;
 
-      const parts: string[] = [];
+        const parts: string[] = [];
 
-      if (data["AbstractText"]) {
-        parts.push(`**Resumen:** ${data["AbstractText"]}`);
-      }
-      if (data["AbstractSource"]) {
-        parts.push(`**Fuente:** ${data["AbstractSource"]}`);
-      }
-      if (data["AbstractURL"]) {
-        parts.push(`**URL:** ${data["AbstractURL"]}`);
-      }
+        if (data['AbstractText']) {
+          parts.push(`**Resumen:** ${data['AbstractText']}`);
+        }
+        if (data['AbstractSource']) {
+          parts.push(`**Fuente:** ${data['AbstractSource']}`);
+        }
+        if (data['AbstractURL']) {
+          parts.push(`**URL:** ${data['AbstractURL']}`);
+        }
 
-      // Resultados relacionados
-      const related = data["RelatedTopics"] as Array<Record<string, unknown>>;
-      if (Array.isArray(related) && related.length > 0) {
-        const items = related
-          .slice(0, 5)
-          .filter((r) => r["Text"])
-          .map((r) => `- ${r["Text"]}`)
-          .join("\n");
-        if (items) parts.push(`**Resultados relacionados:**\n${items}`);
-      }
+        // Resultados relacionados
+        const related = data['RelatedTopics'] as Array<Record<string, unknown>>;
+        if (Array.isArray(related) && related.length > 0) {
+          const items = related
+            .slice(0, 5)
+            .filter((r) => r['Text'])
+            .map((r) => `- ${r['Text']}`)
+            .join('\n');
+          if (items) parts.push(`**Resultados relacionados:**\n${items}`);
+        }
 
         if (parts.length === 0) {
           return `No se encontraron resultados para: "${query}"`;
         }
 
-        return parts.join("\n\n");
-      } catch (err: any) {
-        return `Error al procesar la búsqueda: ${err.message}`;
+        return parts.join('\n\n');
+      } catch (err: unknown) {
+        return `Error al procesar la búsqueda: ${err instanceof Error ? err.message : String(err)}`;
       }
     },
   });

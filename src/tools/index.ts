@@ -1,15 +1,15 @@
-import { getConfig } from "../config/index.ts";
-import chalk from "chalk";
+import { getConfig } from '../config/index.ts';
+import chalk from 'chalk';
 
 export interface ToolContext {
   sessionId: string;
-  origin?: "web" | "telegram";
+  origin?: 'web' | 'telegram';
   telegramChatId?: number;
 }
 
 // Tipo compatible con OpenAI function calling
 export interface ToolSpec {
-  type: "function";
+  type: 'function';
   function: {
     name: string;
     description: string;
@@ -18,10 +18,7 @@ export interface ToolSpec {
 }
 
 // Registro de herramientas
-type ToolHandler = (
-  args: Record<string, unknown>,
-  context: ToolContext,
-) => Promise<string>;
+type ToolHandler = (args: Record<string, unknown>, context: ToolContext) => Promise<string>;
 
 interface ToolDefinition {
   spec: ToolSpec;
@@ -39,9 +36,7 @@ export function getTools(allowedTools?: string[]): ToolSpec[] {
   const all = [...registry.values()].filter((t) => t.isEnabled());
 
   if (allowedTools && allowedTools.length > 0) {
-    return all
-      .filter((t) => allowedTools.includes(t.spec.function.name))
-      .map((t) => t.spec);
+    return all.filter((t) => allowedTools.includes(t.spec.function.name)).map((t) => t.spec);
   }
 
   return all.map((t) => t.spec);
@@ -54,8 +49,7 @@ export async function executeTool(
 ): Promise<string> {
   const tool = registry.get(name);
   if (!tool) return `Error: herramienta "${name}" no encontrada.`;
-  if (!tool.isEnabled())
-    return `Error: herramienta "${name}" está deshabilitada.`;
+  if (!tool.isEnabled()) return `Error: herramienta "${name}" está deshabilitada.`;
 
   try {
     const result = await tool.handler(args, context);
@@ -68,18 +62,18 @@ export async function executeTool(
 }
 
 // ─── Importar y registrar todas las herramientas ──────────────────────────────
-import { registerWebSearch } from "./web-search.ts";
-import { registerBash } from "./bash.ts";
-import { registerReadFile } from "./read-file.ts";
-import { registerWriteFile } from "./write-file.ts";
-import { registerReadUrl } from "./read-url.ts";
-import { registerMemoryTools } from "./memory.ts";
-import { registerSendFile } from "./send-file.ts";
-import { registerSchedulerTools } from "./scheduler.ts";
-import { registerUserTools } from "./user-tools.ts";
-import { registerDelegateTool } from "./delegate.ts";
-import { registerWeatherTool } from "./weather.ts";
-import { registerScreenshotTool } from "./screenshot.ts";
+import { registerWebSearch } from './web-search.ts';
+import { registerBash } from './bash.ts';
+import { registerReadFile } from './read-file.ts';
+import { registerWriteFile } from './write-file.ts';
+import { registerReadUrl } from './read-url.ts';
+import { registerMemoryTools } from './memory.ts';
+import { registerSendFile } from './send-file.ts';
+import { registerSchedulerTools } from './scheduler.ts';
+import { registerUserTools } from './user-tools.ts';
+import { registerDelegateTool } from './delegate.ts';
+import { registerWeatherTool } from './weather.ts';
+import { registerScreenshotTool } from './screenshot.ts';
 
 export function initTools(): void {
   const config = getConfig();
