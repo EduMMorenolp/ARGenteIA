@@ -45,16 +45,24 @@ export function scheduleLocalTask(task: ScheduledTask): void {
         console.log(chalk.blue(`   ⏰ Ejecutando tarea programada [ID ${task.id}]: ${task.task}`));
 
         try {
+          const { getOrCreateChannelChat } = await import('../memory/chat-db.ts');
+          const isTelegram = task.userId.startsWith('telegram-');
+          const chatId = isTelegram 
+            ? getOrCreateChannelChat(task.userId, 'telegram').id
+            : task.userId; // Fallback para web
+
           const result = await runAgent({
-            sessionId: task.userId,
+            userId: task.userId,
+            chatId: chatId,
             userText: `SISTEMA: Es momento de ejecutar la tarea programada: "${task.task}". Por favor, realiza la acción solicitada (como buscar info o dar un recordatorio) y responde directamente al usuario.`,
             onTyping: (isTyping) => {
-              if (task.userId.startsWith('telegram-')) {
-                const chatId = task.userId.replace('telegram-', '');
+              if (isTelegram) {
+                const tgChatId = task.userId.replace('telegram-', '');
                 const bot = getBot();
-                if (bot && isTyping) bot.sendChatAction(chatId, 'typing').catch(() => {});
+                if (bot && isTyping) bot.sendChatAction(tgChatId, 'typing').catch(() => {});
               }
             },
+            origin: isTelegram ? 'telegram' : 'web',
           });
 
           // Enviar el resultado al canal correspondiente

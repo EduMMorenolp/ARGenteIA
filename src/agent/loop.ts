@@ -81,14 +81,15 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
 
     // Guardar respuesta final en historial en memoria
     addMessage(
-      opts.sessionId,
+      opts.chatId,
       { role: 'assistant', content: responseText },
       config.agent.maxContextMessages,
     );
 
     // Persistir respuesta en base de datos
     saveMessage({
-      userId: opts.sessionId,
+      userId: opts.userId,
+      chatId: opts.chatId,
       role: 'assistant',
       content: responseText,
       origin: opts.origin || 'web',
@@ -121,7 +122,7 @@ async function runOpenAI(
   opts: AgentOptions,
 ): Promise<{ text: string; usage?: CompletionUsage }> {
   const config = getConfig();
-  const sessionId = opts.sessionId;
+  const userId = opts.userId;
 
   // 0. Preparar lista de modelos (el principal primero, luego el resto como fallback)
   const allAvailableModels = Object.keys(config.models);
@@ -140,7 +141,7 @@ async function runOpenAI(
 
     const { getUser } = await import('../memory/user-db.ts');
     const { loadSkills } = await import('../skills/loader.ts');
-    const userProfile = getUser(sessionId);
+    const userProfile = getUser(userId);
     const skills = await loadSkills();
 
     let systemPrompt =
@@ -256,7 +257,7 @@ async function runOpenAI(
 
           console.log(chalk.yellow(`   🔧 Tool: ${fn.name}`), args);
           const result = await executeTool(fn.name, args, {
-            sessionId: opts.sessionId,
+            sessionId: opts.userId,
             origin: opts.origin,
             telegramChatId: opts.telegramChatId,
           });
