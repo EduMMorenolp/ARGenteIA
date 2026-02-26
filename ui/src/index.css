@@ -53,6 +53,7 @@ body {
   width: 100vw;
   overflow: hidden;
   background: var(--bg-dark);
+  transition: grid-template-columns 0.3s ease;
 }
 
 .app-container.chats-closed {
@@ -66,7 +67,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: hidden;
+  overflow: visible;
   z-index: 10;
   position: relative;
   transition: width 0.3s ease;
