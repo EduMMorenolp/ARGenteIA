@@ -2,6 +2,32 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [1.6.0] - 2026-02-27
+
+### Añadido
+- **Flujo Dinámico de Comunicación:**
+  - Sistema de **Action Logs** que notifica al usuario en tiempo real qué está haciendo el asistente (ej: "Procesando solicitud", "Usando herramienta: X").
+  - Feedback visual tanto en WebChat como en Telegram (mensajes con emoji ⏳).
+- **Interfaz de Usuario Refinada:**
+  - **Sidebars Sincronizados:** El sidebar izquierdo ahora es colapsable y está sincronizado con el derecho, optimizando el espacio de trabajo.
+  - **Modo Minimalista:** Ocultación global de barras de desplazamiento (scrollbars) para una estética más limpia.
+  - **Transiciones Fluidas:** Animaciones CSS suaves para la apertura y cierre de paneles laterales.
+
+### Mejorado
+- **Estabilidad de Tareas Programadas:**
+  - Corrección crítica en la gestión de `userId` y `chatId` para tareas locales, asegurando que las respuestas se guarden en el historial correcto.
+- **Robustez de Telegram:**
+  - Mejora en el manejo de múltiples instancias para evitar errores `409 Conflict`.
+  - Logging avanzado de tokens ofuscados para depuración de conectividad.
+- **Herramienta de Captura de Pantalla:**
+  - Depuración profunda integrada con logs de consola detallados (tamaño de archivo, ID de mensaje, estado de envío).
+  - Mayor tolerancia a fallos de vinculación de cuenta.
+
+### Corregido
+- **Type Safety en Gateway:** Resueltos múltiples errores de TypeScript en `protocol.ts` y `server.ts` relacionados con herencia de tipos y mapeo de mensajes WebSocket.
+- **Error `NOT NULL constraint failed: messages.userId`** en la ejecución de tareas programadas por el sistema.
+- **Variable `sessionId` indefinida** en diversas funciones del núcleo del agente tras la refactorización a Multi-Chat.
+
 ## [1.5.0] - 2026-02-26
 
 ### Añadido

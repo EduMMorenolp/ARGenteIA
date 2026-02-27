@@ -10,7 +10,22 @@ Un asistente personal de IA minimalista que corre en tu máquina local y te atie
 - **Resolución de Rutas:** Soporte para `$HOME` y `~`, mapeando automáticamente a las carpetas de usuario correctas en Windows y Linux.
 - **Tareas Programadas:** Capacidad para agendar acciones recurrentes (ej: reportes diarios, recordatorios) usando formato CRON.
 - **Contexto Optimizado:** Sistema de poda (pruning) de mensajes y correcta inyección de prompts de sistema.
+- **Sidebars Dinámicos:** Paneles laterales colapsables y sincronizados para maximizar el espacio de chat.
+- **Flujo en Tiempo Real:** Feedback constante mediante "Action Logs" mientras la IA procesa o usa herramientas.
 - Extensible con **skills** (archivos `.md`) y **herramientas** (web, archivos, terminal).
+
+---
+
+## 📸 Vistazo General
+
+### Pantalla de Login
+![Pantalla de Login](./docs/img/login.png)
+
+### Dashboard Principal
+![Dashboard Principal](./docs/img/dashboard.png)
+
+### Modal de Funciones
+![Modal de Funciones](./docs/img/functions_modal.png)
 
 ---
 
