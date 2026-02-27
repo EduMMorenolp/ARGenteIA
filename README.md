@@ -1,4 +1,4 @@
-# 🤖 ARGenteIA
+# 🤖 ARGenteIA `v1.7.0`
 
 ### El Asistente Personal que Vive en tu PC
 
