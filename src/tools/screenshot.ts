@@ -1,10 +1,11 @@
 import { resolve } from 'node:path';
-import { unlinkSync, existsSync, mkdirSync } from 'node:fs';
+import { unlinkSync, existsSync, mkdirSync, statSync } from 'node:fs';
 import type { Config } from '../config/index.ts';
 import { registerTool } from './index.ts';
 import { getBot } from '../channels/telegram.ts';
 // @ts-expect-error screenshot-desktop has no type declarations
 import screenshot from 'screenshot-desktop';
+import chalk from 'chalk';
 
 export function registerScreenshotTool(_config: Config): void {
   registerTool({
@@ -34,11 +35,17 @@ export function registerScreenshotTool(_config: Config): void {
         return 'Error: El bot de Telegram no está activo o configurado.';
       }
 
-      // Extraer chatId de la sessionId (formato: telegram-123456)
-      if (!context.sessionId.startsWith('telegram-')) {
-        return 'Error: Esta herramienta solo funciona en conversaciones de Telegram.';
+      const chatId = context.sessionId.startsWith('telegram-')
+        ? context.sessionId.replace('telegram-', '')
+        : context.telegramChatId;
+
+      if (!chatId) {
+        return 'Error: No se pudo determinar el ID de chat de Telegram. Asegúrate de estar usando Telegram o tener una cuenta vinculada.';
       }
-      const chatId = context.sessionId.replace('telegram-', '');
+
+      console.log(chalk.yellow(`   📸 [screenshot] Intentando capturar...`));
+      console.log(chalk.dim(`      - ChatId destino: ${chatId}`));
+      console.log(chalk.dim(`      - SessionId: ${context.sessionId}`));
 
       // Asegurar carpeta temp
       const tempDir = resolve('temp');
@@ -47,13 +54,28 @@ export function registerScreenshotTool(_config: Config): void {
       }
 
       const tempFile = resolve(tempDir, `screenshot_${Date.now()}.png`);
+      console.log(chalk.dim(`      - Archivo temporal: ${tempFile}`));
 
       try {
         await screenshot({ filename: tempFile });
 
-        await bot.sendPhoto(chatId, tempFile, {
+        if (!existsSync(tempFile)) {
+          throw new Error('El archivo de captura no se creó.');
+        }
+
+        const stats = statSync(tempFile);
+        console.log(chalk.green(`      - Captura guardada (${stats.size} bytes).`));
+
+        if (stats.size === 0) {
+          throw new Error('La captura de pantalla está vacía (0 bytes).');
+        }
+
+        console.log(chalk.yellow(`      - Enviando a Telegram...`));
+        const sentMsg = await bot.sendPhoto(chatId, tempFile, {
           caption,
         });
+
+        console.log(chalk.green(`      - Foto enviada. MessageId: ${sentMsg.message_id}`));
 
         // Intentar borrar el archivo temporal después de un momento
         setTimeout(() => {

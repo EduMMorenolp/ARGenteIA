@@ -28,6 +28,9 @@ export function startTelegram(): void {
     bot.stopPolling();
   }
 
+  const tokenLog = tgConfig.botToken.slice(0, 6) + '...' + tgConfig.botToken.slice(-4);
+  console.log(chalk.magenta(`📱 Conectando a Telegram con token: ${tokenLog}`));
+
   bot = new TelegramBot(tgConfig.botToken, { polling: true });
 
   bot.on('message', async (msg) => {

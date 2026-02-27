@@ -47,7 +47,7 @@ export function scheduleLocalTask(task: ScheduledTask): void {
         try {
           const { getOrCreateChannelChat } = await import('../memory/chat-db.ts');
           const isTelegram = task.userId.startsWith('telegram-');
-          const chatId = isTelegram 
+          const chatId = isTelegram
             ? getOrCreateChannelChat(task.userId, 'telegram').id
             : task.userId; // Fallback para web
 

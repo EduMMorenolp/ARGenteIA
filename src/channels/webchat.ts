@@ -6,6 +6,7 @@ import { getTools } from '../tools/index.ts';
 import { loadSkills } from '../skills/loader.ts';
 import { send } from '../gateway/server.ts';
 import type { WsMessage } from '../gateway/protocol.ts';
+import chalk from 'chalk';
 
 interface WebChatHandlerOpts {
   ws: WebSocket;
@@ -82,6 +83,8 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
         // En este caso, el cliente probablemente recibirá la lista actualizada pronto o la actualizará él mismo
       }
     }
+
+    console.log(chalk.blue(`' WebChat: [${sessionId}] ${result.text}`));
 
     send(ws, {
       type: 'assistant_message',

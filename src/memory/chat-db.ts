@@ -66,15 +66,16 @@ export function listChats(userId: string, expertName?: string | null): ChatEntry
     params = [userId];
   } else {
     // Filtrado por expertName (NULL = General)
-    query = expertName === null
-      ? `
+    query =
+      expertName === null
+        ? `
         SELECT c.*, 
           (SELECT content FROM messages WHERE chatId = c.id ORDER BY created_at DESC LIMIT 1) as lastMessage
         FROM chats c
         WHERE c.userId = ? AND c.expertName IS NULL AND c.origin = 'web'
         ORDER BY c.pinned DESC, c.updated_at DESC
       `
-      : `
+        : `
         SELECT c.*, 
           (SELECT content FROM messages WHERE chatId = c.id ORDER BY created_at DESC LIMIT 1) as lastMessage
         FROM chats c
@@ -153,9 +154,7 @@ export function togglePin(id: string): boolean {
  * Actualiza el timestamp de updated_at (para ordenar por actividad).
  */
 export function touchChat(id: string): void {
-  getDb()
-    .prepare('UPDATE chats SET updated_at = ? WHERE id = ?')
-    .run(new Date().toISOString(), id);
+  getDb().prepare('UPDATE chats SET updated_at = ? WHERE id = ?').run(new Date().toISOString(), id);
 }
 
 /**

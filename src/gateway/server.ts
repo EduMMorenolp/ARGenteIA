@@ -146,16 +146,18 @@ export function createGateway(): GatewayServer {
         });
 
         // Enviar lista de chats
-        import('../memory/chat-db.ts').then(({ listChats, listChannelChats, getOrCreateChannelChat }) => {
-          // Asegurar que exista el canal de Telegram
-          getOrCreateChannelChat(sessionId, 'telegram');
-          
-          send(ws, {
-            type: 'list_chats',
-            chats: listChats(sessionId),
-            channelChats: listChannelChats(sessionId)
-          } as unknown as WsMessage);
-        });
+        import('../memory/chat-db.ts').then(
+          ({ listChats, listChannelChats, getOrCreateChannelChat }) => {
+            // Asegurar que exista el canal de Telegram
+            getOrCreateChannelChat(sessionId, 'telegram');
+
+            send(ws, {
+              type: 'list_chats',
+              chats: listChats(sessionId),
+              channelChats: listChannelChats(sessionId),
+            } as unknown as WsMessage);
+          },
+        );
 
         // Enviar tareas programadas
         import('../memory/scheduler-db.ts').then(({ getUserTasks }) => {
@@ -274,13 +276,13 @@ export function createGateway(): GatewayServer {
         console.log(chalk.red(`🗑️ Usuario eliminado: ${msg.userId}`));
         // Enviar lista actualizada
         send(ws, { type: 'list_users', users: listAllUsers() });
-      } else if (msg.type === ('list_tasks' as unknown as string)) {
+      } else if (msg.type === 'list_tasks') {
         const { getUserTasks } = await import('../memory/scheduler-db.ts');
         send(ws, {
           type: 'list_tasks',
           tasks: getUserTasks(sessionId),
         } as unknown as WsMessage);
-      } else if (msg.type === ('model_update' as unknown as string)) {
+      } else if (msg.type === 'model_update') {
         const { listModels, upsertModel, deleteModel } = await import('../memory/model-db.ts');
         if (msg.action === 'upsert' && msg.model) {
           upsertModel(msg.model);
@@ -310,8 +312,9 @@ export function createGateway(): GatewayServer {
           })),
         } as unknown as WsMessage);
       } else if (msg.type === 'chat_update') {
-        const { createChat, renameChat, deleteChat, togglePin, listChats, listChannelChats } = await import('../memory/chat-db.ts');
-        
+        const { createChat, renameChat, deleteChat, togglePin, listChats, listChannelChats } =
+          await import('../memory/chat-db.ts');
+
         if (msg.action === 'create') {
           createChat(sessionId, msg.expertName, msg.title);
         } else if (msg.action === 'rename' && msg.chatId && msg.title) {
@@ -326,7 +329,7 @@ export function createGateway(): GatewayServer {
         send(ws, {
           type: 'list_chats',
           chats: listChats(sessionId, msg.expertName),
-          channelChats: listChannelChats(sessionId)
+          channelChats: listChannelChats(sessionId),
         } as unknown as WsMessage);
       }
     });

@@ -1,9 +1,9 @@
 // Tipos del protocolo WebSocket entre el servidor y el cliente WebChat
 
 // Lightweight type aliases para evitar imports circulares con los módulos de DB
-export type SubAgentInfo = Record<string, unknown>;
-export type UserInfo = Record<string, unknown>;
-export type TaskInfo = Record<string, unknown>;
+export type SubAgentInfo = any;
+export type UserInfo = any;
+export type TaskInfo = any;
 export type ModelInfo = { name: string; apiKey?: string; baseUrl?: string; created_at?: string };
 export type ChatInfo = {
   id: string;
@@ -83,6 +83,7 @@ export interface WsAssistantMessage {
     total_tokens: number;
   };
   latencyMs?: number;
+  chatId?: string;
   history?: Array<{
     role: string;
     text: string;
@@ -105,7 +106,7 @@ export interface WsStatusMessage {
   model: string;
   sessionId: string;
   messageCount: number;
-  generalConfig?: Record<string, unknown>;
+  generalConfig?: any;
 }
 
 export interface WsCommandResultMessage {
