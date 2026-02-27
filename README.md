@@ -19,9 +19,10 @@ ARGenteIA es mucho más que un simple chatbot. Es un ecosistema de IA diseñado 
 
 ## 📸 Experiencia de Usuario
 
-| WebChat Premium | Control de Agentes |
+| Login | WebChat Premium |
 | :--- | :--- |
-| ![WebChat](./docs/img/dashboard.png) | ![Experts](./docs/img/functions_modal.png) |
+| ![Login](./docs/img/login.png) | ![WebChat](./docs/img/dashboard.png) |
+| ![Telegram](./docs/img/image.png) | ![Experts](./docs/img/functions_modal.png) |
 
 *Interfaz diseñada con estética **Glassmorphism Dark**, optimizada para enfoque y productividad.*
 
