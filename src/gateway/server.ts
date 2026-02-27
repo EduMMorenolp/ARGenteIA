@@ -208,22 +208,31 @@ export function createGateway(): GatewayServer {
           }
         }
       } else if (msg.type === 'switch_chat') {
-        const { getHistory } = await import('../memory/session.ts');
+        const { getMessages } = await import('../memory/message-db.ts');
         const { activeChats } = await import('../agent/loop.ts');
-        const history = getHistory(msg.chatId || '');
+
+        const chatId = msg.chatId || '';
+        console.log(chalk.cyan(`🔄 switch_chat: Cargando historial para ${chatId}`));
+        const storedMessages = getMessages(chatId);
+        
+        const history = storedMessages.map(m => ({
+          role: m.role,
+          text: m.content,
+          origin: m.origin as 'web' | 'telegram',
+          timestamp: m.created_at
+        }));
+
         send(ws, {
           type: 'assistant_message',
+          chatId: chatId,
           history: history,
+          text: (history.length === 0) ? 'Este chat no tiene mensajes aún.' : '',
+          model: 'Sistema',
+          sessionId
         } as unknown as WsMessage);
         
-        // Si el agente está procesando este chat, avisar a la UI
         if (msg.chatId && activeChats.has(msg.chatId)) {
           send(ws, { type: 'typing', isTyping: true });
-          send(ws, { 
-            type: 'action_log', 
-            text: 'Recuperando sesión activa...', 
-            chatId: msg.chatId 
-          } as WsMessage);
         }
       } else if (msg.type === 'delete_task') {
         const { deleteTask, getUserTasks } = await import('../memory/scheduler-db.ts');

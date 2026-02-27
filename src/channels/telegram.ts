@@ -58,6 +58,7 @@ export async function startTelegram(): Promise<void> {
 
   bot = new TelegramBot(newToken, { polling: true });
   activeToken = newToken;
+  console.log(chalk.green('✅ Bot de Telegram iniciado y escuchando...'));
 
   bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
@@ -145,9 +146,24 @@ export async function startTelegram(): Promise<void> {
           parse_mode: 'Markdown',
         })
         .catch(async () => {
-          // Si falla el markdown, enviar como texto plano
-          await bot!.sendMessage(chatId, result.text);
+          // Si falla el markdown, intentar con HTML
+          try {
+            await bot!.sendMessage(chatId, result.text, { parse_mode: 'HTML' });
+          } catch (err) {
+            // Si falla el HTML (por tags mal cerrados), enviar como texto plano
+            await bot!.sendMessage(chatId, result.text);
+          }
         });
+
+      // Notificar a WebChat para actualizar preview en la barra lateral
+      const { listChats, listChannelChats } = await import('../memory/chat-db.ts');
+      const { broadcastToUser } = await import('../gateway/server.ts');
+      
+      broadcastToUser(effectiveUserId, {
+        type: 'list_chats',
+        chats: listChats(effectiveUserId, null), // Actualizar lista general
+        channelChats: listChannelChats(effectiveUserId),
+      } as any);
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
       await bot!.sendMessage(chatId, `❌ Error: ${errMsg}`);

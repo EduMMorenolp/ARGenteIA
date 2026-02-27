@@ -56,17 +56,16 @@ export function listChats(userId: string, expertName?: string | null): ChatEntry
   let params: unknown[];
 
   if (expertName === undefined) {
-    // Todos los chats del usuario
+    // Todos los chats WEB del usuario
     query = `
       SELECT c.*, 
         (SELECT content FROM messages WHERE chatId = c.id ORDER BY created_at DESC LIMIT 1) as lastMessage
       FROM chats c
-      WHERE c.userId = ?
+      WHERE c.userId = ? AND c.origin = 'web'
       ORDER BY c.pinned DESC, c.updated_at DESC
     `;
     params = [userId];
   } else {
-    // Filtrado por expertName (NULL = General)
     query =
       expertName === null
         ? `

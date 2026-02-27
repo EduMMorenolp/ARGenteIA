@@ -97,7 +97,7 @@ export function useAssistant() {
             setActiveChatId(msg.chatId);
           }
 
-          if (msg.history && msg.history.length > 0) {
+          if (msg.history) {
             const historicalMessages = msg.history.map((m) => ({
               id: "hist-" + Math.random().toString(36).substr(2, 9),
               role: (m.role === "user" ? "user" : "assistant") as
@@ -108,6 +108,7 @@ export function useAssistant() {
               timestamp: (m as any).timestamp
             }));
             setMessages(historicalMessages);
+            setIsWaiting(false);
           } else if (msg.text === "Cargando historial..." && msg.chatId) {
             // Manejar cambio de chat solicitado por el servidor (ej: tras botón "Nuevo Chat")
             setActiveChatId(msg.chatId);
