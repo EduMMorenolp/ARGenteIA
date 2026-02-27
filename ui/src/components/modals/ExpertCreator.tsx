@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import type { Expert, ModelConfig } from '../../types';
 import { TEMPLATES, TOOL_LABELS } from '../../constants';
@@ -10,9 +10,10 @@ interface ExpertCreatorProps {
     availableTools: string[];
     allExperts: Expert[];
     availableModels: ModelConfig[];
+    defaultModel?: string;
 }
 
-export function ExpertCreator({ onClose, onSave, initialData, availableTools, allExperts, availableModels }: ExpertCreatorProps) {
+export function ExpertCreator({ onClose, onSave, initialData, availableTools, allExperts, availableModels, defaultModel }: ExpertCreatorProps) {
     const [formData, setFormData] = useState<Expert>(() => {
         if (initialData) {
             return {
@@ -20,15 +21,35 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
                 experts: initialData.experts || []
             };
         }
+
+        // Determinar modelo inicial:
+        // 1. El defaultModel pasado por prop (si es válido)
+        // 2. El primer modelo de la lista disponible
+        // 3. Un fallback de Llama si todo falla
+        const initialModel = (defaultModel && defaultModel !== '–')
+            ? defaultModel
+            : (availableModels.length > 0 ? availableModels[0].name : 'openrouter/meta-llama/llama-3.3-70b-instruct');
+
         return {
             name: '',
-            model: 'openrouter/meta-llama/llama-3.3-70b-instruct',
+            model: initialModel,
             system_prompt: '',
             temperature: 0.7,
             tools: [],
             experts: []
         };
     });
+
+    // Sincronizar modelo si el actual no está en la lista de disponibles
+    // (Útil si se cargan los modelos después de abrir el modal)
+    useEffect(() => {
+        if (!initialData && availableModels.length > 0) {
+            const isValid = availableModels.some(m => m.name === formData.model);
+            if (!isValid) {
+                setFormData(prev => ({ ...prev, model: availableModels[0].name }));
+            }
+        }
+    }, [availableModels, initialData, formData.model]);
 
     const handleTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const template = TEMPLATES.find(t => t.name === e.target.value);

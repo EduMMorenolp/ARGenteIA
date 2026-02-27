@@ -241,6 +241,7 @@ export default function App() {
           availableTools={availableTools}
           allExperts={experts}
           availableModels={availableModels}
+          defaultModel={userModel}
         />
       )}
 
