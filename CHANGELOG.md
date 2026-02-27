@@ -2,6 +2,19 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [1.7.0] - 2026-02-27
+
+### Corregido
+- **Validación de Expertos:** Implementada validación obligatoria en `upsertExpert` para prevenir la inserción de sub-agentes sin nombre o con nombres inválidos.
+- **Type Safety Pro:**
+  - Resolución de conflictos entre tipos de Zod y `zod-to-json-schema` en el sistema de delegación de herramientas.
+  - Tipado estricto de resultados de base de datos en `expert-db.ts` para evitar inconsistencias en tiempo de ejecución.
+- **Estándares Web:** Incorporación de `background-clip` estándar en CSS y limpieza de reglas redundantes en la UI.
+
+### Mejorado
+- **Estabilidad del Arranque:** El asistente ahora es más resiliente ante datos inconsistentes en la tabla `sub_agents`.
+
+
 ## [1.6.0] - 2026-02-27
 
 ### Añadido
