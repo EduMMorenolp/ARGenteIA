@@ -265,7 +265,7 @@ export function createGateway(): GatewayServer {
         if (msg.telegram_token && config.channels.telegram) {
           config.channels.telegram.botToken = msg.telegram_token;
           const { startTelegram } = await import('../channels/telegram.ts');
-          startTelegram();
+          await startTelegram();
         }
         console.log(chalk.green(`✅ Usuario registrado: ${msg.userId} (${msg.name})`));
         // Enviar lista actualizada de usuarios a todos (o solo al que registró)
@@ -290,7 +290,7 @@ export function createGateway(): GatewayServer {
         if (msg.telegram_token && config.channels.telegram) {
           config.channels.telegram.botToken = msg.telegram_token;
           const { startTelegram } = await import('../channels/telegram.ts');
-          startTelegram();
+          await startTelegram();
         }
         console.log(chalk.green(`✅ Usuario actualizado: ${msg.userId}`));
         // Enviar lista actualizada de usuarios

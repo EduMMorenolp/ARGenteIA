@@ -7,31 +7,57 @@ import { getTools } from '../tools/index.ts';
 import { loadSkills } from '../skills/loader.ts';
 
 let bot: TelegramBot | null = null;
+let activeToken: string | null = null;
 
 export function getBot(): TelegramBot | null {
   return bot;
 }
 
-export function startTelegram(): void {
+export async function stopTelegram(): Promise<void> {
+  if (bot) {
+    console.log(chalk.gray('📱 Deteniendo bot de Telegram...'));
+    try {
+      await bot.stopPolling();
+    } catch (err) {
+      console.error(chalk.red('❌ Error al detener polling:'), err);
+    }
+    bot = null;
+    activeToken = null;
+  }
+}
+
+export async function startTelegram(): Promise<void> {
   const config = getConfig();
   const tgConfig = config.channels.telegram;
 
-  if (!tgConfig?.botToken || tgConfig.botToken === '123456:ABCDEF') {
-    console.log(
-      chalk.yellow('ℹ️  Telegram no configurado (botToken no definido). Canal deshabilitado.'),
-    );
+  const newToken = tgConfig?.botToken;
+
+  if (!newToken || newToken === '123456:ABCDEF') {
+    if (bot) {
+      console.log(chalk.yellow('ℹ️  Telegram deshabilitado (token removido o inválido).'));
+      await stopTelegram();
+    }
+    return;
+  }
+
+  // Si el token es el mismo y el bot ya existe, no reiniciamos innecesariamente
+  if (bot && activeToken === newToken) {
+    console.log(chalk.blue('ℹ️  Telegram ya está activo con el token actual.'));
     return;
   }
 
   if (bot) {
-    console.log(chalk.gray('📱 Reiniciando bot de Telegram...'));
-    bot.stopPolling();
+    console.log(chalk.gray('📱 Reiniciando bot de Telegram por cambio de token...'));
+    await stopTelegram();
+    // Pequeño delay para permitir que Telegram libere el webhook/polling
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
 
-  const tokenLog = tgConfig.botToken.slice(0, 6) + '...' + tgConfig.botToken.slice(-4);
+  const tokenLog = newToken.slice(0, 6) + '...' + newToken.slice(-4);
   console.log(chalk.magenta(`📱 Conectando a Telegram con token: ${tokenLog}`));
 
-  bot = new TelegramBot(tgConfig.botToken, { polling: true });
+  bot = new TelegramBot(newToken, { polling: true });
+  activeToken = newToken;
 
   bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
