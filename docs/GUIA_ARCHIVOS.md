@@ -23,7 +23,7 @@ El archivo `src/index.ts` es el punto de entrada de la aplicación. Cuando ejecu
 
 ### 1. `agent/`
 Contiene la "inteligencia" del asistente.
-- **`loop.ts`:** Es el motor principal (el "bucle" de pensamiento). Decide si debe usar una herramienta, responder al usuario o delegar a un experto.
+- **`loop.ts`:** Es el motor principal (el "bucle" de pensamiento). Decide si debe usar una herramienta, responder al usuario o delegar a un experto. Ahora incluye **Action Logs** para reportar progreso en tiempo real.
 - **`scheduler-manager.ts`:** Maneja las tareas programadas en memoria.
 
 ### 2. `channels/`

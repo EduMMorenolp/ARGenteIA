@@ -12,11 +12,14 @@ import { saveMessage } from '../memory/message-db.ts';
 import { loadPrompt } from '../promptsSystem/index.ts';
 import chalk from 'chalk';
 
+export const activeChats = new Set<string>();
+
 export interface AgentOptions {
   userId: string;
   chatId: string;
   userText: string;
   onTyping?: (isTyping: boolean) => void;
+  onAction?: (text: string) => void;
   origin?: 'web' | 'telegram'; // Origen del mensaje
   telegramChatId?: number; // ID de chat si viene de Telegram
 }
@@ -57,6 +60,9 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
   const messages = getHistory(opts.chatId);
 
   opts.onTyping?.(true);
+  opts.onAction?.('Procesando tu solicitud...');
+
+  if (opts.chatId) activeChats.add(opts.chatId);
 
   try {
     let responseText = '';
@@ -128,8 +134,9 @@ async function runOpenAI(
   const allAvailableModels = Object.keys(config.models);
   const modelsToTry = [model, ...allAvailableModels.filter((m) => m !== model)];
 
-  for (let mIdx = 0; mIdx < modelsToTry.length; mIdx++) {
-    const currentModel = modelsToTry[mIdx];
+  try {
+    for (let mIdx = 0; mIdx < modelsToTry.length; mIdx++) {
+      const currentModel = modelsToTry[mIdx];
     const client = createClient(currentModel, config) as OpenAI;
     const name = modelName(currentModel);
 
@@ -255,13 +262,20 @@ async function runOpenAI(
             args = {};
           }
 
-          console.log(chalk.yellow(`   🔧 Tool: ${fn.name}`), args);
+          const argsStr = JSON.stringify(args);
+          console.log(
+            chalk.yellow(`   🔧 Tool: ${fn.name}`), 
+            chalk.dim(argsStr.length > 100 ? argsStr.slice(0, 100) + '...' : argsStr)
+          );
+          opts.onAction?.(`Usando herramienta: ${fn.name}`);
           const result = await executeTool(fn.name, args, {
             sessionId: opts.userId,
             origin: opts.origin,
             telegramChatId: opts.telegramChatId,
           });
-          console.log(chalk.cyan(`   💡 Result: ${String(result).slice(0, 70)}...`));
+          
+          const resStr = String(result);
+          console.log(chalk.cyan(`   💡 Result: ${resStr.length > 100 ? resStr.slice(0, 100) + '...' : resStr}`));
 
           toolResults.push({
             role: 'tool',
@@ -342,7 +356,10 @@ async function runOpenAI(
       }
 
       throw err;
-    }
+    } // fin del catch interno
+  } // fin del for loop
+  } finally {
+    if (opts.chatId) activeChats.delete(opts.chatId);
   }
 
   throw new Error('No se pudo obtener respuesta de ningún modelo configurado.');

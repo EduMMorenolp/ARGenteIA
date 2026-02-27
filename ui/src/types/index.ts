@@ -39,8 +39,9 @@ export interface Message {
   role: "user" | "assistant";
   text: string;
   model?: string;
-  type?: "message" | "command" | "error";
+  type?: "message" | "command" | "error" | "action_log";
   origin?: "web" | "telegram";
+  timestamp?: string;
   usage?: {
     prompt_tokens: number;
     completion_tokens: number;

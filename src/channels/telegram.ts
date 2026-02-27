@@ -96,8 +96,13 @@ export function startTelegram(): void {
         userText: text,
         origin: 'telegram',
         telegramChatId: chatId,
-        onTyping: async (isTyping) => {
-          if (isTyping) await bot!.sendChatAction(chatId, 'typing').catch(() => {});
+        onAction: (text) => {
+          if (bot) bot.sendMessage(chatId, `⏳ <i>${text}</i>`, { parse_mode: 'HTML' }).catch(() => {});
+        },
+        onTyping: (isTyping) => {
+          if (bot && isTyping) {
+            bot.sendChatAction(chatId, 'typing').catch(() => {});
+          }
         },
       });
 

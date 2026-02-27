@@ -44,11 +44,12 @@ export function useAssistant() {
       role: "user" | "assistant",
       text: string,
       model?: string,
-      type: "message" | "command" | "error" = "message",
+      type: "message" | "command" | "error" | "action_log" = "message",
       origin?: "web" | "telegram",
       usage?: any,
       latencyMs?: number,
       id?: string,
+      timestamp?: string
     ) => {
       setMessages((prev) => [
         ...prev,
@@ -61,6 +62,7 @@ export function useAssistant() {
           origin,
           usage,
           latencyMs,
+          timestamp: timestamp || new Date().toISOString()
         },
       ]);
     },
@@ -77,6 +79,10 @@ export function useAssistant() {
           break;
         case "typing":
           setIsTyping(!!msg.isTyping);
+          break;
+        case "action_log":
+          // Añadimos el log como un mensaje especial del asistente
+          addMessage("assistant", msg.text || "", undefined, "action_log");
           break;
         case "list_chats":
           if (msg.chats) setChats(msg.chats);
@@ -99,6 +105,7 @@ export function useAssistant() {
                 | "assistant",
               text: m.text,
               origin: m.origin,
+              timestamp: (m as any).timestamp
             }));
             setMessages(historicalMessages);
           } else if (msg.text && msg.text !== "Cargando historial...") {
@@ -110,6 +117,8 @@ export function useAssistant() {
               msg.origin,
               msg.usage,
               msg.latencyMs,
+              undefined,
+              (msg as any).timestamp
             );
           }
           setMessageCount((prev) => prev + 1);
@@ -289,6 +298,7 @@ export function useAssistant() {
   const switchChat = (chatId: string) => {
     setActiveChatId(chatId);
     setMessages([]); // Limpiar para cargar historia
+    localStorage.setItem(`lastChatId_${currentUser?.userId || 'guest'}`, chatId);
     send({ type: "switch_chat", chatId });
   };
 
@@ -307,6 +317,16 @@ export function useAssistant() {
       expertName: selectedExpert || null,
     });
   }, [selectedExpert, currentUser, send]);
+
+  // Autocarga del último chat al recibir la primera lista de chats
+  useEffect(() => {
+    if (chats.length > 0 && !activeChatId && currentUser) {
+      const savedChatId = localStorage.getItem(`lastChatId_${currentUser.userId}`);
+      if (savedChatId && chats.some(c => c.id === savedChatId)) {
+        switchChat(savedChatId);
+      }
+    }
+  }, [chats, activeChatId, currentUser]);
 
   const registerUser = (
     userId: string,

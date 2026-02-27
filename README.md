@@ -1,178 +1,69 @@
 # 🤖 ARGenteIA
 
-Un asistente personal de IA minimalista que corre en tu máquina local y te atiende desde **Telegram** y una **WebChat** en el navegador.
+### El Asistente Personal que Vive en tu PC
 
-- Sin servicios en la nube propios — todo corre en tu PC.
-- Soporta múltiples modelos: OpenAI, Anthropic, OpenRouter, **Ollama (local)**.
-- **Memoria a Largo Plazo:** Sistema de recuerdos persistentes por usuario usando SQLite.
-- **Terminal Inteligente:** Soporte multi-OS (Windows/PowerShell y Linux/Bash) con detección automática.
-- **Gestión de Archivos:** El asistente puede leer, escribir y **enviarte archivos directamente por Telegram** (soporta hasta 50MB).
-- **Resolución de Rutas:** Soporte para `$HOME` y `~`, mapeando automáticamente a las carpetas de usuario correctas en Windows y Linux.
-- **Tareas Programadas:** Capacidad para agendar acciones recurrentes (ej: reportes diarios, recordatorios) usando formato CRON.
-- **Contexto Optimizado:** Sistema de poda (pruning) de mensajes y correcta inyección de prompts de sistema.
-- **Sidebars Dinámicos:** Paneles laterales colapsables y sincronizados para maximizar el espacio de chat.
-- **Flujo en Tiempo Real:** Feedback constante mediante "Action Logs" mientras la IA procesa o usa herramientas.
-- Extensible con **skills** (archivos `.md`) y **herramientas** (web, archivos, terminal).
+ARGenteIA es mucho más que un simple chatbot. Es un ecosistema de IA diseñado para correr localmente, dándote control total sobre tus datos, tus herramientas y tus automatizaciones. Atiéndelo desde tu navegador o llévalo contigo en Telegram.
 
 ---
 
-## 📸 Vistazo General
+## ✨ Características Principales
 
-### Pantalla de Login
-![Pantalla de Login](./docs/img/login.png)
-
-### Dashboard Principal
-![Dashboard Principal](./docs/img/dashboard.png)
-
-### Modal de Funciones
-![Modal de Funciones](./docs/img/functions_modal.png)
+*   **🏠 100% Local o Cloud:** Tú eliges. Conéctalo a **Ollama** para privacidad total o a **OpenRouter/OpenAI** para máxima potencia.
+*   **🧠 Memoria Infinita:** No solo recuerda la charla actual. El asistente puede "memorizar" datos sobre ti (tus gustos, fechas importantes, notas) que persisten para siempre.
+*   **🤖 Sistema de Expertos (Multi-Agente):** Crea agentes especializados para tareas específicas: un experto en programación, un asistente de cocina o un analista financiero.
+*   **🐚 Terminal Inteligente:** Pídele que ejecute comandos, instale paquetes o analice logs. Soporta **Windows (PowerShell)** y **Linux (Bash)**.
+*   **📅 Automatización CRON:** Programa tareas para que el asistente las haga por ti mientras duermes (reportes, recordatorios, monitoreo).
+*   **📱 Multi-Canal Nativo:** Chatea con una interfaz Web moderna y premium o usa el bot de **Telegram** para enviarte archivos y comandos desde cualquier lugar.
 
 ---
 
-## ¿Cómo funciona?
+## 📸 Experiencia de Usuario
 
-```
-Telegram  ─────────────────────────────────────┐
-                                               ▼
-WebChat (navegador) ◄── Express + WS ──►  Gateway (localhost:18000)
-                                               │
-                                          Agent Loop
-                                               │
-               ┌───────────────────────────────┴───────────────┐
-             Tools                                           Memory
-    (web, bash, fs, URL)                             (SQLite Persistent)
-          │                                              │
-    (Bash/PowerShell)                              (user_facts table)
-```
+| WebChat Premium | Control de Agentes |
+| :--- | :--- |
+| ![WebChat](./docs/img/dashboard.png) | ![Experts](./docs/img/functions_modal.png) |
 
-El **Gateway** es un servidor local que conecta tus canales con el agente de IA. El agente puede usar herramientas para realizar acciones reales en tu PC o en la web, y posee dos tipos de memoria:
-
-1. **Memoria de Sesión:** El historial de la charla actual (se borra con `/reset`).
-2. **Memoria Long-Term:** Datos que la IA decide "memorizar" (gustos, nombre, datos clave) que persisten incluso tras reiniciar el asistente o la sesión.
+*Interfaz diseñada con estética **Glassmorphism Dark**, optimizada para enfoque y productividad.*
 
 ---
 
-## Instalación
+## 🛠️ Lo que ARGenteIA puede hacer por ti
 
-### Requisitos
+- **"Avísame todos los lunes a las 9am que revise el presupuesto."** *(Automatización)*
+- **"Busca en la web las últimas noticias de IA y resúmelas en un archivo .txt."** *(Herramientas)*
+- **"¿Recuerdas cuál era mi café favorito?"** *(Memoria Long-term)*
+- **"Toma una captura de pantalla de mi escritorio y envíamela por Telegram."** *(Control remoto)*
 
-- Node.js ≥ 22
-- pnpm (`npm install -g pnpm`)
+---
 
-### Pasos
+## 🏁 Inicio Rápido
+
+¿Quieres probarlo? Solo necesitas Node.js y 5 minutos:
 
 ```bash
-# 1. Clonar / descargar el proyecto
-cd asistentePersonal
-
-# 2. Instalar dependencias
 pnpm install
-
-# 3. Configurar
 cp config.example.json config.json
-# Editar config.json con tu API key y bot token de Telegram
-
-# 4. Arrancar
 pnpm dev
 ```
 
-El asistente estará disponible en el puerto configurado (default `18000` o `19666`).
+> [!TIP]
+> Para una guía detallada de instalación y configuración técnica, consulta nuestro [**Documento Técnico (TECHNICAL.md)**](./docs/TECHNICAL.md).
 
 ---
 
-## Configuración (`config.json`)
+## 📂 Documentación Adicional
 
-```json5
-{
-  agent: {
-    model: "openrouter/meta-llama/llama-3.3-70b-instruct",
-    systemPrompt: "Eres un asistente personal útil y directo.",
-    maxTokens: 4096,
-  },
-  models: {
-    "openrouter/meta-llama/llama-3.3-70b-instruct": {
-      apiKey: "sk-or-...",
-      baseUrl: "https://openrouter.ai/api/v1",
-    },
-  },
-  tools: {
-    bash: {
-      enabled: true,
-      os: "windows", // "windows" para PowerShell, "linux" para Bash
-      psExe: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", // Opcional: ruta exacta
-      allowlist: [
-        "ls",
-        "cat",
-        "echo",
-        "pwd",
-        "dir",
-        "Get-ChildItem",
-        "Get-Content",
-      ],
-    },
-    webSearch: { enabled: true },
-    readFile: { enabled: true },
-    writeFile: { enabled: true },
-    readUrl: { enabled: true },
-  },
-  memory: {
-    dbPath: "./memoryUser/assistant.db", // Ruta a la base de datos SQLite
-  },
-}
-```
+- [**Guía Técnica**](./docs/TECHNICAL.md): Arquitectura, Instalación y Configuración.
+- [**Guía de Archivos**](./docs/GUIA_ARCHIVOS.md): Entiende cómo funciona el código por dentro.
 
 ---
 
-## Herramientas de Memoria
+## 📄 Licencia
 
-El asistente gestiona su memoria a largo plazo mediante estas herramientas:
-
-| Herramienta            | Descripción                                                                      |
-| ---------------------- | -------------------------------------------------------------------------------- |
-| `memorize_fact`        | Guarda un dato importante sobre vos (ej: gustos, profesión, cumpleaños).         |
-| `recall_facts`         | Recupera todas las memorias guardadas para el usuario actual.                    |
-| `forget_fact`          | Elimina una memoria específica usando su ID.                                     |
-| `send_file_telegram`   | Envía un archivo local directamente al chat de Telegram (Límite 50MB).           |
-| `read_file`            | Lee el contenido de archivos de texto (con protección contra archivos binarios). |
-| `schedule_task`        | Programa una tarea recurrente usando formato CRON.                               |
-| `list_scheduled_tasks` | Muestra las tareas programadas actualmente.                                      |
+Este proyecto está bajo la licencia **MIT**. Eres libre de usarlo, modificarlo y distribuirlo para tus propios fines.
 
 ---
 
-## Comandos en el chat
-
-| Comando   | Descripción                                                                  |
-| --------- | ---------------------------------------------------------------------------- |
-| `/model`  | Sin argumentos: lista modelos disponibles. Con nombre: cambia el modelo.     |
-| `/reset`  | Borra el historial de la charla actual (pero mantiene la memoria long-term). |
-| `/skills` | Lista las extensiones de comportamiento cargadas.                            |
-| `/tools`  | Muestra qué herramientas tiene permitido usar el asistente.                  |
-| `/status` | Estado del sistema y estadísticas de la sesión.                              |
-
----
-
-## Estructura del proyecto
-
-```
-asistentePersonal/
-├── src/
-│   ├── index.ts            # Punto de entrada (inicializa DB y servidores)
-│   ├── gateway/            # Servidor Express + WebSocket (Protocolo WebChat)
-│   ├── channels/           # Canales de comunicación (Telegram, WebChat)
-│   ├── agent/              # Motor del Agente: loop, integración de modelos y prompts
-│   ├── tools/              # Implementación de herramientas (Bash, Memoria, Web, FS)
-│   ├── memory/             # Lógica de base de datos SQLite y sesiones
-│   ├── skills/             # Sistema de inyección de prompts dinámicos (.md)
-│   └── config/             # Gestión de configuración config.json (Zod)
-├── ui/                     # Interfaz de WebChat (Premium Dark Theme)
-├── memoryUser/             # Contiene la base de datos SQLite (ignorado en git)
-├── skills/                 # Skills personalizadas para tu asistente
-├── config.json             # Tu configuración activa
-└── package.json
-```
-
----
-
-## Licencia
-
-MIT - Hacé lo que quieras con el código. 🚀
+<p align="center">
+  Hecho con ❤️ para la comunidad de IA local.
+</p>

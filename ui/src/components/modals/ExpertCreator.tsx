@@ -60,6 +60,16 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
         }
     };
 
+    const formatModelName = (modelStr: string) => {
+        if (!modelStr) return 'Desconocido';
+        // Ej: openrouter/meta-llama/llama-3.3-70b-instruct -> llama-3.3-70b-instruct (openrouter)
+        const parts = modelStr.split('/');
+        if (parts.length === 1) return modelStr;
+        const provider = parts[0];
+        const modelName = parts[parts.length - 1]; // tomar solo la última parte para que sea más corto
+        return `${modelName} (${provider})`;
+    };
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -130,12 +140,13 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
                         <select
                             value={formData.model}
                             onChange={e => setFormData({ ...formData, model: e.target.value })}
+                            className="model-select"
                         >
                             {availableModels.length === 0 ? (
-                                <option value={formData.model}>{formData.model}</option>
+                                <option value={formData.model}>{formatModelName(formData.model)}</option>
                             ) : (
                                 availableModels.map(m => (
-                                    <option key={m.name} value={m.name}>{m.name}</option>
+                                    <option key={m.name} value={m.name}>{formatModelName(m.name)}</option>
                                 ))
                             )}
                         </select>

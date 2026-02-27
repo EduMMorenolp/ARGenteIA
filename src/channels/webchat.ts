@@ -29,6 +29,7 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
 
   // ─── Mensaje normal → agente ────────────────────────────────────────────────
   send(ws, { type: 'typing', isTyping: true });
+  console.log(chalk.blue(`' WebChat: [${sessionId}] : ${text}`));
 
   try {
     let result;
@@ -68,6 +69,12 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
         chatId: currentChatId,
         userText: text,
         origin: 'web',
+        onAction: (text) =>
+          send(ws, {
+            type: 'action_log',
+            text,
+            chatId: currentChatId,
+          } as unknown as WsMessage),
         onTyping: (isTyping) => send(ws, { type: 'typing', isTyping }),
       });
     }
@@ -84,8 +91,6 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
       }
     }
 
-    console.log(chalk.blue(`' WebChat: [${sessionId}] ${result.text}`));
-
     send(ws, {
       type: 'assistant_message',
       text: result.text,
@@ -95,6 +100,7 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
       sessionId, // userId
       chatId: currentChatId,
       origin: 'web',
+      timestamp: new Date().toISOString(),
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

@@ -31,11 +31,11 @@ export function registerDelegateTool(): void {
       function: {
         name: callExperttool.name,
         description: callExperttool.description,
-        parameters: zodToJsonSchema(callExperttool.parameters) as Record<string, unknown>,
+        parameters: zodToJsonSchema(callExperttool.parameters as any) as Record<string, unknown>,
       },
     },
     handler: async (args: Record<string, unknown>) =>
-      callExperttool.execute(args as { expertName: string; task: string }),
+      JSON.stringify(await callExperttool.execute(args as { expertName: string; task: string })),
     isEnabled: () => true, // Siempre habilitado si hay orquestación
   });
 }

@@ -1,7 +1,6 @@
 import { getDb } from './db.ts';
-import type Database from 'better-sqlite3';
 
-type DbRow = Database.RunResult & Record<string, unknown>;
+type DbRow = Record<string, unknown>;
 
 export interface SubAgent {
   name: string;
@@ -19,13 +18,21 @@ export interface SubAgent {
 export function getExpert(name: string): SubAgent | null {
   const db = getDb();
   const stmt = db.prepare('SELECT * FROM sub_agents WHERE name = ?');
-  const row = stmt.get(name) as DbRow | undefined;
+  const row = stmt.get(name) as {
+    name: string;
+    model: string;
+    system_prompt: string;
+    tools: string;
+    experts: string;
+    temperature: number;
+    created_at?: string;
+  } | undefined;
   if (!row) return null;
 
   return {
     ...row,
-    tools: JSON.parse(row.tools || '[]'),
-    experts: JSON.parse(row.experts || '[]'),
+    tools: JSON.parse(row.tools || '[]') as string[],
+    experts: JSON.parse(row.experts || '[]') as string[],
   };
 }
 
@@ -33,6 +40,15 @@ export function getExpert(name: string): SubAgent | null {
  * Crea o actualiza un experto.
  */
 export function upsertExpert(agent: SubAgent): void {
+  if (!agent.name || agent.name.trim() === '') {
+    throw new Error('El nombre del experto no puede estar vacío.');
+  }
+  if (agent.name === '__general__') {
+    // El asistente general se puede actualizar pero no debería crearse de forma genérica aquí
+    // si el propósito de upsertExpert es solo para expertos.
+    // Sin embargo, server.ts lo usa para __general__ también.
+  }
+
   const db = getDb();
   const stmt = db.prepare(`
     INSERT INTO sub_agents (name, model, system_prompt, tools, experts, temperature)
@@ -61,11 +77,19 @@ export function listExperts(): SubAgent[] {
   const db = getDb();
   const rows = db
     .prepare("SELECT * FROM sub_agents WHERE name != '__general__' ORDER BY name ASC")
-    .all() as DbRow[];
+    .all() as Array<{
+      name: string;
+      model: string;
+      system_prompt: string;
+      tools: string;
+      experts: string;
+      temperature: number;
+      created_at?: string;
+    }>;
   return rows.map((row) => ({
     ...row,
-    tools: JSON.parse(row.tools || '[]'),
-    experts: JSON.parse(row.experts || '[]'),
+    tools: JSON.parse(row.tools || '[]') as string[],
+    experts: JSON.parse(row.experts || '[]') as string[],
   }));
 }
 

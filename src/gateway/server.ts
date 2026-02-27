@@ -16,11 +16,16 @@ export interface GatewayServer {
   start: () => Promise<void>;
 }
 
+export type CustomWebSocket = WebSocket & { sessionId?: string };
+
+let globalWss: WebSocketServer | null = null;
+
 export function createGateway(): GatewayServer {
   const config = getConfig();
   const app = express();
   const httpServer = http.createServer(app);
   const wss = new WebSocketServer({ server: httpServer });
+  globalWss = wss;
 
   // ─── Servir WebChat UI estática ────────────────────────────────────────────
   const uiPath = join(__dirname, '../../ui/dist');
@@ -35,6 +40,7 @@ export function createGateway(): GatewayServer {
   // ─── WebSocket ─────────────────────────────────────────────────────────────
   wss.on('connection', (ws: WebSocket) => {
     let sessionId = `webchat-${Date.now()}`;
+    (ws as CustomWebSocket).sessionId = sessionId;
     console.log(chalk.cyan(`🌐 WebChat conectado [${sessionId}]`));
 
     // Obtener configuración del asistente general (base + override)
@@ -135,6 +141,7 @@ export function createGateway(): GatewayServer {
         // Cambiar sessionId por el userId elegido
         const oldId = sessionId;
         sessionId = msg.userId;
+        (ws as CustomWebSocket).sessionId = sessionId;
         console.log(chalk.cyan(`👤 WebChat identificado: ${oldId} -> ${sessionId}`));
 
         // Enviar confirmación de estado con el nuevo ID
@@ -199,6 +206,24 @@ export function createGateway(): GatewayServer {
               generalConfig: genCfg,
             });
           }
+        }
+      } else if (msg.type === 'switch_chat') {
+        const { getHistory } = await import('../memory/session.ts');
+        const { activeChats } = await import('../agent/loop.ts');
+        const history = getHistory(msg.chatId || '');
+        send(ws, {
+          type: 'assistant_message',
+          history: history,
+        } as unknown as WsMessage);
+        
+        // Si el agente está procesando este chat, avisar a la UI
+        if (msg.chatId && activeChats.has(msg.chatId)) {
+          send(ws, { type: 'typing', isTyping: true });
+          send(ws, { 
+            type: 'action_log', 
+            text: 'Recuperando sesión activa...', 
+            chatId: msg.chatId 
+          } as WsMessage);
         }
       } else if (msg.type === 'delete_task') {
         const { deleteTask, getUserTasks } = await import('../memory/scheduler-db.ts');
@@ -297,20 +322,7 @@ export function createGateway(): GatewayServer {
             send(client, { type: 'list_models', models: listModels() } as unknown as WsMessage);
           }
         });
-      } else if (msg.type === 'switch_chat') {
-        const { getMessages } = await import('../memory/message-db.ts');
-        const history = getMessages(msg.chatId);
-        send(ws, {
-          type: 'assistant_message',
-          text: 'Cargando historial...',
-          model: 'sistema',
-          sessionId,
-          history: history.map((m) => ({
-            role: m.role,
-            text: m.content,
-            origin: m.origin,
-          })),
-        } as unknown as WsMessage);
+
       } else if (msg.type === 'chat_update') {
         const { createChat, renameChat, deleteChat, togglePin, listChats, listChannelChats } =
           await import('../memory/chat-db.ts');
@@ -376,5 +388,18 @@ export function createGateway(): GatewayServer {
 export function send(ws: WebSocket, msg: WsMessage): void {
   if (ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(msg));
+  } else if (globalWss) {
+    // Si la conexión original cerró, buscar otra activa del mismo usuario (por sessionId)
+    const targetSessionId = (ws as CustomWebSocket).sessionId;
+    if (targetSessionId) {
+      globalWss.clients.forEach((client) => {
+        if (
+          (client as CustomWebSocket).sessionId === targetSessionId &&
+          client.readyState === WebSocket.OPEN
+        ) {
+          client.send(JSON.stringify(msg));
+        }
+      });
+    }
   }
 }

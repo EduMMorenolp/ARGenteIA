@@ -1,9 +1,32 @@
 // Tipos del protocolo WebSocket entre el servidor y el cliente WebChat
 
 // Lightweight type aliases para evitar imports circulares con los módulos de DB
-export type SubAgentInfo = any;
-export type UserInfo = any;
-export type TaskInfo = any;
+export interface SubAgentInfo {
+  name: string;
+  model: string;
+  system_prompt: string;
+  tools: string[];
+  experts: string[];
+  temperature: number;
+  created_at?: string;
+}
+export interface UserInfo {
+  userId: string;
+  name: string | null;
+  timezone: string;
+  telegram_user: string | null;
+  telegram_token: string | null;
+  login_pin: string;
+  created_at: string;
+}
+export interface TaskInfo {
+  id: number;
+  userId: string;
+  task: string;
+  cron: string;
+  active: number;
+  created_at: string;
+}
 export type ModelInfo = { name: string; apiKey?: string; baseUrl?: string; created_at?: string };
 export type ChatInfo = {
   id: string;
@@ -36,7 +59,14 @@ export type WsMessageType =
   | 'model_update' // cliente → servidor: crear/actualizar/eliminar modelo
   | 'list_chats' // servidor → cliente: lista de chats del usuario
   | 'chat_update' // cliente → servidor: crear/renombrar/eliminar/pin chat
+  | 'action_log' // servidor → cliente: log de acción intermedia (herramientas, pensamientos)
   | 'switch_chat'; // cliente → servidor: cambiar al chat seleccionado
+
+export interface WsActionLogMessage {
+  type: 'action_log';
+  text: string;
+  chatId?: string;
+}
 
 export interface WsUserRegisterMessage {
   type: 'user_register';
@@ -88,7 +118,9 @@ export interface WsAssistantMessage {
     role: string;
     text: string;
     origin: 'web' | 'telegram';
+    timestamp?: string;
   }>;
+  timestamp?: string;
 }
 
 export interface WsTypingMessage {
@@ -106,7 +138,7 @@ export interface WsStatusMessage {
   model: string;
   sessionId: string;
   messageCount: number;
-  generalConfig?: any;
+  generalConfig?: SubAgentInfo;
 }
 
 export interface WsCommandResultMessage {
@@ -187,7 +219,8 @@ export type WsMessage =
   | WsModelUpdateMessage
   | WsListChatsMessage
   | WsChatUpdateMessage
-  | WsSwitchChatMessage;
+  | WsSwitchChatMessage
+  | WsActionLogMessage;
 
 export interface WsListChatsMessage {
   type: 'list_chats';
