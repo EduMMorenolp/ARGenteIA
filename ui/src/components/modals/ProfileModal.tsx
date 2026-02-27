@@ -8,6 +8,8 @@ import {
   Lock,
   Trash2,
   AlertTriangle,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import type { UserProfile } from "../../types";
 
@@ -38,6 +40,7 @@ export function ProfileModal({
   const [telegramToken, setTelegramToken] = useState(user.telegram_token || "");
   const [loginPin, setLoginPin] = useState(user.login_pin || "0000");
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [showTelegramToken, setShowTelegramToken] = useState(false);
 
   const handleSave = () => {
     if (!name.trim()) return;
@@ -130,12 +133,22 @@ export function ProfileModal({
                 <label>
                   <Zap size={14} /> Token del Bot de Telegram (API Key)
                 </label>
-                <input
-                  type="password"
-                  value={telegramToken}
-                  onChange={(e) => setTelegramToken(e.target.value)}
-                  placeholder="123456789:ABCDEF..."
-                />
+                <div className="input-with-toggle">
+                  <input
+                    type={showTelegramToken ? "text" : "password"}
+                    value={telegramToken}
+                    onChange={(e) => setTelegramToken(e.target.value)}
+                    placeholder="123456789:ABCDEF..."
+                  />
+                  <button
+                    type="button"
+                    className="toggle-visibility"
+                    onClick={() => setShowTelegramToken(!showTelegramToken)}
+                    title={showTelegramToken ? "Ocultar" : "Mostrar"}
+                  >
+                    {showTelegramToken ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
                 <span className="field-hint">
                   Si lo cambias, el bot se reiniciará con el nuevo token.
                 </span>

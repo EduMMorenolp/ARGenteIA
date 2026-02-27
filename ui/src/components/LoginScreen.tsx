@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import type { UserProfile } from "../types";
 
 interface LoginScreenProps {
@@ -24,6 +25,7 @@ export function LoginScreen({
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [enteredPin, setEnteredPin] = useState("");
   const [pinError, setPinError] = useState(false);
+  const [showTelegramToken, setShowTelegramToken] = useState(false);
 
   const [formData, setFormData] = useState({
     userId: "",
@@ -62,7 +64,10 @@ export function LoginScreen({
           <div className="login-header">
             <div className="logo-box">📝</div>
             <h1>Registro de Usuario</h1>
-            <p>Completa tus datos. Tu PIN inicial será 0000.</p>
+            <p>Por favor, completa los siguientes datos:</p>
+            <p style={{ color: "red", fontWeight: "bold" }}>
+              Tu PIN inicial será 0000.
+            </p>
           </div>
 
           <form className="register-form" onSubmit={handleSubmit}>
@@ -115,14 +120,24 @@ export function LoginScreen({
             </div>
             <div className="form-group">
               <label>Token del Bot de Telegram (opcional)</label>
-              <input
-                type="password"
-                value={formData.telegramToken}
-                onChange={(e) =>
-                  setFormData({ ...formData, telegramToken: e.target.value })
-                }
-                placeholder="123456:ABC..."
-              />
+              <div className="input-with-toggle">
+                <input
+                  type={showTelegramToken ? "text" : "password"}
+                  value={formData.telegramToken}
+                  onChange={(e) =>
+                    setFormData({ ...formData, telegramToken: e.target.value })
+                  }
+                  placeholder="123456:ABC..."
+                />
+                <button
+                  type="button"
+                  className="toggle-visibility"
+                  onClick={() => setShowTelegramToken(!showTelegramToken)}
+                  title={showTelegramToken ? "Ocultar" : "Mostrar"}
+                >
+                  {showTelegramToken ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
 
             <div className="form-actions">
@@ -134,6 +149,7 @@ export function LoginScreen({
                 className="btn-ghost"
                 onClick={() => setIsRegistering(false)}
               >
+                <ArrowLeft size={16} />
                 Volver
               </button>
             </div>
@@ -193,6 +209,7 @@ export function LoginScreen({
                   setPinError(false);
                 }}
               >
+                <ArrowLeft size={16} />
                 Cambiar Usuario
               </button>
             </div>

@@ -1305,6 +1305,40 @@ textarea {
   border-radius: var(--radius-md);
   font-weight: 600;
   cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-secondary:hover {
+  background: var(--border);
+  color: var(--text-main);
+}
+
+.btn-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-ghost:hover {
+  background: var(--bg-input);
+  color: var(--text-main);
+  border-color: var(--border);
+}
+
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
 }
 
 .features-grid {
@@ -1427,6 +1461,10 @@ textarea {
 
 .login-header p {
   color: var(--text-dim);
+}
+
+.register-form {
+  text-align: left;
 }
 
 .user-grid {
@@ -1790,6 +1828,7 @@ textarea {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .input-with-toggle input {
