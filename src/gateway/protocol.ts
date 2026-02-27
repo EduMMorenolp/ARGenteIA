@@ -195,8 +195,9 @@ export interface WsListModelsMessage {
 export interface WsModelUpdateMessage {
   type: 'model_update';
   action: 'upsert' | 'delete';
-  model?: { name: string; apiKey?: string; baseUrl?: string };
+  modelConfig?: { name: string; apiKey?: string; baseUrl?: string };
   name?: string;
+  oldName?: string;
 }
 
 export type WsMessage =

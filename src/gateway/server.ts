@@ -322,9 +322,14 @@ export function createGateway(): GatewayServer {
         } as unknown as WsMessage);
       } else if (msg.type === 'model_update') {
         const { listModels, upsertModel, deleteModel } = await import('../memory/model-db.ts');
-        if (msg.action === 'upsert' && msg.model) {
-          upsertModel(msg.model);
-          console.log(chalk.green(`📦 Modelo guardado: ${msg.model.name}`));
+        if (msg.action === 'upsert' && msg.modelConfig) {
+          if (msg.oldName && msg.oldName !== msg.modelConfig.name) {
+            deleteModel(msg.oldName);
+            console.log(chalk.yellow(`📦 Modelo renombrado: ${msg.oldName} -> ${msg.modelConfig.name}`));
+          } else {
+            console.log(chalk.green(`📦 Modelo guardado: ${msg.modelConfig.name}`));
+          }
+          upsertModel(msg.modelConfig);
         } else if (msg.action === 'delete' && msg.name) {
           deleteModel(msg.name);
           console.log(chalk.red(`🗑️ Modelo eliminado: ${msg.name}`));

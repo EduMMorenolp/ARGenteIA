@@ -5,7 +5,7 @@ import type { ModelConfig } from "../../types";
 interface ModelManagerProps {
     models: ModelConfig[];
     onClose: () => void;
-    onSave: (model: ModelConfig) => void;
+    onSave: (model: ModelConfig, oldName?: string) => void;
     onDelete: (name: string) => void;
 }
 
@@ -38,7 +38,7 @@ export function ModelManager({
 
     const handleSave = () => {
         if (!formData.name.trim()) return;
-        onSave(formData);
+        onSave(formData, editingName || undefined);
         setFormData({ name: "", apiKey: "", baseUrl: "" });
         setIsAdding(false);
         setEditingName(null);
@@ -140,7 +140,6 @@ export function ModelManager({
                                     onChange={(e) =>
                                         setFormData({ ...formData, name: e.target.value })
                                     }
-                                    disabled={editingName !== null}
                                 />
                             </div>
                             <div className="form-group">

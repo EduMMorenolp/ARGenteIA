@@ -234,8 +234,8 @@ export function useAssistant() {
     setEditingTask(null);
   };
 
-  const upsertModel = (model: ModelConfig) => {
-    send({ type: "model_update", action: "upsert", model });
+  const upsertModel = (model: ModelConfig, oldName?: string) => {
+    send({ type: "model_update", action: "upsert", modelConfig: model, oldName });
   };
 
   const deleteModel = (name: string) => {

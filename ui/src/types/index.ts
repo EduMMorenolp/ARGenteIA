@@ -92,5 +92,7 @@ export interface WsMessage {
   channelChats?: ChatInfo[];
   chatId?: string;
   expertName?: string | null;
+  oldName?: string;
+  modelConfig?: ModelConfig;
   action?: string;
 }
