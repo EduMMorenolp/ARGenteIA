@@ -91,5 +91,6 @@ export interface WsMessage {
   chats?: ChatInfo[];
   channelChats?: ChatInfo[];
   chatId?: string;
+  expertName?: string | null;
   action?: string;
 }

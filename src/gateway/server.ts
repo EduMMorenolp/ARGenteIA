@@ -210,8 +210,11 @@ export function createGateway(): GatewayServer {
       } else if (msg.type === 'switch_chat') {
         const { getMessages } = await import('../memory/message-db.ts');
         const { activeChats } = await import('../agent/loop.ts');
+        const { getChat } = await import('../memory/chat-db.ts');
 
         const chatId = msg.chatId || '';
+        const chat = getChat(chatId);
+
         console.log(chalk.cyan(`🔄 switch_chat: Cargando historial para ${chatId}`));
         const storedMessages = getMessages(chatId);
         
@@ -226,6 +229,7 @@ export function createGateway(): GatewayServer {
           type: 'assistant_message',
           chatId: chatId,
           history: history,
+          expertName: chat?.expertName || null,
           text: (history.length === 0) ? 'Este chat no tiene mensajes aún.' : '',
           model: 'Sistema',
           sessionId

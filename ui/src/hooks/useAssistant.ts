@@ -109,8 +109,10 @@ export function useAssistant() {
             }));
             setMessages(historicalMessages);
             setIsWaiting(false);
+            if (msg.expertName !== undefined) {
+              setSelectedExpert(msg.expertName);
+            }
           } else if (msg.text === "Cargando historial..." && msg.chatId) {
-            // Manejar cambio de chat solicitado por el servidor (ej: tras botón "Nuevo Chat")
             setActiveChatId(msg.chatId);
             setMessages([]);
             send({ type: "switch_chat", chatId: msg.chatId });
@@ -304,6 +306,13 @@ export function useAssistant() {
   const switchChat = (chatId: string) => {
     setActiveChatId(chatId);
     setMessages([]); // Limpiar para cargar historia
+    
+    // Sincronizar experto
+    const chat = chats.find(c => c.id === chatId) || channelChats.find(c => c.id === chatId);
+    if (chat) {
+      setSelectedExpert(chat.expertName || null);
+    }
+
     if (currentUser) {
       localStorage.setItem(`lastChatId_${currentUser.userId}`, chatId);
     }
@@ -333,15 +342,20 @@ export function useAssistant() {
     });
   }, [selectedExpert, currentUser, send]);
 
-  // Autocarga del último chat al recibir la primera lista de chats
+  const [didInitialLoad, setDidInitialLoad] = useState(false);
   useEffect(() => {
-    if (chats.length > 0 && !activeChatId && currentUser) {
+    if (chats.length > 0 && !activeChatId && currentUser && !didInitialLoad) {
       const savedChatId = localStorage.getItem(`lastChatId_${currentUser.userId}`);
       if (savedChatId && chats.some(c => c.id === savedChatId)) {
         switchChat(savedChatId);
       }
+      setDidInitialLoad(true);
     }
-  }, [chats, activeChatId, currentUser]);
+  }, [chats, activeChatId, currentUser, didInitialLoad]);
+
+  useEffect(() => {
+    if (currentUser) setDidInitialLoad(true);
+  }, [selectedExpert]);
 
   const registerUser = (
     userId: string,

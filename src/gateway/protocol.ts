@@ -121,6 +121,7 @@ export interface WsAssistantMessage {
     timestamp?: string;
   }>;
   timestamp?: string;
+  expertName?: string | null;
 }
 
 export interface WsTypingMessage {
