@@ -328,7 +328,16 @@ export function createGateway(): GatewayServer {
           await import('../memory/chat-db.ts');
 
         if (msg.action === 'create') {
-          createChat(sessionId, msg.expertName, msg.title);
+          console.log(chalk.blue(`📂 Creando nuevo chat para usuario: ${sessionId} (Experto: ${msg.expertName || 'General'})`));
+          const newChat = createChat(sessionId, msg.expertName, msg.title);
+          console.log(chalk.green(`✅ Chat creado con ID: ${newChat.id}`));
+          send(ws, { 
+            type: 'assistant_message', 
+            chatId: newChat.id, 
+            text: 'Cargando historial...',
+            model: 'Sistema',
+            sessionId 
+          } as unknown as WsMessage);
         } else if (msg.action === 'rename' && msg.chatId && msg.title) {
           renameChat(msg.chatId, msg.title);
         } else if (msg.action === 'delete' && msg.chatId) {
@@ -338,9 +347,10 @@ export function createGateway(): GatewayServer {
         }
 
         // Re-enviar lista de chats actualizada
+        const expertFilter = msg.expertName !== undefined ? msg.expertName : null;
         send(ws, {
           type: 'list_chats',
-          chats: listChats(sessionId, msg.expertName),
+          chats: listChats(sessionId, expertFilter),
           channelChats: listChannelChats(sessionId),
         } as unknown as WsMessage);
       }
@@ -386,20 +396,22 @@ export function createGateway(): GatewayServer {
 
 // Helper para enviar mensajes WS de forma segura
 export function send(ws: WebSocket, msg: WsMessage): void {
+  const targetSessionId = (ws as CustomWebSocket).sessionId;
   if (ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(msg));
-  } else if (globalWss) {
-    // Si la conexión original cerró, buscar otra activa del mismo usuario (por sessionId)
-    const targetSessionId = (ws as CustomWebSocket).sessionId;
-    if (targetSessionId) {
-      globalWss.clients.forEach((client) => {
-        if (
-          (client as CustomWebSocket).sessionId === targetSessionId &&
-          client.readyState === WebSocket.OPEN
-        ) {
-          client.send(JSON.stringify(msg));
-        }
-      });
-    }
+  } else if (targetSessionId) {
+    broadcastToUser(targetSessionId, msg);
+  }
+}
+
+// Envía un mensaje a todas las conexiones abiertas de un mismo usuario
+export function broadcastToUser(userId: string, msg: WsMessage): void {
+  if (globalWss) {
+    globalWss.clients.forEach((client) => {
+      const c = client as CustomWebSocket;
+      if (c.sessionId === userId && c.readyState === WebSocket.OPEN) {
+        c.send(JSON.stringify(msg));
+      }
+    });
   }
 }

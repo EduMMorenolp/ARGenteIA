@@ -10,11 +10,11 @@ import chalk from 'chalk';
 
 interface WebChatHandlerOpts {
   ws: WebSocket;
-  sessionId: string; // userId
+  sessionId: string;
   chatId?: string;
   text: string;
   send: (ws: WebSocket, msg: WsMessage) => void;
-  expertName?: string;
+  expertName?: string | null;
 }
 
 export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<void> {
@@ -34,13 +34,28 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
   try {
     let result;
     const { getMessages } = await import('../memory/message-db.ts');
-    const { getChat, renameChat, createChat } = await import('../memory/chat-db.ts');
+    const { getChat, renameChat, createChat, listChats, listChannelChats } = await import('../memory/chat-db.ts');
 
-    // 1. Asegurar chatId
+    // 1. Asegurar chatId válido para este usuario y experto
     let currentChatId = opts.chatId;
+    let chatListChanged = false;
+
+    if (currentChatId) {
+      const { getChat } = await import('../memory/chat-db.ts');
+      const chat = getChat(currentChatId);
+      
+      const targetExpert = opts.expertName || null;
+      if (!chat || chat.userId !== sessionId || chat.expertName !== targetExpert) {
+        console.log(chalk.yellow(`⚠️ El chat ${currentChatId} no es válido para ${sessionId} / ${targetExpert || 'General'}. Creando uno nuevo.`));
+        currentChatId = undefined;
+      }
+    }
+
     if (!currentChatId) {
       const newChat = createChat(sessionId, opts.expertName);
       currentChatId = newChat.id;
+      chatListChanged = true;
+      console.log(chalk.green(`✨ Chat creado automáticamente: ${currentChatId} (${opts.expertName || 'General'})`));
     }
 
     const messages = getMessages(currentChatId);
@@ -83,11 +98,9 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
     if (isFirstMessage) {
       const chat = getChat(currentChatId);
       if (chat && chat.title === 'Nuevo chat') {
-        // Generar título sugerido (primeros 30 chars del mensaje)
         const suggestedTitle = text.slice(0, 30) + (text.length > 30 ? '...' : '');
         renameChat(currentChatId, suggestedTitle);
-        // Notificar al cliente que el chat cambió de nombre si es necesario
-        // En este caso, el cliente probablemente recibirá la lista actualizada pronto o la actualizará él mismo
+        chatListChanged = true;
       }
     }
 
@@ -97,11 +110,17 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
       model: result.model,
       usage: result.usage,
       latencyMs: result.latencyMs,
-      sessionId, // userId
+      sessionId, 
       chatId: currentChatId,
       origin: 'web',
       timestamp: new Date().toISOString(),
     });
+
+    send(ws, {
+      type: 'list_chats',
+      chats: listChats(sessionId, opts.expertName || null),
+      channelChats: listChannelChats(sessionId),
+    } as unknown as WsMessage);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     send(ws, { type: 'error', message: `Error del agente: ${msg}` });

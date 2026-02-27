@@ -92,8 +92,8 @@ export function useAssistant() {
           setIsTyping(false);
           setIsWaiting(false);
 
-          // Si el mensaje trae chatId y no tenemos uno activo, lo activamos
-          if (msg.chatId && !activeChatId) {
+          // Asegurar que el chatId activo coincida con el que usó el servidor
+          if (msg.chatId && msg.chatId !== activeChatId) {
             setActiveChatId(msg.chatId);
           }
 
@@ -108,6 +108,11 @@ export function useAssistant() {
               timestamp: (m as any).timestamp
             }));
             setMessages(historicalMessages);
+          } else if (msg.text === "Cargando historial..." && msg.chatId) {
+            // Manejar cambio de chat solicitado por el servidor (ej: tras botón "Nuevo Chat")
+            setActiveChatId(msg.chatId);
+            setMessages([]);
+            send({ type: "switch_chat", chatId: msg.chatId });
           } else if (msg.text && msg.text !== "Cargando historial...") {
             addMessage(
               "assistant",
@@ -254,11 +259,11 @@ export function useAssistant() {
 
   // ─── Funciones de Chat ───────────────────────────────────────────────────
 
-  const createChat = (title?: string) => {
+  const createChat = (expertNameOverride?: string | null, title?: string) => {
     send({
       type: "chat_update",
       action: "create",
-      expertName: selectedExpert || null,
+      expertName: expertNameOverride !== undefined ? expertNameOverride : (selectedExpert || null),
       title,
     });
   };
@@ -298,9 +303,18 @@ export function useAssistant() {
   const switchChat = (chatId: string) => {
     setActiveChatId(chatId);
     setMessages([]); // Limpiar para cargar historia
-    localStorage.setItem(`lastChatId_${currentUser?.userId || 'guest'}`, chatId);
+    if (currentUser) {
+      localStorage.setItem(`lastChatId_${currentUser.userId}`, chatId);
+    }
     send({ type: "switch_chat", chatId });
   };
+
+  // Persistir activeChatId cuando cambie (por ejemplo, al recibir assistant_message)
+  useEffect(() => {
+    if (activeChatId && currentUser) {
+      localStorage.setItem(`lastChatId_${currentUser.userId}`, activeChatId);
+    }
+  }, [activeChatId, currentUser]);
 
   // Cada vez que cambia el experto, pedir lista de chats de ese experto
   useEffect(() => {

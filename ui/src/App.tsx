@@ -222,7 +222,7 @@ export default function App() {
         channelChats={channelChats}
         activeChatId={activeChatId}
         onSelectChat={switchChat}
-        onCreateChat={() => createChat()}
+        onCreateChat={() => createChat(selectedExpert)}
         onDeleteChat={deleteChat}
         onRenameChat={renameChat}
         onTogglePin={togglePinChat}

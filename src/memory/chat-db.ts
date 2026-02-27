@@ -1,5 +1,6 @@
 import { getDb } from './db.ts';
 import { randomUUID } from 'node:crypto';
+import chalk from 'chalk';
 
 export interface ChatEntry {
   id: string;
