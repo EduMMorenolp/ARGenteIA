@@ -50,7 +50,7 @@ export async function startTelegram(): Promise<void> {
     console.log(chalk.gray('📱 Reiniciando bot de Telegram por cambio de token...'));
     await stopTelegram();
     // Pequeño delay para permitir que Telegram libere el webhook/polling
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   const tokenLog = newToken.slice(0, 6) + '...' + newToken.slice(-4);
@@ -124,7 +124,8 @@ export async function startTelegram(): Promise<void> {
         origin: 'telegram',
         telegramChatId: chatId,
         onAction: (text) => {
-          if (bot) bot.sendMessage(chatId, `⏳ <i>${text}</i>`, { parse_mode: 'HTML' }).catch(() => {});
+          if (bot)
+            bot.sendMessage(chatId, `⏳ <i>${text}</i>`, { parse_mode: 'HTML' }).catch(() => {});
         },
         onTyping: (isTyping) => {
           if (bot && isTyping) {
@@ -158,7 +159,7 @@ export async function startTelegram(): Promise<void> {
       // Notificar a WebChat para actualizar preview en la barra lateral
       const { listChats, listChannelChats } = await import('../memory/chat-db.ts');
       const { broadcastToUser } = await import('../gateway/server.ts');
-      
+
       broadcastToUser(effectiveUserId, {
         type: 'list_chats',
         chats: listChats(effectiveUserId, null), // Actualizar lista general

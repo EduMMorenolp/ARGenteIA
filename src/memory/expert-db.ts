@@ -18,15 +18,17 @@ export interface SubAgent {
 export function getExpert(name: string): SubAgent | null {
   const db = getDb();
   const stmt = db.prepare('SELECT * FROM sub_agents WHERE name = ?');
-  const row = stmt.get(name) as {
-    name: string;
-    model: string;
-    system_prompt: string;
-    tools: string;
-    experts: string;
-    temperature: number;
-    created_at?: string;
-  } | undefined;
+  const row = stmt.get(name) as
+    | {
+        name: string;
+        model: string;
+        system_prompt: string;
+        tools: string;
+        experts: string;
+        temperature: number;
+        created_at?: string;
+      }
+    | undefined;
   if (!row) return null;
 
   return {
@@ -78,14 +80,14 @@ export function listExperts(): SubAgent[] {
   const rows = db
     .prepare("SELECT * FROM sub_agents WHERE name != '__general__' ORDER BY name ASC")
     .all() as Array<{
-      name: string;
-      model: string;
-      system_prompt: string;
-      tools: string;
-      experts: string;
-      temperature: number;
-      created_at?: string;
-    }>;
+    name: string;
+    model: string;
+    system_prompt: string;
+    tools: string;
+    experts: string;
+    temperature: number;
+    created_at?: string;
+  }>;
   return rows.map((row) => ({
     ...row,
     tools: JSON.parse(row.tools || '[]') as string[],

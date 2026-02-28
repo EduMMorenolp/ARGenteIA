@@ -138,280 +138,287 @@ async function runOpenAI(
   try {
     for (let mIdx = 0; mIdx < modelsToTry.length; mIdx++) {
       const currentModel = modelsToTry[mIdx];
-    const client = createClient(currentModel, config) as OpenAI;
-    const name = modelName(currentModel);
+      const client = createClient(currentModel, config) as OpenAI;
+      const name = modelName(currentModel);
 
-    // 1. Obtener override/perfil/herramientas (necesario en cada intento por si cambian)
-    const { getExpert } = await import('../memory/expert-db.ts');
-    const generalOverride = getExpert('__general__');
-    const toolSpecs: ToolSpec[] = getTools(generalOverride?.tools);
-    const tools = toolSpecs.length > 0 ? (toolSpecs as unknown as ChatCompletionTool[]) : undefined;
+      // 1. Obtener override/perfil/herramientas (necesario en cada intento por si cambian)
+      const { getExpert } = await import('../memory/expert-db.ts');
+      const generalOverride = getExpert('__general__');
+      const toolSpecs: ToolSpec[] = getTools(generalOverride?.tools);
+      const tools =
+        toolSpecs.length > 0 ? (toolSpecs as unknown as ChatCompletionTool[]) : undefined;
 
-    const { getUser } = await import('../memory/user-db.ts');
-    const { loadSkills } = await import('../skills/loader.ts');
-    const userProfile = getUser(userId);
-    const skills = await loadSkills();
+      const { getUser } = await import('../memory/user-db.ts');
+      const { loadSkills } = await import('../skills/loader.ts');
+      const userProfile = getUser(userId);
+      const skills = await loadSkills();
 
-    let systemPrompt =
-      generalOverride?.system_prompt ||
-      config.agent.systemPrompt ||
-      'Eres un asistente personal útil.';
+      let systemPrompt =
+        generalOverride?.system_prompt ||
+        config.agent.systemPrompt ||
+        'Eres un asistente personal útil.';
 
-    if (skills.length > 0 && !systemPrompt.includes('COMPETENCIAS Y HABILIDADES ADICIONALES')) {
-      systemPrompt += `\n\nCOMPETENCIAS Y HABILIDADES ADICIONALES:\n${skills.join('\n\n')}`;
-    }
+      if (skills.length > 0 && !systemPrompt.includes('COMPETENCIAS Y HABILIDADES ADICIONALES')) {
+        systemPrompt += `\n\nCOMPETENCIAS Y HABILIDADES ADICIONALES:\n${skills.join('\n\n')}`;
+      }
 
-    if (userProfile && userProfile.name) {
-      systemPrompt += `\nESTÁS HABLANDO CON: ${userProfile.name}. Su zona horaria es: ${userProfile.timezone}.`;
-    } else {
-      systemPrompt += '\n' + loadPrompt('onboarding');
-    }
+      if (userProfile && userProfile.name) {
+        systemPrompt += `\nESTÁS HABLANDO CON: ${userProfile.name}. Su zona horaria es: ${userProfile.timezone}.`;
+      } else {
+        systemPrompt += '\n' + loadPrompt('onboarding');
+      }
 
-    const { listExperts } = await import('../memory/expert-db.ts');
-    let experts = listExperts();
-    if (generalOverride?.experts && generalOverride.experts.length > 0) {
-      experts = experts.filter((e) => generalOverride.experts.includes(e.name));
-    }
-    if (experts.length > 0) {
-      const expertsList = experts
-        .map((e) => `- ${e.name}: ${e.system_prompt.slice(0, 100)}... (Modelo: ${e.model})`)
-        .join('\n    ');
-      systemPrompt += '\n\n' + loadPrompt('experts-delegation', { expertsList });
-    }
+      const { listExperts } = await import('../memory/expert-db.ts');
+      let experts = listExperts();
+      if (generalOverride?.experts && generalOverride.experts.length > 0) {
+        experts = experts.filter((e) => generalOverride.experts.includes(e.name));
+      }
+      if (experts.length > 0) {
+        const expertsList = experts
+          .map((e) => `- ${e.name}: ${e.system_prompt.slice(0, 100)}... (Modelo: ${e.model})`)
+          .join('\n    ');
+        systemPrompt += '\n\n' + loadPrompt('experts-delegation', { expertsList });
+      }
 
-    if (opts.origin === 'telegram') {
-      systemPrompt += '\n\n' + loadPrompt('channel-telegram');
-    } else {
-      systemPrompt += '\n\n' + loadPrompt('channel-web');
-    }
+      if (opts.origin === 'telegram') {
+        systemPrompt += '\n\n' + loadPrompt('channel-telegram');
+      } else {
+        systemPrompt += '\n\n' + loadPrompt('channel-web');
+      }
 
-    const loopMessages: ChatCompletionMessageParam[] = [
-      { role: 'system', content: systemPrompt },
-      ...messages,
-    ];
-    let iterations = 0;
-    const MAX_ITERATIONS = 6;
+      const loopMessages: ChatCompletionMessageParam[] = [
+        { role: 'system', content: systemPrompt },
+        ...messages,
+      ];
+      let iterations = 0;
+      const MAX_ITERATIONS = 6;
 
-    try {
-      const callWithRetry = async (messages: ChatCompletionMessageParam[], useTools: boolean) => {
-        let retries = 3;
-        let delay = 2000;
+      try {
+        const callWithRetry = async (messages: ChatCompletionMessageParam[], useTools: boolean) => {
+          let retries = 3;
+          let delay = 2000;
 
-        while (retries > 0) {
-          try {
-            const stream = await client.chat.completions.create({
-              model: name,
-              messages,
-              max_tokens: maxTokens,
-              temperature: generalOverride?.temperature ?? 0.7,
-              tools: useTools ? tools : undefined,
-              tool_choice: useTools && tools ? 'auto' : undefined,
-              stream: true,
-            });
+          while (retries > 0) {
+            try {
+              const stream = await client.chat.completions.create({
+                model: name,
+                messages,
+                max_tokens: maxTokens,
+                temperature: generalOverride?.temperature ?? 0.7,
+                tools: useTools ? tools : undefined,
+                tool_choice: useTools && tools ? 'auto' : undefined,
+                stream: true,
+              });
 
-            let fullContent = '';
-            let toolCalls: any[] = [];
-            let currentUsage: any = undefined;
+              let fullContent = '';
+              let toolCalls: any[] = [];
+              let currentUsage: any = undefined;
 
-            for await (const chunk of stream) {
-              const delta = chunk.choices[0]?.delta;
-              if (!delta) continue;
+              for await (const chunk of stream) {
+                const delta = chunk.choices[0]?.delta;
+                if (!delta) continue;
 
-              if (delta.content) {
-                fullContent += delta.content;
-                opts.onChunk?.(delta.content);
-              }
+                if (delta.content) {
+                  fullContent += delta.content;
+                  opts.onChunk?.(delta.content);
+                }
 
-              if (delta.tool_calls) {
-                for (const tcDelta of delta.tool_calls) {
-                  if (tcDelta.index === undefined) continue;
-                  if (!toolCalls[tcDelta.index]) {
-                    toolCalls[tcDelta.index] = {
-                      id: tcDelta.id || '',
-                      type: 'function',
-                      function: { name: tcDelta.function?.name || '', arguments: '' },
-                    };
+                if (delta.tool_calls) {
+                  for (const tcDelta of delta.tool_calls) {
+                    if (tcDelta.index === undefined) continue;
+                    if (!toolCalls[tcDelta.index]) {
+                      toolCalls[tcDelta.index] = {
+                        id: tcDelta.id || '',
+                        type: 'function',
+                        function: { name: tcDelta.function?.name || '', arguments: '' },
+                      };
+                    }
+                    if (tcDelta.function?.arguments) {
+                      toolCalls[tcDelta.index].function.arguments += tcDelta.function.arguments;
+                    }
                   }
-                  if (tcDelta.function?.arguments) {
-                    toolCalls[tcDelta.index].function.arguments += tcDelta.function.arguments;
-                  }
+                }
+
+                if ((chunk as any).usage) {
+                  currentUsage = (chunk as any).usage;
                 }
               }
 
-              if ((chunk as any).usage) {
-                currentUsage = (chunk as any).usage;
-              }
-            }
+              // Remove empty tool calls elements just in case
+              toolCalls = toolCalls.filter(Boolean);
 
-            // Remove empty tool calls elements just in case
-            toolCalls = toolCalls.filter(Boolean);
-
-            return {
-              choices: [
-                {
-                  message: {
-                    role: 'assistant',
-                    content: fullContent,
-                    tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
+              return {
+                choices: [
+                  {
+                    message: {
+                      role: 'assistant',
+                      content: fullContent,
+                      tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
+                    },
                   },
-                },
-              ],
-              usage: currentUsage,
-            };
-          } catch (err: unknown) {
-            if ((err as Record<string, unknown>).status === 429 && retries > 1) {
-              console.warn(
-                chalk.yellow(
-                  `   ⚠️ [${currentModel}] Límite alcanzado. Reintentando en ${delay / 1000}s...`,
-                ),
-              );
-              await new Promise((resolve) => setTimeout(resolve, delay));
-              retries--;
-              delay *= 2;
-              continue;
+                ],
+                usage: currentUsage,
+              };
+            } catch (err: unknown) {
+              if ((err as Record<string, unknown>).status === 429 && retries > 1) {
+                console.warn(
+                  chalk.yellow(
+                    `   ⚠️ [${currentModel}] Límite alcanzado. Reintentando en ${delay / 1000}s...`,
+                  ),
+                );
+                await new Promise((resolve) => setTimeout(resolve, delay));
+                retries--;
+                delay *= 2;
+                continue;
+              }
+              throw err;
             }
-            throw err;
           }
-        }
-        throw new Error('429');
-      };
+          throw new Error('429');
+        };
 
-      let response = await callWithRetry(loopMessages, true);
+        let response = await callWithRetry(loopMessages, true);
 
-      while (iterations < MAX_ITERATIONS) {
-        iterations++;
-        const assistantMsg = response.choices[0]?.message;
-        if (!assistantMsg) break;
+        while (iterations < MAX_ITERATIONS) {
+          iterations++;
+          const assistantMsg = response.choices[0]?.message;
+          if (!assistantMsg) break;
 
-        const msgToPush = {
-          role: 'assistant',
-          content: assistantMsg.content || '',
-          tool_calls: assistantMsg.tool_calls,
-        } as ChatCompletionMessageParam;
+          const msgToPush = {
+            role: 'assistant',
+            content: assistantMsg.content || '',
+            tool_calls: assistantMsg.tool_calls,
+          } as ChatCompletionMessageParam;
 
-        loopMessages.push(msgToPush);
+          loopMessages.push(msgToPush);
 
-        if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
-          if (assistantMsg.content) {
+          if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
+            if (assistantMsg.content) {
+              return {
+                text: assistantMsg.content,
+                usage: (response as any).usage,
+              };
+            }
+            break;
+          }
+
+          const toolPromises = assistantMsg.tool_calls.map(async (toolCall) => {
+            const fn = (
+              toolCall as unknown as { id: string; function: { name: string; arguments: string } }
+            ).function;
+            if (!fn) return null;
+            let args: Record<string, unknown> = {};
+            try {
+              args = typeof fn.arguments === 'string' ? JSON.parse(fn.arguments) : fn.arguments;
+            } catch {
+              args = {};
+            }
+
+            const argsStr = JSON.stringify(args);
+            console.log(
+              chalk.yellow(`   🔧 Tool: ${fn.name}`),
+              chalk.dim(argsStr.length > 100 ? argsStr.slice(0, 100) + '...' : argsStr),
+            );
+            opts.onAction?.(`Usando herramienta: ${fn.name}`);
+            const result = await executeTool(fn.name, args, {
+              sessionId: opts.userId,
+              origin: opts.origin,
+              telegramChatId: opts.telegramChatId,
+            });
+
+            const resStr = String(result);
+            console.log(
+              chalk.cyan(
+                `   💡 Result: ${fn.name} -> ${resStr.length > 100 ? resStr.slice(0, 100) + '...' : resStr}`,
+              ),
+            );
+
             return {
-              text: assistantMsg.content,
-              usage: (response as any).usage,
+              role: 'tool' as const,
+              tool_call_id: toolCall.id,
+              content: String(result),
             };
-          }
-          break;
+          });
+
+          const toolResultsRaw = await Promise.all(toolPromises);
+          const toolResults = toolResultsRaw.filter(
+            (r) => r !== null,
+          ) as ChatCompletionMessageParam[];
+
+          loopMessages.push(...toolResults);
+          response = await callWithRetry(loopMessages, true);
         }
 
-        const toolPromises = assistantMsg.tool_calls.map(async (toolCall) => {
-          const fn = (
-            toolCall as unknown as { id: string; function: { name: string; arguments: string } }
-          ).function;
-          if (!fn) return null;
-          let args: Record<string, unknown> = {};
-          try {
-            args = typeof fn.arguments === 'string' ? JSON.parse(fn.arguments) : fn.arguments;
-          } catch {
-            args = {};
-          }
-
-          const argsStr = JSON.stringify(args);
-          console.log(
-            chalk.yellow(`   🔧 Tool: ${fn.name}`), 
-            chalk.dim(argsStr.length > 100 ? argsStr.slice(0, 100) + '...' : argsStr)
-          );
-          opts.onAction?.(`Usando herramienta: ${fn.name}`);
-          const result = await executeTool(fn.name, args, {
-            sessionId: opts.userId,
-            origin: opts.origin,
-            telegramChatId: opts.telegramChatId,
+        if (!response.choices[0]?.message?.content) {
+          loopMessages.push({
+            role: 'system',
+            content: loadPrompt('fallback'),
           });
-          
-          const resStr = String(result);
-          console.log(chalk.cyan(`   💡 Result: ${fn.name} -> ${resStr.length > 100 ? resStr.slice(0, 100) + '...' : resStr}`));
+          const finalRes = await callWithRetry(loopMessages, false);
+          return { text: finalRes.choices[0]?.message?.content || '', usage: undefined };
+        }
 
-          return {
-            role: 'tool' as const,
-            tool_call_id: toolCall.id,
-            content: String(result),
-          };
-        });
+        return {
+          text: response.choices[0].message.content,
+          usage: response.usage,
+        };
+      } catch (err: unknown) {
+        const isRateLimit =
+          (err instanceof Error &&
+            'status' in err &&
+            (err as Record<string, unknown>).status === 429) ||
+          (err instanceof Error && err.message === '429');
+        const errWithStatus = err as Record<string, unknown>;
+        const isProviderError =
+          errWithStatus.status === 401 ||
+          errWithStatus.status === 402 ||
+          errWithStatus.status === 404 ||
+          errWithStatus.status === 503;
 
-        const toolResultsRaw = await Promise.all(toolPromises);
-        const toolResults = toolResultsRaw.filter((r) => r !== null) as ChatCompletionMessageParam[];
+        // Si es un error de cuota (429), auth (401), pago (402), política (404) o servicio (503) y tenemos más modelos...
+        if ((isRateLimit || isProviderError) && mIdx < modelsToTry.length - 1) {
+          const errorType =
+            errWithStatus.status || (err instanceof Error ? err.message : String(err));
+          const msg =
+            errWithStatus.status === 401
+              ? 'Auth Error'
+              : errWithStatus.status === 404
+                ? 'Not Found/Policy'
+                : errWithStatus.status === 429
+                  ? 'Rate Limit'
+                  : `Status ${errorType}`;
 
-        loopMessages.push(...toolResults);
-        response = await callWithRetry(loopMessages, true);
-      }
+          console.error(
+            chalk.red(
+              `   🚨 Modelo [${currentModel}] falló (${msg}). Probando fallback con [${modelsToTry[mIdx + 1]}]...`,
+            ),
+          );
+          continue; // Siguiente modelo en el loop for
+        }
 
-      if (!response.choices[0]?.message?.content) {
-        loopMessages.push({
-          role: 'system',
-          content: loadPrompt('fallback'),
-        });
-        const finalRes = await callWithRetry(loopMessages, false);
-        return { text: finalRes.choices[0]?.message?.content || '', usage: undefined };
-      }
+        // Errores finales si ya no quedan modelos o es un error grave
+        if (errWithStatus.status === 404) {
+          throw new Error(
+            "Error 404: OpenRouter no encuentra el endpoint. Revisa tu configuración de privacidad en OpenRouter (permite 'Free model publication').",
+          );
+        }
+        if (errWithStatus.status === 401) {
+          throw new Error(
+            'Error 401: API Key inválida o usuario no encontrado en OpenRouter. Revisa tu sk-or-key en config.json.',
+          );
+        }
+        if (errWithStatus.status === 402) {
+          throw new Error('Error 402: El modelo requiere créditos o ha cambiado de política.');
+        }
+        if (isRateLimit) {
+          throw new Error(
+            'Todos los modelos gratuitos están saturados (429). Por favor, intenta de nuevo en unos minutos o usa un modelo de pago.',
+          );
+        }
 
-      return {
-        text: response.choices[0].message.content,
-        usage: response.usage,
-      };
-    } catch (err: unknown) {
-      const isRateLimit =
-        (err instanceof Error &&
-          'status' in err &&
-          (err as Record<string, unknown>).status === 429) ||
-        (err instanceof Error && err.message === '429');
-      const errWithStatus = err as Record<string, unknown>;
-      const isProviderError =
-        errWithStatus.status === 401 ||
-        errWithStatus.status === 402 ||
-        errWithStatus.status === 404 ||
-        errWithStatus.status === 503;
-
-      // Si es un error de cuota (429), auth (401), pago (402), política (404) o servicio (503) y tenemos más modelos...
-      if ((isRateLimit || isProviderError) && mIdx < modelsToTry.length - 1) {
-        const errorType =
-          errWithStatus.status || (err instanceof Error ? err.message : String(err));
-        const msg =
-          errWithStatus.status === 401
-            ? 'Auth Error'
-            : errWithStatus.status === 404
-              ? 'Not Found/Policy'
-              : errWithStatus.status === 429
-                ? 'Rate Limit'
-                : `Status ${errorType}`;
-
-        console.error(
-          chalk.red(
-            `   🚨 Modelo [${currentModel}] falló (${msg}). Probando fallback con [${modelsToTry[mIdx + 1]}]...`,
-          ),
-        );
-        continue; // Siguiente modelo en el loop for
-      }
-
-      // Errores finales si ya no quedan modelos o es un error grave
-      if (errWithStatus.status === 404) {
-        throw new Error(
-          "Error 404: OpenRouter no encuentra el endpoint. Revisa tu configuración de privacidad en OpenRouter (permite 'Free model publication').",
-        );
-      }
-      if (errWithStatus.status === 401) {
-        throw new Error(
-          'Error 401: API Key inválida o usuario no encontrado en OpenRouter. Revisa tu sk-or-key en config.json.',
-        );
-      }
-      if (errWithStatus.status === 402) {
-        throw new Error('Error 402: El modelo requiere créditos o ha cambiado de política.');
-      }
-      if (isRateLimit) {
-        throw new Error(
-          'Todos los modelos gratuitos están saturados (429). Por favor, intenta de nuevo en unos minutos o usa un modelo de pago.',
-        );
-      }
-
-      throw err;
-    } // fin del catch interno
-  } // fin del for loop
+        throw err;
+      } // fin del catch interno
+    } // fin del for loop
   } finally {
     if (opts.chatId) activeChats.delete(opts.chatId);
   }

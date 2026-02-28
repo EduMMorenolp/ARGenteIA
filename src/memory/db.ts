@@ -104,7 +104,9 @@ export function getDb(): Database.Database {
 
   // Migración: Asegurar columna 'model' en 'sub_agents'
   try {
-    _db.exec("ALTER TABLE sub_agents ADD COLUMN model TEXT DEFAULT 'openrouter/meta-llama/llama-3.3-70b-instruct'");
+    _db.exec(
+      "ALTER TABLE sub_agents ADD COLUMN model TEXT DEFAULT 'openrouter/meta-llama/llama-3.3-70b-instruct'",
+    );
   } catch {
     // Ya existe o error ignorado
   }

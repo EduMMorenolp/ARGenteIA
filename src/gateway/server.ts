@@ -217,12 +217,12 @@ export function createGateway(): GatewayServer {
 
         console.log(chalk.cyan(`🔄 switch_chat: Cargando historial para ${chatId}`));
         const storedMessages = getMessages(chatId);
-        
-        const history = storedMessages.map(m => ({
+
+        const history = storedMessages.map((m) => ({
           role: m.role,
           text: m.content,
           origin: m.origin as 'web' | 'telegram',
-          timestamp: m.created_at
+          timestamp: m.created_at,
         }));
 
         send(ws, {
@@ -230,11 +230,11 @@ export function createGateway(): GatewayServer {
           chatId: chatId,
           history: history,
           expertName: chat?.expertName || null,
-          text: (history.length === 0) ? 'Este chat no tiene mensajes aún.' : '',
+          text: history.length === 0 ? 'Este chat no tiene mensajes aún.' : '',
           model: 'Sistema',
-          sessionId
+          sessionId,
         } as unknown as WsMessage);
-        
+
         if (msg.chatId && activeChats.has(msg.chatId)) {
           send(ws, { type: 'typing', isTyping: true });
         }
@@ -325,7 +325,9 @@ export function createGateway(): GatewayServer {
         if (msg.action === 'upsert' && msg.modelConfig) {
           if (msg.oldName && msg.oldName !== msg.modelConfig.name) {
             deleteModel(msg.oldName);
-            console.log(chalk.yellow(`📦 Modelo renombrado: ${msg.oldName} -> ${msg.modelConfig.name}`));
+            console.log(
+              chalk.yellow(`📦 Modelo renombrado: ${msg.oldName} -> ${msg.modelConfig.name}`),
+            );
           } else {
             console.log(chalk.green(`📦 Modelo guardado: ${msg.modelConfig.name}`));
           }
@@ -340,21 +342,24 @@ export function createGateway(): GatewayServer {
             send(client, { type: 'list_models', models: listModels() } as unknown as WsMessage);
           }
         });
-
       } else if (msg.type === 'chat_update') {
         const { createChat, renameChat, deleteChat, togglePin, listChats, listChannelChats } =
           await import('../memory/chat-db.ts');
 
         if (msg.action === 'create') {
-          console.log(chalk.blue(`📂 Creando nuevo chat para usuario: ${sessionId} (Experto: ${msg.expertName || 'General'})`));
+          console.log(
+            chalk.blue(
+              `📂 Creando nuevo chat para usuario: ${sessionId} (Experto: ${msg.expertName || 'General'})`,
+            ),
+          );
           const newChat = createChat(sessionId, msg.expertName, msg.title);
           console.log(chalk.green(`✅ Chat creado con ID: ${newChat.id}`));
-          send(ws, { 
-            type: 'assistant_message', 
-            chatId: newChat.id, 
+          send(ws, {
+            type: 'assistant_message',
+            chatId: newChat.id,
             text: 'Cargando historial...',
             model: 'Sistema',
-            sessionId 
+            sessionId,
           } as unknown as WsMessage);
         } else if (msg.action === 'rename' && msg.chatId && msg.title) {
           renameChat(msg.chatId, msg.title);

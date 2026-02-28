@@ -34,7 +34,8 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
   try {
     let result;
     const { getMessages } = await import('../memory/message-db.ts');
-    const { getChat, renameChat, createChat, listChats, listChannelChats } = await import('../memory/chat-db.ts');
+    const { getChat, renameChat, createChat, listChats, listChannelChats } =
+      await import('../memory/chat-db.ts');
 
     // 1. Asegurar chatId válido para este usuario y experto
     let currentChatId = opts.chatId;
@@ -43,10 +44,14 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
     if (currentChatId) {
       const { getChat } = await import('../memory/chat-db.ts');
       const chat = getChat(currentChatId);
-      
+
       const targetExpert = opts.expertName || null;
       if (!chat || chat.userId !== sessionId || chat.expertName !== targetExpert) {
-        console.log(chalk.yellow(`⚠️ El chat ${currentChatId} no es válido para ${sessionId} / ${targetExpert || 'General'}. Creando uno nuevo.`));
+        console.log(
+          chalk.yellow(
+            `⚠️ El chat ${currentChatId} no es válido para ${sessionId} / ${targetExpert || 'General'}. Creando uno nuevo.`,
+          ),
+        );
         currentChatId = undefined;
       }
     }
@@ -55,7 +60,11 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
       const newChat = createChat(sessionId, opts.expertName);
       currentChatId = newChat.id;
       chatListChanged = true;
-      console.log(chalk.green(`✨ Chat creado automáticamente: ${currentChatId} (${opts.expertName || 'General'})`));
+      console.log(
+        chalk.green(
+          `✨ Chat creado automáticamente: ${currentChatId} (${opts.expertName || 'General'})`,
+        ),
+      );
     }
 
     const messages = getMessages(currentChatId);
@@ -116,7 +125,7 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
       model: result.model,
       usage: result.usage,
       latencyMs: result.latencyMs,
-      sessionId, 
+      sessionId,
       chatId: currentChatId,
       origin: 'web',
       timestamp: new Date().toISOString(),
