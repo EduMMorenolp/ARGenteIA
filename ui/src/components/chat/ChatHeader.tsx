@@ -4,14 +4,12 @@ interface ChatHeaderProps {
     selectedExpert: string | null;
     isTyping: boolean;
     isConnected: boolean;
-    messageCount: number;
 }
 
 export function ChatHeader({
     selectedExpert,
     isTyping,
     isConnected,
-    messageCount
 }: ChatHeaderProps) {
     return (
         <header className="chat-header">
@@ -32,9 +30,6 @@ export function ChatHeader({
                         )}
                     </div>
                 </div>
-            </div>
-            <div className="header-actions">
-                <div className="msg-counter">{messageCount} msgs</div>
             </div>
         </header>
     );

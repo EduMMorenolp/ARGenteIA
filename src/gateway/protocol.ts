@@ -60,6 +60,7 @@ export type WsMessageType =
   | 'list_chats' // servidor → cliente: lista de chats del usuario
   | 'chat_update' // cliente → servidor: crear/renombrar/eliminar/pin chat
   | 'action_log' // servidor → cliente: log de acción intermedia (herramientas, pensamientos)
+  | 'assistant_chunk' // servidor → cliente: fragmento de stream de respuesta
   | 'switch_chat'; // cliente → servidor: cambiar al chat seleccionado
 
 export interface WsActionLogMessage {
@@ -122,6 +123,12 @@ export interface WsAssistantMessage {
   }>;
   timestamp?: string;
   expertName?: string | null;
+}
+
+export interface WsAssistantChunkMessage {
+  type: 'assistant_chunk';
+  text: string;
+  chatId?: string;
 }
 
 export interface WsTypingMessage {
@@ -203,6 +210,7 @@ export interface WsModelUpdateMessage {
 export type WsMessage =
   | WsUserMessage
   | WsAssistantMessage
+  | WsAssistantChunkMessage
   | WsTypingMessage
   | WsErrorMessage
   | WsStatusMessage

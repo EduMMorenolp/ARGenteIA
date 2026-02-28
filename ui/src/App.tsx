@@ -36,7 +36,6 @@ export default function App() {
     setInputText,
     isTyping,
     userModel,
-    messageCount,
     isWaiting,
     isConnected,
     experts,
@@ -193,7 +192,6 @@ export default function App() {
           selectedExpert={selectedExpert}
           isTyping={isTyping}
           isConnected={isConnected}
-          messageCount={messageCount}
         />
 
         <MessageList

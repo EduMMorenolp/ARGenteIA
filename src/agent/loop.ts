@@ -20,6 +20,7 @@ export interface AgentOptions {
   userText: string;
   onTyping?: (isTyping: boolean) => void;
   onAction?: (text: string) => void;
+  onChunk?: (text: string) => void;
   origin?: 'web' | 'telegram'; // Origen del mensaje
   telegramChatId?: number; // ID de chat si viene de Telegram
 }
@@ -198,14 +199,65 @@ async function runOpenAI(
 
         while (retries > 0) {
           try {
-            return await client.chat.completions.create({
+            const stream = await client.chat.completions.create({
               model: name,
               messages,
               max_tokens: maxTokens,
               temperature: generalOverride?.temperature ?? 0.7,
               tools: useTools ? tools : undefined,
               tool_choice: useTools && tools ? 'auto' : undefined,
+              stream: true,
             });
+
+            let fullContent = '';
+            let toolCalls: any[] = [];
+            let currentUsage: any = undefined;
+
+            for await (const chunk of stream) {
+              const delta = chunk.choices[0]?.delta;
+              if (!delta) continue;
+
+              if (delta.content) {
+                fullContent += delta.content;
+                opts.onChunk?.(delta.content);
+              }
+
+              if (delta.tool_calls) {
+                for (const tcDelta of delta.tool_calls) {
+                  if (tcDelta.index === undefined) continue;
+                  if (!toolCalls[tcDelta.index]) {
+                    toolCalls[tcDelta.index] = {
+                      id: tcDelta.id || '',
+                      type: 'function',
+                      function: { name: tcDelta.function?.name || '', arguments: '' },
+                    };
+                  }
+                  if (tcDelta.function?.arguments) {
+                    toolCalls[tcDelta.index].function.arguments += tcDelta.function.arguments;
+                  }
+                }
+              }
+
+              if ((chunk as any).usage) {
+                currentUsage = (chunk as any).usage;
+              }
+            }
+
+            // Remove empty tool calls elements just in case
+            toolCalls = toolCalls.filter(Boolean);
+
+            return {
+              choices: [
+                {
+                  message: {
+                    role: 'assistant',
+                    content: fullContent,
+                    tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
+                  },
+                },
+              ],
+              usage: currentUsage,
+            };
           } catch (err: unknown) {
             if ((err as Record<string, unknown>).status === 429 && retries > 1) {
               console.warn(
@@ -221,7 +273,7 @@ async function runOpenAI(
             throw err;
           }
         }
-        throw new Error('429'); // Simplificado para capturar arriba
+        throw new Error('429');
       };
 
       let response = await callWithRetry(loopMessages, true);
@@ -243,18 +295,17 @@ async function runOpenAI(
           if (assistantMsg.content) {
             return {
               text: assistantMsg.content,
-              usage: response.usage,
+              usage: (response as any).usage,
             };
           }
           break;
         }
 
-        const toolResults: ChatCompletionMessageParam[] = [];
-        for (const toolCall of assistantMsg.tool_calls) {
+        const toolPromises = assistantMsg.tool_calls.map(async (toolCall) => {
           const fn = (
             toolCall as unknown as { id: string; function: { name: string; arguments: string } }
           ).function;
-          if (!fn) continue;
+          if (!fn) return null;
           let args: Record<string, unknown> = {};
           try {
             args = typeof fn.arguments === 'string' ? JSON.parse(fn.arguments) : fn.arguments;
@@ -275,14 +326,17 @@ async function runOpenAI(
           });
           
           const resStr = String(result);
-          console.log(chalk.cyan(`   💡 Result: ${resStr.length > 100 ? resStr.slice(0, 100) + '...' : resStr}`));
+          console.log(chalk.cyan(`   💡 Result: ${fn.name} -> ${resStr.length > 100 ? resStr.slice(0, 100) + '...' : resStr}`));
 
-          toolResults.push({
-            role: 'tool',
+          return {
+            role: 'tool' as const,
             tool_call_id: toolCall.id,
             content: String(result),
-          });
-        }
+          };
+        });
+
+        const toolResultsRaw = await Promise.all(toolPromises);
+        const toolResults = toolResultsRaw.filter((r) => r !== null) as ChatCompletionMessageParam[];
 
         loopMessages.push(...toolResults);
         response = await callWithRetry(loopMessages, true);

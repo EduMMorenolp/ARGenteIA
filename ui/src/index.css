@@ -328,6 +328,7 @@ body {
   padding: 24px;
   border-bottom: 1px solid var(--border);
   width: 280px;
+  min-height: 90px;
 }
 
 .logo {
@@ -747,6 +748,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: 90px;
 }
 
 .active-agent {
@@ -950,6 +952,18 @@ body {
   line-height: 1.6;
   font-size: 15px;
   position: relative;
+  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .message-row.assistant .msg-bubble {
@@ -976,14 +990,48 @@ body {
 .msg-content p:last-child {
   margin-bottom: 0;
 }
+
+.code-block-wrapper {
+  position: relative;
+  margin: 12px 0;
+}
+
 .msg-content pre {
   background: #000;
   padding: 16px;
   border-radius: var(--radius-md);
-  margin: 12px 0;
+  margin: 0;
   overflow-x: auto;
   border: 1px solid var(--border);
 }
+
+.copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: var(--text-dim);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.code-block-wrapper:hover .copy-btn {
+  opacity: 1;
+}
+
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
 .msg-content code {
   font-family: var(--font-mono);
   font-size: 0.9em;
@@ -1415,6 +1463,85 @@ textarea {
   overflow-y: auto;
   padding-right: 8px;
 }
+
+/* ─── Mobile Responsiveness ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+  }
+  
+  .sidebar, .chat-sidebar {
+    position: fixed;
+    height: 100vh;
+    z-index: 50;
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar {
+    left: 0;
+    transform: translateX(0);
+  }
+  
+  .sidebar.closed {
+    transform: translateX(-100%);
+    width: 280px !important;
+  }
+  
+  .chat-sidebar {
+    right: 0;
+    transform: translateX(0);
+  }
+  
+  .chat-sidebar.closed {
+    transform: translateX(100%);
+    width: 280px !important;
+  }
+  
+  .chat-area {
+    flex: 1;
+    width: 100vw;
+  }
+  
+  .input-section {
+    padding: 16px;
+  }
+  
+  .messages {
+    padding: 16px;
+  }
+  
+  .msg-bubble {
+    font-size: 14px;
+    padding: 12px 16px;
+  }
+  
+  .welcome-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-content {
+    padding: 20px;
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .toggle-sidebar-btn {
+    right: -40px;
+    width: 40px;
+    height: 48px;
+  }
+  
+  .toggle-chats-btn {
+    left: -40px;
+    width: 40px;
+    height: 48px;
+  }
+}
+
 
 .max-h-600::-webkit-scrollbar {
   width: 4px;

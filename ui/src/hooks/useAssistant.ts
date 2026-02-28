@@ -16,7 +16,6 @@ export function useAssistant() {
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [userModel, setUserModel] = useState("–");
-  const [messageCount, setMessageCount] = useState(0);
   const [generalConfig, setGeneralConfig] = useState<Expert | null>(null);
   const [isWaiting, setIsWaiting] = useState(false);
 
@@ -74,7 +73,6 @@ export function useAssistant() {
       switch (msg.type) {
         case "status":
           setUserModel(msg.model || "–");
-          setMessageCount(msg.messageCount || 0);
           if (msg.generalConfig) setGeneralConfig(msg.generalConfig);
           break;
         case "typing":
@@ -87,6 +85,33 @@ export function useAssistant() {
         case "list_chats":
           if (msg.chats) setChats(msg.chats);
           if (msg.channelChats) setChannelChats(msg.channelChats);
+          break;
+        case "assistant_chunk":
+          setIsTyping(false);
+          setIsWaiting(false);
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            const msgText = msg.text || '';
+            if (last && last.role === "assistant" && last.type === "message") {
+              const newMessages = [...prev];
+              newMessages[newMessages.length - 1] = {
+                ...last,
+                text: last.text + msgText,
+              };
+              return newMessages;
+            }
+            // First chunk
+            return [
+              ...prev,
+              {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                role: "assistant",
+                text: msgText,
+                type: "message",
+                timestamp: new Date().toISOString(),
+              },
+            ];
+          });
           break;
         case "assistant_message":
           setIsTyping(false);
@@ -117,19 +142,63 @@ export function useAssistant() {
             setMessages([]);
             send({ type: "switch_chat", chatId: msg.chatId });
           } else if (msg.text && msg.text !== "Cargando historial...") {
-            addMessage(
-              "assistant",
-              msg.text,
-              msg.model,
-              "message",
-              msg.origin,
-              msg.usage,
-              msg.latencyMs,
-              undefined,
-              (msg as any).timestamp
-            );
+              // Si ya se estaban recibiendo chunks, actualizar información final del mensaje
+              setMessages((prev) => {
+                const last = prev[prev.length - 1];
+                const msgText = msg.text || '';
+                if (last && last.role === "assistant" && last.type === "message" && msgText === last.text) {
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1] = {
+                    ...last,
+                    model: msg.model,
+                    origin: msg.origin,
+                    usage: msg.usage,
+                    latencyMs: msg.latencyMs,
+                  };
+                  return newMessages;
+                } else if (last && last.role === "assistant" && last.type === "message" && msgText.startsWith(last.text)) {
+                   // Update with the definitive text, since chunking might be slightly off.
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1] = {
+                    ...last,
+                    text: msgText,
+                    model: msg.model,
+                    origin: msg.origin,
+                    usage: msg.usage,
+                    latencyMs: msg.latencyMs,
+                  };
+                  return newMessages;
+                } else if (last && last.role === "assistant" && last.type === "message" && !msgText.startsWith(last.text)) {
+                   // Full fallback just in case chunking didn't start properly or mismatch
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1] = {
+                    ...last,
+                    text: msgText,
+                    model: msg.model,
+                    origin: msg.origin,
+                    usage: msg.usage,
+                    latencyMs: msg.latencyMs,
+                  };
+                  return newMessages;
+                }
+                
+                // Si no hay mensaje previo (no hubo chunks), agregarlo entero
+                return [
+                  ...prev,
+                  {
+                    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                    role: "assistant",
+                    text: msgText,
+                    model: msg.model,
+                    type: "message",
+                    origin: msg.origin,
+                    usage: msg.usage,
+                    latencyMs: msg.latencyMs,
+                    timestamp: (msg as any).timestamp || new Date().toISOString()
+                  }
+                ];
+              });
           }
-          setMessageCount((prev) => prev + 1);
           break;
         case "command_result":
           setIsTyping(false);
@@ -248,9 +317,25 @@ export function useAssistant() {
     e.target.style.height = Math.min(e.target.scrollHeight, 200) + "px";
   };
 
-  const renderContent = (text: string) => ({
-    __html: marked.parse(text) as string,
-  });
+  const renderContent = (text: string) => {
+    const renderer = new marked.Renderer();
+    renderer.code = (codeInfo) => {
+      const codeTypeStr = typeof codeInfo === 'string' ? codeInfo : (codeInfo as any).text;
+      const lang = typeof codeInfo === 'string' ? '' : (codeInfo as any).lang || '';
+      return `
+        <div class="code-block-wrapper">
+          <button class="copy-btn" onclick="navigator.clipboard.writeText(this.nextElementSibling.innerText); this.innerHTML='<svg width=\\'12\\' height=\\'12\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><polyline points=\\'20 6 9 17 4 12\\'/></svg> Copiado'; setTimeout(() => this.innerHTML='<svg width=\\'12\\' height=\\'12\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><rect x=\\'9\\' y=\\'9\\' width=\\'13\\' height=\\'13\\' rx=\\'2\\' ry=\\'2\\'/><path d=\\'M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\\'/></svg> Copiar', 2000)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copiar
+          </button>
+          <pre><code class="language-${lang}">${codeTypeStr}</code></pre>
+        </div>
+      `;
+    };
+    
+    // We parse synchronously
+    const html = marked.parse(text, { renderer }) as string;
+    return { __html: html };
+  };
 
   const logout = () => {
     setMessages([]);
@@ -424,7 +509,6 @@ export function useAssistant() {
     setInputText,
     isTyping,
     userModel,
-    messageCount,
     isWaiting,
     isConnected,
     experts,

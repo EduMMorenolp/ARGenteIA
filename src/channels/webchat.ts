@@ -90,6 +90,12 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
             text,
             chatId: currentChatId,
           } as unknown as WsMessage),
+        onChunk: (chunkText) =>
+          send(ws, {
+            type: 'assistant_chunk',
+            text: chunkText,
+            chatId: currentChatId,
+          } as unknown as WsMessage),
         onTyping: (isTyping) => send(ws, { type: 'typing', isTyping }),
       });
     }
