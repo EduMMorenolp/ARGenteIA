@@ -269,6 +269,128 @@ body {
   scrollbar-width: none;
 }
 
+/* ─── Chat Profile ─────────────────────────────────────────────────────── */
+.chat-profile-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+}
+
+.chat-profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+.chat-profile-btn:hover {
+    background: var(--bg-surface);
+}
+
+.chat-profile-avatar {
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.chat-profile-name {
+    flex: 1;
+    text-align: left;
+    font-weight: 500;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-profile-menu {
+    position: absolute;
+    top: 100%;
+    left: 16px;
+    right: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 50;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.profile-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    transition: var(--transition);
+}
+
+.profile-menu-item:hover {
+    background: var(--bg-input);
+}
+
+.profile-menu-item.logout {
+    color: var(--error);
+}
+
+.profile-menu-item.logout:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* ─── Create Chat Button ───────────────────────────────────────────────── */
+.create-chat-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.create-chat-btn-large {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    background: var(--bg-input);
+    color: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.create-chat-btn-large:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--accent-glow);
+}
+
 /* ─── Sidebar ──────────────────────────────────────────────────────────── */
 .sidebar {
   background: var(--bg-sidebar);

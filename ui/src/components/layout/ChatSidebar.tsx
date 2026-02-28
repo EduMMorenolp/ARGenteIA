@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
     Plus,
     MessageSquare,
@@ -6,8 +7,11 @@ import {
     Edit2,
     ChevronRight,
     ChevronLeft,
+    User,
+    LogOut,
+    MoreVertical
 } from "lucide-react";
-import type { ChatInfo } from "../../types";
+import type { ChatInfo, UserProfile } from "../../types";
 
 interface ChatSidebarProps {
     chats: ChatInfo[];
@@ -20,6 +24,9 @@ interface ChatSidebarProps {
     onTogglePin: (chatId: string) => void;
     isOpen: boolean;
     onToggleOpen: () => void;
+    currentUser: UserProfile;
+    onLogout: () => void;
+    onOpenProfile: () => void;
 }
 
 export function ChatSidebar({
@@ -33,7 +40,11 @@ export function ChatSidebar({
     onTogglePin,
     isOpen,
     onToggleOpen,
+    currentUser,
+    onLogout,
+    onOpenProfile,
 }: ChatSidebarProps) {
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const pinnedChats = chats.filter((c) => c.pinned);
     const recentChats = chats.filter((c) => !c.pinned);
 
@@ -45,11 +56,51 @@ export function ChatSidebar({
 
             {isOpen && (
                 <div className="chat-sidebar-content">
-                    <div className="sidebar-header">
-                        <div className="section-header">
-                            <span className="section-title">Conversaciones</span>
-                            <button className="add-chat-btn" onClick={onCreateChat} title="Nuevo Chat">
-                                <Plus size={16} />
+                    <div className="sidebar-header" style={{ padding: 0, display: "block", minHeight: "auto", borderBottom: "none", width: "100%" }}>
+                        {/* Profile Section */}
+                        <div className="chat-profile-section relative">
+                            <button
+                                className="chat-profile-btn"
+                                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                            >
+                                <div className="chat-profile-avatar">
+                                    {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : <User size={18} />}
+                                </div>
+                                <span className="chat-profile-name">{currentUser.name || currentUser.userId}</span>
+                                <MoreVertical size={16} className="text-muted" />
+                            </button>
+
+                            {isProfileMenuOpen && (
+                                <div className="chat-profile-menu">
+                                    <button
+                                        className="profile-menu-item"
+                                        onClick={() => {
+                                            setIsProfileMenuOpen(false);
+                                            onOpenProfile();
+                                        }}
+                                    >
+                                        <User size={14} />
+                                        Mi Perfil
+                                    </button>
+                                    <button
+                                        className="profile-menu-item logout"
+                                        onClick={() => {
+                                            setIsProfileMenuOpen(false);
+                                            onLogout();
+                                        }}
+                                    >
+                                        <LogOut size={14} />
+                                        Cerrar Sesión
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Create Chat Section */}
+                        <div className="create-chat-section">
+                            <button className="create-chat-btn-large" onClick={onCreateChat}>
+                                <Plus size={18} />
+                                <span>Nuevo Chat</span>
                             </button>
                         </div>
                     </div>

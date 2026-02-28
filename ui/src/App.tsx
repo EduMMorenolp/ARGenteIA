@@ -175,10 +175,8 @@ export default function App() {
         onDeleteExpert={deleteExpert}
         onEditTask={setEditingTask}
         onDeleteTask={deleteTask}
-        onLogout={logout}
         onOpenCreator={() => setIsCreatorOpen(true)}
         onOpenFeatures={() => setIsFeaturesOpen(true)}
-        onOpenProfile={() => setIsProfileOpen(true)}
         sendMessage={sendMessage}
         isWaiting={isWaiting}
         availableModels={availableModels}
@@ -226,6 +224,9 @@ export default function App() {
         onTogglePin={togglePinChat}
         isOpen={isChatSidebarOpen}
         onToggleOpen={() => setIsChatSidebarOpen(!isChatSidebarOpen)}
+        currentUser={currentUser}
+        onLogout={logout}
+        onOpenProfile={() => setIsProfileOpen(true)}
       />
 
       {isCreatorOpen && (

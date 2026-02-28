@@ -5,9 +5,7 @@ import {
   Trash2,
   Plus,
   Calendar,
-  LogOut,
   Cpu,
-  User,
   Server,
   ChevronLeft,
   ChevronRight,
@@ -33,10 +31,8 @@ interface SidebarProps {
   onDeleteExpert: (name: string) => void;
   onEditTask: (task: ScheduledTask) => void;
   onDeleteTask: (id: number) => void;
-  onLogout: () => void;
   onOpenCreator: () => void;
   onOpenFeatures: () => void;
-  onOpenProfile: () => void;
   sendMessage: (cmd: string) => void;
   isWaiting: boolean;
   availableModels: ModelConfig[];
@@ -58,10 +54,8 @@ export function Sidebar({
   onDeleteExpert,
   onEditTask,
   onDeleteTask,
-  onLogout,
   onOpenCreator,
   onOpenFeatures,
-  onOpenProfile,
   sendMessage,
   isWaiting,
   availableModels,
@@ -232,20 +226,6 @@ export function Sidebar({
                 {isConnected ? "Conectado" : "Sin conexión"}
               </span>
             </div>
-            <button
-              className="logout-trigger profile-btn"
-              onClick={onOpenProfile}
-              title="Mi Perfil"
-            >
-              <User size={14} /> <span>Mi Perfil</span>
-            </button>
-            <button
-              className="logout-trigger"
-              onClick={onLogout}
-              title="Cerrar Sesión"
-            >
-              <LogOut size={14} /> <span>Cerrar Sesión</span>
-            </button>
           </div>
         </div>
       )}
