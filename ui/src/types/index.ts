@@ -9,6 +9,7 @@ export interface Expert {
 
 export interface ModelConfig {
   name: string;
+  displayName?: string;
   apiKey?: string;
   baseUrl?: string;
   created_at?: string;

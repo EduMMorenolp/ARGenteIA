@@ -41,6 +41,7 @@ export function ModelManager({
     const [showApiKey, setShowApiKey] = useState(false);
     const [formData, setFormData] = useState<ModelConfig>({
         name: "",
+        displayName: "",
         apiKey: "",
         baseUrl: "",
     });
@@ -53,7 +54,7 @@ export function ModelManager({
     }, [expandedModel]);
 
     const startAdd = () => {
-        setFormData({ name: "", apiKey: "", baseUrl: "" });
+        setFormData({ name: "", displayName: "", apiKey: "", baseUrl: "" });
         setIsAdding(true);
         setEditingName(null);
         setExpandedModel(null);
@@ -69,7 +70,7 @@ export function ModelManager({
     const handleSave = () => {
         if (!formData.name.trim()) return;
         onSave(formData, editingName || undefined);
-        setFormData({ name: "", apiKey: "", baseUrl: "" });
+        setFormData({ name: "", displayName: "", apiKey: "", baseUrl: "" });
         setIsAdding(false);
         setEditingName(null);
     };
@@ -77,7 +78,7 @@ export function ModelManager({
     const handleCancel = () => {
         setIsAdding(false);
         setEditingName(null);
-        setFormData({ name: "", apiKey: "", baseUrl: "" });
+        setFormData({ name: "", displayName: "", apiKey: "", baseUrl: "" });
     };
 
     const toggleExpand = (name: string) => {
@@ -163,7 +164,9 @@ export function ModelManager({
                                             >
                                                 {getProviderBadge(m.name)}
                                             </span>
-                                            <span className="model-item-name">{m.name}</span>
+                                            <span className="model-item-name">
+                                                {m.displayName || m.name}
+                                            </span>
                                             {/* Badges inline de capacidades */}
                                             {info && (
                                                 <span className="model-caps-inline">
@@ -188,6 +191,18 @@ export function ModelManager({
                                                 {isEditing ? (
                                                     /* Formulario de edición inline */
                                                     <div className="model-edit-form">
+                                                        <div className="form-group">
+                                                            <label>Nombre personalizado</label>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Ej: Mi GPT-4, Llama Local..."
+                                                                value={formData.displayName || ""}
+                                                                onChange={(e) =>
+                                                                    setFormData({ ...formData, displayName: e.target.value })
+                                                                }
+                                                            />
+                                                            <span className="field-hint">Opcional. Se mostrará en lugar del nombre técnico.</span>
+                                                        </div>
                                                         <div className="form-group">
                                                             <label>Nombre del modelo</label>
                                                             <input
@@ -343,6 +358,16 @@ export function ModelManager({
                     {/* Formulario para agregar nuevo modelo */}
                     {isAdding && (
                         <div className="model-form">
+                            <div className="form-group">
+                                <label>Nombre personalizado</label>
+                                <input
+                                    type="text"
+                                    placeholder="Ej: Mi asistente, Llama Local..."
+                                    value={formData.displayName || ""}
+                                    onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+                                />
+                                <span className="field-hint">Opcional. Se mostrará en lugar del nombre técnico.</span>
+                            </div>
                             <div className="form-group">
                                 <label>Nombre del modelo</label>
                                 <input

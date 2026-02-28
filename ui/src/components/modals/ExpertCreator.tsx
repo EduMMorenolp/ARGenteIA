@@ -81,7 +81,8 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
         }
     };
 
-    const formatModelName = (modelStr: string) => {
+    const formatModelName = (modelStr: string, displayName?: string) => {
+        if (displayName) return displayName;
         if (!modelStr) return 'Desconocido';
         // Ej: openrouter/meta-llama/llama-3.3-70b-instruct -> llama-3.3-70b-instruct (openrouter)
         const parts = modelStr.split('/');
@@ -167,7 +168,9 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
                                 <option value={formData.model}>{formatModelName(formData.model)}</option>
                             ) : (
                                 availableModels.map(m => (
-                                    <option key={m.name} value={m.name}>{formatModelName(m.name)}</option>
+                                    <option key={m.name} value={m.name}>
+                                        {formatModelName(m.name, m.displayName)}
+                                    </option>
                                 ))
                             )}
                         </select>

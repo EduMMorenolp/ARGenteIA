@@ -3,6 +3,7 @@ import { getConfig } from '../config/index.ts';
 
 export interface ModelEntry {
   name: string;
+  displayName?: string;
   apiKey?: string;
   baseUrl?: string;
   created_at?: string;
@@ -31,13 +32,14 @@ export function getModel(name: string): ModelEntry | null {
 export function upsertModel(model: ModelEntry): void {
   const db = getDb();
   const stmt = db.prepare(`
-    INSERT INTO models (name, apiKey, baseUrl)
-    VALUES (?, ?, ?)
+    INSERT INTO models (name, displayName, apiKey, baseUrl)
+    VALUES (?, ?, ?, ?)
     ON CONFLICT(name) DO UPDATE SET
+      displayName = excluded.displayName,
       apiKey = excluded.apiKey,
       baseUrl = excluded.baseUrl
   `);
-  stmt.run(model.name, model.apiKey ?? null, model.baseUrl ?? null);
+  stmt.run(model.name, model.displayName ?? null, model.apiKey ?? null, model.baseUrl ?? null);
 }
 
 /**

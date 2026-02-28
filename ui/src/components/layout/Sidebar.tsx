@@ -145,7 +145,9 @@ export function Sidebar({
                       </div>
                       <div className="expert-info">
                         <span className="expert-name">{exp.name}</span>
-                        <span className="expert-model">{exp.model.split('/').pop()}</span>
+                        <span className="expert-model">
+                          {availableModels.find(m => m.name === exp.model)?.displayName || exp.model.split('/').pop()}
+                        </span>
                       </div>
                     </button>
                     <div className="expert-actions">
@@ -201,7 +203,7 @@ export function Sidebar({
           <div className="sidebar-footer">
             <div className="model-badge">
               <Zap size={10} className="text-accent" />
-              <span>{userModel.split('/').pop()}</span>
+              <span>{availableModels.find(m => m.name === userModel)?.displayName || userModel.split('/').pop()}</span>
             </div>
             <div className="conn-status-wrap">
               <div className={`status-led ${isConnected ? 'online' : 'offline'}`} />

@@ -72,6 +72,7 @@ export function getDb(): Database.Database {
 
     CREATE TABLE IF NOT EXISTS models (
       name TEXT PRIMARY KEY,
+      displayName TEXT,
       apiKey TEXT,
       baseUrl TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -154,6 +155,13 @@ export function getDb(): Database.Database {
     _db.exec('CREATE INDEX IF NOT EXISTS idx_messages_chatId ON messages(chatId)');
   } catch {
     // Ya existe o error
+  }
+
+  // Migración: Agregar displayName a models
+  try {
+    _db.exec('ALTER TABLE models ADD COLUMN displayName TEXT');
+  } catch {
+    // Ya existe
   }
 
   return _db;
