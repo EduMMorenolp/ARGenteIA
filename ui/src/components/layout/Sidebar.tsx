@@ -9,8 +9,8 @@ import {
   Server,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react";
-import type { Expert, ModelConfig, ScheduledTask } from "../../types";
+} from 'lucide-react';
+import type { Expert, ModelConfig, ScheduledTask } from '../../types';
 
 interface QuickCommand {
   label: string;
@@ -64,7 +64,7 @@ export function Sidebar({
   onToggleOpen,
 }: SidebarProps) {
   return (
-    <aside className={`sidebar ${isOpen ? "open" : "closed"}`}>
+    <aside className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
       <button className="toggle-sidebar-btn" onClick={onToggleOpen}>
         {isOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
       </button>
@@ -87,10 +87,10 @@ export function Sidebar({
                     key={cmd.cmd}
                     className="cmd-pill"
                     onClick={() => {
-                      if (cmd.cmd === "features") onOpenFeatures();
+                      if (cmd.cmd === 'features') onOpenFeatures();
                       else if (!isWaiting) sendMessage(cmd.cmd);
                     }}
-                    disabled={isWaiting && cmd.cmd !== "features"}
+                    disabled={isWaiting && cmd.cmd !== 'features'}
                   >
                     {cmd.icon} {cmd.label}
                   </button>
@@ -106,13 +106,8 @@ export function Sidebar({
                 </button>
               </div>
               <div className="experts-list">
-                <div
-                  className={`expert-item-wrap ${selectedExpert === null ? "active" : ""}`}
-                >
-                  <button
-                    className="expert-item-main"
-                    onClick={() => onSelectExpert(null)}
-                  >
+                <div className={`expert-item-wrap ${selectedExpert === null ? 'active' : ''}`}>
+                  <button className="expert-item-main" onClick={() => onSelectExpert(null)}>
                     <div className="expert-avatar general">
                       <Bot size={14} />
                     </div>
@@ -121,45 +116,33 @@ export function Sidebar({
                     </div>
                   </button>
                   <div className="expert-actions">
-                    <button
-                      onClick={onEditGeneral}
-                      title="Configurar Asistente General"
-                    >
+                    <button onClick={onEditGeneral} title="Configurar Asistente General">
                       <Edit2 size={12} />
                     </button>
                     <button
                       onClick={() => {
-                        if (
-                          confirm(
-                            "¿Restablecer configuración original del Asistente General?",
-                          )
-                        ) {
-                          onDeleteExpert("__general__");
+                        if (confirm('¿Restablecer configuración original del Asistente General?')) {
+                          onDeleteExpert('__general__');
                         }
                       }}
                       title="Restablecer original"
                     >
-                      <Plus size={12} style={{ transform: "rotate(45deg)" }} />
+                      <Plus size={12} style={{ transform: 'rotate(45deg)' }} />
                     </button>
                   </div>
                 </div>
                 {experts.map((exp) => (
                   <div
                     key={exp.name}
-                    className={`expert-item-wrap ${selectedExpert === exp.name ? "active" : ""}`}
+                    className={`expert-item-wrap ${selectedExpert === exp.name ? 'active' : ''}`}
                   >
-                    <button
-                      className="expert-item-main"
-                      onClick={() => onSelectExpert(exp.name)}
-                    >
+                    <button className="expert-item-main" onClick={() => onSelectExpert(exp.name)}>
                       <div className="expert-avatar">
                         <Cpu size={14} />
                       </div>
                       <div className="expert-info">
                         <span className="expert-name">{exp.name}</span>
-                        <span className="expert-model">
-                          {exp.model.split("/").pop()}
-                        </span>
+                        <span className="expert-model">{exp.model.split('/').pop()}</span>
                       </div>
                     </button>
                     <div className="expert-actions">
@@ -190,10 +173,7 @@ export function Sidebar({
                         <span className="task-desc">{t.task}</span>
                         <span className="task-cron">{t.cron}</span>
                       </div>
-                      <button
-                        className="task-delete"
-                        onClick={() => onDeleteTask(t.id)}
-                      >
+                      <button className="task-delete" onClick={() => onDeleteTask(t.id)}>
                         <Trash2 size={12} />
                       </button>
                     </div>
@@ -218,13 +198,11 @@ export function Sidebar({
           <div className="sidebar-footer">
             <div className="model-badge">
               <Zap size={10} className="text-accent" />
-              <span>{userModel.split("/").pop()}</span>
+              <span>{userModel.split('/').pop()}</span>
             </div>
             <div className="conn-status-wrap">
-              <div className={`status-led ${isConnected ? "online" : "offline"}`} />
-              <span className="status-label">
-                {isConnected ? "Conectado" : "Sin conexión"}
-              </span>
+              <div className={`status-led ${isConnected ? 'online' : 'offline'}`} />
+              <span className="status-label">{isConnected ? 'Conectado' : 'Sin conexión'}</span>
             </div>
           </div>
         </div>
