@@ -490,6 +490,10 @@ body {
 
 .nav-section {
   margin-bottom: 24px;
+  min-height: 90px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+  
 }
 
 .section-header {
