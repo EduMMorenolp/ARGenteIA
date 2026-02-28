@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { WsMessage } from '../types';
 
-const WS_URL = `ws://${window.location.host}`;
+const WS_URL = `ws://${window.location.host}/ws`;
 
 export function useWebSocket(onMessage: (msg: WsMessage) => void) {
   const [isConnected, setIsConnected] = useState(false);

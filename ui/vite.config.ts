@@ -7,11 +7,11 @@ export default defineConfig({
   server: {
     proxy: {
       '/ws': {
-        target: 'ws://localhost:3000',
+        target: 'ws://localhost:19666',
         ws: true,
       },
       // Si tienes otros endpoints de API, agrégalos aquí
-      '/health': 'http://localhost:3000',
+      '/health': 'http://localhost:19666',
     }
   },
   build: {
