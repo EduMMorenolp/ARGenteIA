@@ -1,0 +1,88 @@
+/* ─── Mobile Responsiveness ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+  }
+  
+  .sidebar, .chat-sidebar {
+    position: fixed;
+    height: 100vh;
+    z-index: 50;
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar {
+    left: 0;
+    transform: translateX(0);
+  }
+  
+  .sidebar.closed {
+    transform: translateX(-100%);
+    width: 280px !important;
+  }
+  
+  .chat-sidebar {
+    right: 0;
+    transform: translateX(0);
+  }
+  
+  .chat-sidebar.closed {
+    transform: translateX(100%);
+    width: 280px !important;
+  }
+  
+  .chat-area {
+    flex: 1;
+    width: 100vw;
+  }
+  
+  .input-section {
+    padding: 16px;
+  }
+  
+  .messages {
+    padding: 16px;
+  }
+  
+  .msg-bubble {
+    font-size: 14px;
+    padding: 12px 16px;
+  }
+  
+  .welcome-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-content {
+    padding: 20px;
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .toggle-sidebar-btn {
+    right: -40px;
+    width: 40px;
+    height: 48px;
+  }
+  
+  .toggle-chats-btn {
+    left: -40px;
+    width: 40px;
+    height: 48px;
+  }
+}
+
+
+.max-h-600::-webkit-scrollbar {
+  width: 4px;
+}
+
+.max-h-600::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+

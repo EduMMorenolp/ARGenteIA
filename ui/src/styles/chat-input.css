@@ -1,0 +1,67 @@
+/* ─── Input Area ───────────────────────────────────────────────────────── */
+.input-section {
+  flex-shrink: 0; /* No se encoge */
+  padding: 24px 32px;
+  background: linear-gradient(to top, var(--bg-dark), transparent);
+}
+
+.input-form {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.input-group {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 8px 12px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  transition: var(--transition);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.input-group:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: white;
+  padding: 10px 4px;
+  resize: none;
+  font-family: inherit;
+  font-size: 15px;
+  max-height: 200px;
+}
+
+.send-trigger {
+  width: 40px;
+  height: 40px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.send-trigger:hover:not(:disabled) {
+  transform: scale(1.05);
+  background: #6aa0ff;
+}
+
+.send-trigger:disabled {
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+

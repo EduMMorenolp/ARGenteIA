@@ -1,0 +1,181 @@
+/* ─── Model Manager ────────────────────────────────────────────────────── */
+.models-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.model-item {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: var(--transition);
+}
+
+.model-item:hover {
+  border-color: rgba(79, 140, 255, 0.4);
+}
+
+.model-item.editing {
+  border-color: var(--accent);
+  background: rgba(79, 140, 255, 0.05);
+}
+
+.model-item-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.model-item-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.model-item-url {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+.model-item-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.model-item-actions .icon-btn-sm {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: var(--transition);
+}
+
+.model-item-actions .icon-btn-sm:hover {
+  background: var(--border);
+  color: var(--text-main);
+}
+
+.model-item-actions .icon-btn-sm.danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--error);
+}
+
+.provider-badge {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.badge-openrouter {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+}
+
+.badge-ollama {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.badge-anthropic {
+  background: rgba(249, 115, 22, 0.15);
+  color: #f97316;
+}
+
+.badge-openai {
+  background: rgba(79, 140, 255, 0.15);
+  color: var(--accent);
+}
+
+.model-form {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-top: 12px;
+}
+
+.model-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.model-form-actions .btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ─── Models Summary (Sidebar) ─────────────────────────────────────────── */
+.models-summary {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  transition: var(--transition);
+}
+
+.models-summary:hover {
+  border-color: rgba(79, 140, 255, 0.4);
+  background: rgba(79, 140, 255, 0.05);
+}
+
+.model-count {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.input-with-toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.input-with-toggle input {
+  flex: 1;
+  padding-right: 40px;
+}
+
+.toggle-visibility {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: var(--transition);
+}
+
+.toggle-visibility:hover {
+  color: var(--text-main);
+  background: var(--border);
+}
+
