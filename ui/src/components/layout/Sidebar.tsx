@@ -33,6 +33,7 @@ interface SidebarProps {
   onDeleteTask: (id: number) => void;
   onOpenCreator: () => void;
   onOpenFeatures: () => void;
+  onOpenDashboard: () => void;
   sendMessage: (cmd: string) => void;
   isWaiting: boolean;
   availableModels: ModelConfig[];
@@ -56,6 +57,7 @@ export function Sidebar({
   onDeleteTask,
   onOpenCreator,
   onOpenFeatures,
+  onOpenDashboard,
   sendMessage,
   isWaiting,
   availableModels,
@@ -88,9 +90,10 @@ export function Sidebar({
                     className="cmd-pill"
                     onClick={() => {
                       if (cmd.cmd === 'features') onOpenFeatures();
+                      else if (cmd.cmd === 'dashboard') onOpenDashboard();
                       else if (!isWaiting) sendMessage(cmd.cmd);
                     }}
-                    disabled={isWaiting && cmd.cmd !== 'features'}
+                    disabled={isWaiting && cmd.cmd !== 'features' && cmd.cmd !== 'dashboard'}
                   >
                     {cmd.icon} {cmd.label}
                   </button>

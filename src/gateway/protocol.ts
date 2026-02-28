@@ -61,7 +61,9 @@ export type WsMessageType =
   | 'chat_update' // cliente → servidor: crear/renombrar/eliminar/pin chat
   | 'action_log' // servidor → cliente: log de acción intermedia (herramientas, pensamientos)
   | 'assistant_chunk' // servidor → cliente: fragmento de stream de respuesta
-  | 'switch_chat'; // cliente → servidor: cambiar al chat seleccionado
+  | 'switch_chat' // cliente → servidor: cambiar al chat seleccionado
+  | 'dashboard_stats' // servidor → cliente: estadísticas del dashboard
+  | 'request_dashboard'; // cliente → servidor: solicitar stats del dashboard
 
 export interface WsActionLogMessage {
   type: 'action_log';
@@ -230,7 +232,9 @@ export type WsMessage =
   | WsListChatsMessage
   | WsChatUpdateMessage
   | WsSwitchChatMessage
-  | WsActionLogMessage;
+  | WsActionLogMessage
+  | WsDashboardStatsMessage
+  | WsRequestDashboardMessage;
 
 export interface WsListChatsMessage {
   type: 'list_chats';
@@ -249,4 +253,26 @@ export interface WsChatUpdateMessage {
 export interface WsSwitchChatMessage {
   type: 'switch_chat';
   chatId: string;
+}
+
+export interface WsDashboardStatsMessage {
+  type: 'dashboard_stats';
+  stats: {
+    totalMessages: number;
+    totalAssistantMessages: number;
+    totalUserMessages: number;
+    totalTokens: number;
+    totalPromptTokens: number;
+    totalCompletionTokens: number;
+    avgLatencyMs: number;
+    minLatencyMs: number;
+    maxLatencyMs: number;
+    totalRequests: number;
+    dailyActivity: Array<{ date: string; messages: number; tokens: number }>;
+    expertRanking: Array<{ expert: string; count: number; tokens: number; avgLatency: number }>;
+  };
+}
+
+export interface WsRequestDashboardMessage {
+  type: 'request_dashboard';
 }

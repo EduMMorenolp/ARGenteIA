@@ -131,6 +131,23 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
       timestamp: new Date().toISOString(),
     });
 
+    // Registrar estadísticas
+    try {
+      const { logStat } = await import('../memory/stats-db.ts');
+      logStat({
+        userId: sessionId,
+        chatId: currentChatId,
+        expertName: opts.expertName || null,
+        model: result.model,
+        prompt_tokens: result.usage?.prompt_tokens || 0,
+        completion_tokens: result.usage?.completion_tokens || 0,
+        total_tokens: result.usage?.total_tokens || 0,
+        latencyMs: result.latencyMs || 0,
+      });
+    } catch (statErr) {
+      console.error(chalk.red('Error al registrar stats:'), statErr);
+    }
+
     send(ws, {
       type: 'list_chats',
       chats: listChats(sessionId, opts.expertName || null),

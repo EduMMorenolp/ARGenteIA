@@ -1,6 +1,6 @@
 import { useState, type KeyboardEvent, type FormEvent } from "react";
 import {
-  Zap,
+  BarChart3,
   MessageSquare,
   Terminal,
   Info,
@@ -23,11 +23,13 @@ import { FeaturesOverlay } from "./components/modals/FeaturesOverlay";
 import { TaskEditor } from "./components/modals/TaskEditor";
 import { ProfileModal } from "./components/modals/ProfileModal";
 import { ModelManager } from "./components/modals/ModelManager";
+import { DashboardModal } from "./components/modals/DashboardModal";
 import { ChatSidebar } from "./components/layout/ChatSidebar";
 
 export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isModelsOpen, setIsModelsOpen] = useState(false);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isChatSidebarOpen, setIsChatSidebarOpen] = useState(true);
   const {
@@ -80,10 +82,13 @@ export default function App() {
     renameChat,
     togglePinChat,
     switchChat,
+    // Dashboard
+    dashboardStats,
+    requestStats,
   } = useAssistant();
 
   const quickCommands = [
-    { label: "Estado", cmd: "/status", icon: <Zap size={14} /> },
+    { label: "Dashboard", cmd: "dashboard", icon: <BarChart3 size={14} /> },
     { label: "Ayuda", cmd: "/ayuda", icon: <MessageSquare size={14} /> },
     { label: "Limpiar", cmd: "/reset", icon: <Terminal size={14} /> },
     { label: "Funciones", cmd: "features", icon: <Info size={14} /> },
@@ -177,6 +182,7 @@ export default function App() {
         onDeleteTask={deleteTask}
         onOpenCreator={() => setIsCreatorOpen(true)}
         onOpenFeatures={() => setIsFeaturesOpen(true)}
+        onOpenDashboard={() => setIsDashboardOpen(true)}
         sendMessage={sendMessage}
         isWaiting={isWaiting}
         availableModels={availableModels}
@@ -274,6 +280,14 @@ export default function App() {
           onClose={() => setIsModelsOpen(false)}
           onSave={upsertModel}
           onDelete={deleteModel}
+        />
+      )}
+
+      {isDashboardOpen && (
+        <DashboardModal
+          stats={dashboardStats}
+          onClose={() => setIsDashboardOpen(false)}
+          onRequestStats={requestStats}
         />
       )}
     </div>

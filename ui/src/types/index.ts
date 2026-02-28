@@ -96,3 +96,23 @@ export interface WsMessage {
   modelConfig?: ModelConfig;
   action?: string;
 }
+
+export interface DashboardStats {
+  totalMessages: number;
+  totalAssistantMessages: number;
+  totalUserMessages: number;
+  totalTokens: number;
+  totalPromptTokens: number;
+  totalCompletionTokens: number;
+  avgLatencyMs: number;
+  minLatencyMs: number;
+  maxLatencyMs: number;
+  totalRequests: number;
+  dailyActivity: Array<{ date: string; messages: number; tokens: number }>;
+  expertRanking: Array<{
+    expert: string;
+    count: number;
+    tokens: number;
+    avgLatency: number;
+  }>;
+}

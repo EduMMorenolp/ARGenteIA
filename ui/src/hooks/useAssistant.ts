@@ -8,6 +8,7 @@ import type {
   WsMessage,
   ScheduledTask,
   ChatInfo,
+  DashboardStats,
 } from "../types";
 import { useWebSocket } from "./useWebSocket";
 
@@ -35,6 +36,7 @@ export function useAssistant() {
   const [isFeaturesOpen, setIsFeaturesOpen] = useState(false);
   const [editingExpert, setEditingExpert] = useState<Expert | null>(null);
   const [editingTask, setEditingTask] = useState<ScheduledTask | null>(null);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -229,6 +231,9 @@ export function useAssistant() {
           break;
         case "list_models":
           if (msg.models) setAvailableModels(msg.models);
+          break;
+        case "dashboard_stats":
+          if ((msg as any).stats) setDashboardStats((msg as any).stats);
           break;
       }
     },
@@ -553,5 +558,8 @@ export function useAssistant() {
     renameChat,
     togglePinChat,
     switchChat,
+    // Dashboard
+    dashboardStats,
+    requestStats: () => send({ type: "request_dashboard" } as any),
   };
 }

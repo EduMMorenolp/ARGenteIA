@@ -376,6 +376,14 @@ export function createGateway(): GatewayServer {
           chats: listChats(sessionId, expertFilter),
           channelChats: listChannelChats(sessionId),
         } as unknown as WsMessage);
+      } else if (msg.type === 'request_dashboard') {
+        const { getStats } = await import('../memory/stats-db.ts');
+        const stats = getStats(sessionId);
+        console.log(chalk.cyan(`📊 Dashboard solicitado por ${sessionId}`));
+        send(ws, {
+          type: 'dashboard_stats',
+          stats,
+        } as unknown as WsMessage);
       }
     });
 

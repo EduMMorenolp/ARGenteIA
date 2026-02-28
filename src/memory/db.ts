@@ -88,11 +88,25 @@ export function getDb(): Database.Database {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS stats_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId TEXT NOT NULL,
+      chatId TEXT,
+      expertName TEXT,
+      model TEXT,
+      prompt_tokens INTEGER DEFAULT 0,
+      completion_tokens INTEGER DEFAULT 0,
+      total_tokens INTEGER DEFAULT 0,
+      latencyMs INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_user_facts_userId ON user_facts(userId);
     CREATE INDEX IF NOT EXISTS idx_tasks_userId ON scheduled_tasks(userId);
     CREATE INDEX IF NOT EXISTS idx_sub_agents_name ON sub_agents(name);
     CREATE INDEX IF NOT EXISTS idx_messages_userId ON messages(userId);
     CREATE INDEX IF NOT EXISTS idx_chats_userId ON chats(userId);
+    CREATE INDEX IF NOT EXISTS idx_stats_log_userId ON stats_log(userId);
   `);
 
   // Migración: Asegurar columna 'experts' en 'sub_agents'
