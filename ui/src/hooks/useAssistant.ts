@@ -9,6 +9,7 @@ import type {
   ScheduledTask,
   ChatInfo,
   DashboardStats,
+  ModelCapabilities,
 } from "../types";
 import { useWebSocket } from "./useWebSocket";
 
@@ -37,6 +38,7 @@ export function useAssistant() {
   const [editingExpert, setEditingExpert] = useState<Expert | null>(null);
   const [editingTask, setEditingTask] = useState<ScheduledTask | null>(null);
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [modelCapabilities, setModelCapabilities] = useState<Record<string, ModelCapabilities>>({});
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -234,6 +236,14 @@ export function useAssistant() {
           break;
         case "dashboard_stats":
           if ((msg as any).stats) setDashboardStats((msg as any).stats);
+          break;
+        case "model_info":
+          if ((msg as any).modelName && (msg as any).capabilities) {
+            setModelCapabilities((prev) => ({
+              ...prev,
+              [(msg as any).modelName]: (msg as any).capabilities,
+            }));
+          }
           break;
       }
     },
@@ -561,5 +571,9 @@ export function useAssistant() {
     // Dashboard
     dashboardStats,
     requestStats: () => send({ type: "request_dashboard" } as any),
+    // Model Info
+    modelCapabilities,
+    requestModelInfo: (modelName: string) =>
+      send({ type: "request_model_info", modelName } as any),
   };
 }

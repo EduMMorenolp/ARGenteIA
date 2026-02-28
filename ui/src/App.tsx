@@ -85,6 +85,9 @@ export default function App() {
     // Dashboard
     dashboardStats,
     requestStats,
+    // Model Info
+    modelCapabilities,
+    requestModelInfo,
   } = useAssistant();
 
   const quickCommands = [
@@ -280,6 +283,8 @@ export default function App() {
           onClose={() => setIsModelsOpen(false)}
           onSave={upsertModel}
           onDelete={deleteModel}
+          modelCapabilities={modelCapabilities}
+          onRequestModelInfo={requestModelInfo}
         />
       )}
 

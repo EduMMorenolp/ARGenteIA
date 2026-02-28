@@ -116,3 +116,13 @@ export interface DashboardStats {
     avgLatency: number;
   }>;
 }
+
+export interface ModelCapabilities {
+  supportsVision: boolean;
+  supportsAudio: boolean;
+  contextLength: number;
+  description?: string;
+  inputModalities: string[];
+  outputModalities: string[];
+  pricing?: { prompt: string; completion: string };
+}

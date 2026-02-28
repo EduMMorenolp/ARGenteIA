@@ -63,7 +63,9 @@ export type WsMessageType =
   | 'assistant_chunk' // servidor → cliente: fragmento de stream de respuesta
   | 'switch_chat' // cliente → servidor: cambiar al chat seleccionado
   | 'dashboard_stats' // servidor → cliente: estadísticas del dashboard
-  | 'request_dashboard'; // cliente → servidor: solicitar stats del dashboard
+  | 'request_dashboard' // cliente → servidor: solicitar stats del dashboard
+  | 'model_info' // servidor → cliente: info de capacidades de un modelo
+  | 'request_model_info'; // cliente → servidor: solicitar info de un modelo
 
 export interface WsActionLogMessage {
   type: 'action_log';
@@ -234,7 +236,9 @@ export type WsMessage =
   | WsSwitchChatMessage
   | WsActionLogMessage
   | WsDashboardStatsMessage
-  | WsRequestDashboardMessage;
+  | WsRequestDashboardMessage
+  | WsModelInfoMessage
+  | WsRequestModelInfoMessage;
 
 export interface WsListChatsMessage {
   type: 'list_chats';
@@ -275,4 +279,23 @@ export interface WsDashboardStatsMessage {
 
 export interface WsRequestDashboardMessage {
   type: 'request_dashboard';
+}
+
+export interface WsModelInfoMessage {
+  type: 'model_info';
+  modelName: string;
+  capabilities: {
+    supportsVision: boolean;
+    supportsAudio: boolean;
+    contextLength: number;
+    description?: string;
+    inputModalities: string[];
+    outputModalities: string[];
+    pricing?: { prompt: string; completion: string };
+  };
+}
+
+export interface WsRequestModelInfoMessage {
+  type: 'request_model_info';
+  modelName: string;
 }

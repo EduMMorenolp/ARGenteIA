@@ -384,6 +384,24 @@ export function createGateway(): GatewayServer {
           type: 'dashboard_stats',
           stats,
         } as unknown as WsMessage);
+      } else if (msg.type === 'request_model_info') {
+        const modelName = (msg as any).modelName;
+        if (modelName) {
+          const { fetchModelCapabilities } = await import('../agent/model-info.ts');
+          const { getModel } = await import('../memory/model-db.ts');
+          const dbModel = getModel(modelName);
+          const capabilities = await fetchModelCapabilities(
+            modelName,
+            dbModel?.baseUrl,
+            dbModel?.apiKey,
+          );
+          console.log(chalk.cyan(`🔍 Model info solicitado: ${modelName}`));
+          send(ws, {
+            type: 'model_info',
+            modelName,
+            capabilities,
+          } as unknown as WsMessage);
+        }
       }
     });
 
