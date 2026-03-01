@@ -16,6 +16,7 @@ import {
     Layers,
     DollarSign,
     Search,
+    HelpCircle,
 } from "lucide-react";
 import type { ModelConfig, ModelCapabilities } from "../../types";
 
@@ -54,6 +55,7 @@ export function ModelManager({
     const [isOrSidebarOpen, setIsOrSidebarOpen] = useState(false);
     const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
     const [orFilters, setOrFilters] = useState<Set<string>>(new Set());
+    const [isOrDocOpen, setIsOrDocOpen] = useState(false);
 
     const toggleOrFilter = (filter: string) => {
         setOrFilters((prev) => {
@@ -189,7 +191,31 @@ export function ModelManager({
                 {/* Panel Izquierdo: Buscador OpenRouter */}
                 <div className={`modal-side-panel left ${isOrSidebarOpen ? "open" : ""}`}>
                     <div className="modal-side-inner" style={{ paddingTop: '56px' }}>
-                        <h4 style={{ marginBottom: "12px", fontSize: "14px", color: "var(--text-main)" }}>Buscar en OpenRouter</h4>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                            <h4 style={{ fontSize: "14px", color: "var(--text-main)", margin: 0 }}>Buscar en OpenRouter</h4>
+                            <button
+                                className="or-doc-btn"
+                                onClick={() => setIsOrDocOpen(!isOrDocOpen)}
+                                title="Cómo usar OpenRouter"
+                            >
+                                <HelpCircle size={14} /> Doc
+                            </button>
+                        </div>
+                        {isOrDocOpen && (
+                            <div className="or-doc-panel">
+                                <p><strong>¿Cómo usar modelos de OpenRouter?</strong></p>
+                                <ol>
+                                    <li>Creá una cuenta en <a href="https://openrouter.ai" target="_blank" rel="noreferrer">openrouter.ai</a></li>
+                                    <li>Andá a <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer">openrouter.ai/keys</a> y generá una API Key</li>
+                                    <li>Buscá el modelo que querés usar en la lista de abajo y hacé click en <strong>"+ Añadir"</strong></li>
+                                    <li>En el formulario que aparece, pegá tu API Key en el campo correspondiente</li>
+                                    <li>La URL base <code>https://openrouter.ai/api/v1</code> ya viene configurada automáticamente</li>
+                                </ol>
+                                <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "8px" }}>
+                                    💡 Los modelos marcados como <strong style={{ color: "#10b981" }}>Gratis</strong> no consumen créditos.
+                                </p>
+                            </div>
+                        )}
                         <input
                             type="text"
                             className="or-search-input"
@@ -576,9 +602,6 @@ export function ModelManager({
                                 <Plus size={14} /> Agregar Modelo
                             </button>
                         )}
-                        <button className="btn-secondary" onClick={onClose}>
-                            Cerrar
-                        </button>
                     </div>
                 </div>
 
