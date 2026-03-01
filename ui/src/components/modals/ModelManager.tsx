@@ -53,6 +53,16 @@ export function ModelManager({
     const [loadingOr, setLoadingOr] = useState(false);
     const [isOrSidebarOpen, setIsOrSidebarOpen] = useState(false);
     const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+    const [orFilters, setOrFilters] = useState<Set<string>>(new Set());
+
+    const toggleOrFilter = (filter: string) => {
+        setOrFilters((prev) => {
+            const next = new Set(prev);
+            if (next.has(filter)) next.delete(filter);
+            else next.add(filter);
+            return next;
+        });
+    };
 
     useEffect(() => {
         setLoadingOr(true);
@@ -68,7 +78,26 @@ export function ModelManager({
     }, []);
 
     const filteredOrModels = orModels
-        .filter((m) => (m.name + " " + m.id).toLowerCase().includes(orQuery.toLowerCase()))
+        .filter((m) => {
+            // Filtros activos
+            if (orFilters.has("free")) {
+                const price = parseFloat(m.pricing?.prompt || "1");
+                if (price > 0) return false;
+            }
+            if (orFilters.has("vision")) {
+                const inputs = m.architecture?.input_modalities || [];
+                if (!inputs.includes("image")) return false;
+            }
+            if (orFilters.has("audio")) {
+                const inputs = m.architecture?.input_modalities || [];
+                if (!inputs.includes("audio")) return false;
+            }
+            // Búsqueda de texto
+            if (orQuery) {
+                return (m.name + " " + m.id).toLowerCase().includes(orQuery.toLowerCase());
+            }
+            return true;
+        })
         .slice(0, 50);
 
     const addOrModel = (m: any) => {
@@ -168,6 +197,27 @@ export function ModelManager({
                             value={orQuery}
                             onChange={(e) => setOrQuery(e.target.value)}
                         />
+                        <div className="or-filters">
+                            <button
+                                className={`or-filter-chip ${orFilters.has("free") ? "active" : ""}`}
+                                onClick={() => toggleOrFilter("free")}
+                            >
+                                🆓 Gratis
+                            </button>
+                            <button
+                                className={`or-filter-chip ${orFilters.has("vision") ? "active" : ""}`}
+                                onClick={() => toggleOrFilter("vision")}
+                            >
+                                👁️ Visión
+                            </button>
+                            <button
+                                className={`or-filter-chip ${orFilters.has("audio") ? "active" : ""}`}
+                                onClick={() => toggleOrFilter("audio")}
+                            >
+                                🔊 Audio
+                            </button>
+                            <span className="or-filter-count">{filteredOrModels.length} modelos</span>
+                        </div>
                         <div className="or-models-list">
                             {loadingOr ? (
                                 <div className="model-loading" style={{ justifyContent: "center" }}>
@@ -233,292 +283,292 @@ export function ModelManager({
                         </button>
                     </div>
 
-                <div className="modal-body max-h-600">
-                    {/* Lista de modelos */}
-                    <div className="models-list">
-                        {models.length === 0 ? (
-                            <div className="empty-state">
-                                No hay modelos configurados. Agregá uno para empezar.
-                            </div>
-                        ) : (
-                            models.map((m) => {
-                                const isExpanded = expandedModel === m.name;
-                                const isEditing = editingName === m.name;
-                                const info = caps(m.name);
+                    <div className="modal-body max-h-600">
+                        {/* Lista de modelos */}
+                        <div className="models-list">
+                            {models.length === 0 ? (
+                                <div className="empty-state">
+                                    No hay modelos configurados. Agregá uno para empezar.
+                                </div>
+                            ) : (
+                                models.map((m) => {
+                                    const isExpanded = expandedModel === m.name;
+                                    const isEditing = editingName === m.name;
+                                    const info = caps(m.name);
 
-                                return (
-                                    <div
-                                        key={m.name}
-                                        className={`model-item-expandable ${isExpanded ? "expanded" : ""}`}
-                                    >
-                                        {/* Header del modelo (clickeable) */}
-                                        <button
-                                            className="model-item-header"
-                                            onClick={() => toggleExpand(m.name)}
+                                    return (
+                                        <div
+                                            key={m.name}
+                                            className={`model-item-expandable ${isExpanded ? "expanded" : ""}`}
                                         >
-                                            <span className="model-expand-icon">
-                                                {isExpanded ? (
-                                                    <ChevronDown size={14} />
-                                                ) : (
-                                                    <ChevronRight size={14} />
-                                                )}
-                                            </span>
-                                            <span
-                                                className={`provider-badge ${getProviderClass(m.name)}`}
+                                            {/* Header del modelo (clickeable) */}
+                                            <button
+                                                className="model-item-header"
+                                                onClick={() => toggleExpand(m.name)}
                                             >
-                                                {getProviderBadge(m.name)}
-                                            </span>
-                                            <span className="model-item-name">
-                                                {m.displayName || m.name}
-                                            </span>
-                                            {/* Badges inline de capacidades */}
-                                            {info && (
-                                                <span className="model-caps-inline">
-                                                    {info.supportsVision && (
-                                                        <span className="cap-dot vision" title="Soporta imágenes">📷</span>
-                                                    )}
-                                                    {info.supportsAudio && (
-                                                        <span className="cap-dot audio" title="Soporta audio">🎤</span>
-                                                    )}
-                                                    {info.contextLength > 0 && (
-                                                        <span className="cap-dot context" title="Context window">
-                                                            {formatContext(info.contextLength)}
-                                                        </span>
+                                                <span className="model-expand-icon">
+                                                    {isExpanded ? (
+                                                        <ChevronDown size={14} />
+                                                    ) : (
+                                                        <ChevronRight size={14} />
                                                     )}
                                                 </span>
-                                            )}
-                                        </button>
+                                                <span
+                                                    className={`provider-badge ${getProviderClass(m.name)}`}
+                                                >
+                                                    {getProviderBadge(m.name)}
+                                                </span>
+                                                <span className="model-item-name">
+                                                    {m.displayName || m.name}
+                                                </span>
+                                                {/* Badges inline de capacidades */}
+                                                {info && (
+                                                    <span className="model-caps-inline">
+                                                        {info.supportsVision && (
+                                                            <span className="cap-dot vision" title="Soporta imágenes">📷</span>
+                                                        )}
+                                                        {info.supportsAudio && (
+                                                            <span className="cap-dot audio" title="Soporta audio">🎤</span>
+                                                        )}
+                                                        {info.contextLength > 0 && (
+                                                            <span className="cap-dot context" title="Context window">
+                                                                {formatContext(info.contextLength)}
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                )}
+                                            </button>
 
-                                        {/* Dropdown expandible */}
-                                        {isExpanded && (
-                                            <div className="model-dropdown">
-                                                {isEditing ? (
-                                                    /* Formulario de edición inline */
-                                                    <div className="model-edit-form">
-                                                        <div className="form-group">
-                                                            <label>Nombre personalizado</label>
-                                                            <input
-                                                                type="text"
-                                                                placeholder="Ej: Mi GPT-4, Llama Local..."
-                                                                value={formData.displayName || ""}
-                                                                onChange={(e) =>
-                                                                    setFormData({ ...formData, displayName: e.target.value })
-                                                                }
-                                                            />
-                                                            <span className="field-hint">Opcional. Se mostrará en lugar del nombre técnico.</span>
-                                                        </div>
-                                                        <div className="form-group">
-                                                            <label>Nombre del modelo</label>
-                                                            <input
-                                                                type="text"
-                                                                placeholder="ej: openrouter/meta-llama/llama-3.3-70b"
-                                                                value={formData.name}
-                                                                onChange={(e) =>
-                                                                    setFormData({ ...formData, name: e.target.value })
-                                                                }
-                                                            />
-                                                        </div>
-                                                        <div className="form-group">
-                                                            <label>API Key</label>
-                                                            <div className="input-with-toggle">
+                                            {/* Dropdown expandible */}
+                                            {isExpanded && (
+                                                <div className="model-dropdown">
+                                                    {isEditing ? (
+                                                        /* Formulario de edición inline */
+                                                        <div className="model-edit-form">
+                                                            <div className="form-group">
+                                                                <label>Nombre personalizado</label>
                                                                 <input
-                                                                    type={showApiKey ? "text" : "password"}
-                                                                    placeholder="sk-or-... o vacío para Ollama"
-                                                                    value={formData.apiKey || ""}
+                                                                    type="text"
+                                                                    placeholder="Ej: Mi GPT-4, Llama Local..."
+                                                                    value={formData.displayName || ""}
                                                                     onChange={(e) =>
-                                                                        setFormData({ ...formData, apiKey: e.target.value })
+                                                                        setFormData({ ...formData, displayName: e.target.value })
                                                                     }
                                                                 />
-                                                                <button
-                                                                    type="button"
-                                                                    className="toggle-visibility"
-                                                                    onClick={() => setShowApiKey(!showApiKey)}
-                                                                >
-                                                                    {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                                <span className="field-hint">Opcional. Se mostrará en lugar del nombre técnico.</span>
+                                                            </div>
+                                                            <div className="form-group">
+                                                                <label>Nombre del modelo</label>
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="ej: openrouter/meta-llama/llama-3.3-70b"
+                                                                    value={formData.name}
+                                                                    onChange={(e) =>
+                                                                        setFormData({ ...formData, name: e.target.value })
+                                                                    }
+                                                                />
+                                                            </div>
+                                                            <div className="form-group">
+                                                                <label>API Key</label>
+                                                                <div className="input-with-toggle">
+                                                                    <input
+                                                                        type={showApiKey ? "text" : "password"}
+                                                                        placeholder="sk-or-... o vacío para Ollama"
+                                                                        value={formData.apiKey || ""}
+                                                                        onChange={(e) =>
+                                                                            setFormData({ ...formData, apiKey: e.target.value })
+                                                                        }
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        className="toggle-visibility"
+                                                                        onClick={() => setShowApiKey(!showApiKey)}
+                                                                    >
+                                                                        {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            <div className="form-group">
+                                                                <label>Base URL</label>
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="ej: https://openrouter.ai/api/v1"
+                                                                    value={formData.baseUrl || ""}
+                                                                    onChange={(e) =>
+                                                                        setFormData({ ...formData, baseUrl: e.target.value })
+                                                                    }
+                                                                />
+                                                            </div>
+                                                            <div className="model-form-actions">
+                                                                <button className="btn-secondary" onClick={handleCancel}>
+                                                                    Cancelar
+                                                                </button>
+                                                                <button className="btn-primary" onClick={handleSave}>
+                                                                    <Save size={14} /> Actualizar
                                                                 </button>
                                                             </div>
                                                         </div>
-                                                        <div className="form-group">
-                                                            <label>Base URL</label>
-                                                            <input
-                                                                type="text"
-                                                                placeholder="ej: https://openrouter.ai/api/v1"
-                                                                value={formData.baseUrl || ""}
-                                                                onChange={(e) =>
-                                                                    setFormData({ ...formData, baseUrl: e.target.value })
-                                                                }
-                                                            />
-                                                        </div>
-                                                        <div className="model-form-actions">
-                                                            <button className="btn-secondary" onClick={handleCancel}>
-                                                                Cancelar
-                                                            </button>
-                                                            <button className="btn-primary" onClick={handleSave}>
-                                                                <Save size={14} /> Actualizar
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    /* Detalles del modelo */
-                                                    <>
-                                                        {!info ? (
-                                                            <div className="model-loading">
-                                                                <div className="typing-loader">
-                                                                    <span></span><span></span><span></span>
+                                                    ) : (
+                                                        /* Detalles del modelo */
+                                                        <>
+                                                            {!info ? (
+                                                                <div className="model-loading">
+                                                                    <div className="typing-loader">
+                                                                        <span></span><span></span><span></span>
+                                                                    </div>
+                                                                    <span>Obteniendo info...</span>
                                                                 </div>
-                                                                <span>Obteniendo info...</span>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="model-details">
-                                                                {/* Badges de modalidades */}
-                                                                <div className="model-modalities">
-                                                                    {info.inputModalities.map((mod) => (
-                                                                        <span key={mod} className={`modality-badge ${mod}`}>
-                                                                            {mod === "text" && <Type size={12} />}
-                                                                            {mod === "image" && <Image size={12} />}
-                                                                            {mod === "audio" && <Volume2 size={12} />}
-                                                                            {mod}
-                                                                        </span>
-                                                                    ))}
-                                                                </div>
+                                                            ) : (
+                                                                <div className="model-details">
+                                                                    {/* Badges de modalidades */}
+                                                                    <div className="model-modalities">
+                                                                        {info.inputModalities.map((mod) => (
+                                                                            <span key={mod} className={`modality-badge ${mod}`}>
+                                                                                {mod === "text" && <Type size={12} />}
+                                                                                {mod === "image" && <Image size={12} />}
+                                                                                {mod === "audio" && <Volume2 size={12} />}
+                                                                                {mod}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
 
-                                                                {/* Context window */}
-                                                                <div className="model-detail-row">
-                                                                    <Layers size={14} />
-                                                                    <span className="detail-label">Context Window</span>
-                                                                    <span className="detail-value">
-                                                                        {formatContext(info.contextLength)} tokens
-                                                                    </span>
-                                                                </div>
-
-                                                                {/* Pricing */}
-                                                                {info.pricing && (
+                                                                    {/* Context window */}
                                                                     <div className="model-detail-row">
-                                                                        <DollarSign size={14} />
-                                                                        <span className="detail-label">Precio</span>
+                                                                        <Layers size={14} />
+                                                                        <span className="detail-label">Context Window</span>
                                                                         <span className="detail-value">
-                                                                            {formatPrice(info.pricing.prompt)}/prompt ·{" "}
-                                                                            {formatPrice(info.pricing.completion)}/completion
+                                                                            {formatContext(info.contextLength)} tokens
                                                                         </span>
                                                                     </div>
-                                                                )}
 
-                                                                {/* Descripción */}
-                                                                {info.description && (
-                                                                    <p className="model-description">
-                                                                        {info.description.length > 200
-                                                                            ? info.description.substring(0, 200) + "..."
-                                                                            : info.description}
-                                                                    </p>
-                                                                )}
+                                                                    {/* Pricing */}
+                                                                    {info.pricing && (
+                                                                        <div className="model-detail-row">
+                                                                            <DollarSign size={14} />
+                                                                            <span className="detail-label">Precio</span>
+                                                                            <span className="detail-value">
+                                                                                {formatPrice(info.pricing.prompt)}/prompt ·{" "}
+                                                                                {formatPrice(info.pricing.completion)}/completion
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
 
-                                                                {/* URL */}
-                                                                {m.baseUrl && (
-                                                                    <div className="model-detail-row">
-                                                                        <Server size={14} />
-                                                                        <span className="detail-label">URL</span>
-                                                                        <span className="detail-value mono">
-                                                                            {m.baseUrl.replace(/https?:\/\//, "").split("/")[0]}
-                                                                        </span>
-                                                                    </div>
-                                                                )}
+                                                                    {/* Descripción */}
+                                                                    {info.description && (
+                                                                        <p className="model-description">
+                                                                            {info.description.length > 200
+                                                                                ? info.description.substring(0, 200) + "..."
+                                                                                : info.description}
+                                                                        </p>
+                                                                    )}
+
+                                                                    {/* URL */}
+                                                                    {m.baseUrl && (
+                                                                        <div className="model-detail-row">
+                                                                            <Server size={14} />
+                                                                            <span className="detail-label">URL</span>
+                                                                            <span className="detail-value mono">
+                                                                                {m.baseUrl.replace(/https?:\/\//, "").split("/")[0]}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
+
+                                                            {/* Acciones al pie */}
+                                                            <div className="model-dropdown-actions">
+                                                                <button
+                                                                    className="btn-ghost"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        startEdit(m);
+                                                                    }}
+                                                                >
+                                                                    <Edit2 size={13} /> Editar
+                                                                </button>
+                                                                <button
+                                                                    className="btn-ghost danger"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        if (confirm(`¿Eliminar el modelo "${m.name}"?`)) {
+                                                                            onDelete(m.name);
+                                                                            setExpandedModel(null);
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <Trash2 size={13} /> Eliminar
+                                                                </button>
                                                             </div>
-                                                        )}
+                                                        </>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
 
-                                                        {/* Acciones al pie */}
-                                                        <div className="model-dropdown-actions">
-                                                            <button
-                                                                className="btn-ghost"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    startEdit(m);
-                                                                }}
-                                                            >
-                                                                <Edit2 size={13} /> Editar
-                                                            </button>
-                                                            <button
-                                                                className="btn-ghost danger"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    if (confirm(`¿Eliminar el modelo "${m.name}"?`)) {
-                                                                        onDelete(m.name);
-                                                                        setExpandedModel(null);
-                                                                    }
-                                                                }}
-                                                            >
-                                                                <Trash2 size={13} /> Eliminar
-                                                            </button>
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })
-                        )}
-                    </div>
-
-                    {/* Formulario para agregar nuevo modelo */}
-                    {isAdding && (
-                        <div className="model-form">
-                            <div className="form-group">
-                                <label>Nombre personalizado</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ej: Mi asistente, Llama Local..."
-                                    value={formData.displayName || ""}
-                                    onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                                />
-                                <span className="field-hint">Opcional. Se mostrará en lugar del nombre técnico.</span>
-                            </div>
-                            <div className="form-group">
-                                <label>Nombre del modelo</label>
-                                <input
-                                    type="text"
-                                    placeholder="ej: openrouter/meta-llama/llama-3.3-70b-instruct:free"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>API Key</label>
-                                <div className="input-with-toggle">
+                        {/* Formulario para agregar nuevo modelo */}
+                        {isAdding && (
+                            <div className="model-form">
+                                <div className="form-group">
+                                    <label>Nombre personalizado</label>
                                     <input
-                                        type={showApiKey ? "text" : "password"}
-                                        placeholder="sk-or-... o dejar vacío para Ollama"
-                                        value={formData.apiKey || ""}
-                                        onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                                        type="text"
+                                        placeholder="Ej: Mi asistente, Llama Local..."
+                                        value={formData.displayName || ""}
+                                        onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
                                     />
-                                    <button
-                                        type="button"
-                                        className="toggle-visibility"
-                                        onClick={() => setShowApiKey(!showApiKey)}
-                                    >
-                                        {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    <span className="field-hint">Opcional. Se mostrará en lugar del nombre técnico.</span>
+                                </div>
+                                <div className="form-group">
+                                    <label>Nombre del modelo</label>
+                                    <input
+                                        type="text"
+                                        placeholder="ej: openrouter/meta-llama/llama-3.3-70b-instruct:free"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>API Key</label>
+                                    <div className="input-with-toggle">
+                                        <input
+                                            type={showApiKey ? "text" : "password"}
+                                            placeholder="sk-or-... o dejar vacío para Ollama"
+                                            value={formData.apiKey || ""}
+                                            onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="toggle-visibility"
+                                            onClick={() => setShowApiKey(!showApiKey)}
+                                        >
+                                            {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>Base URL</label>
+                                    <input
+                                        type="text"
+                                        placeholder="ej: https://openrouter.ai/api/v1"
+                                        value={formData.baseUrl || ""}
+                                        onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
+                                    />
+                                </div>
+                                <div className="model-form-actions">
+                                    <button className="btn-secondary" onClick={handleCancel}>
+                                        Cancelar
+                                    </button>
+                                    <button className="btn-primary" onClick={handleSave}>
+                                        <Save size={14} /> Agregar
                                     </button>
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label>Base URL</label>
-                                <input
-                                    type="text"
-                                    placeholder="ej: https://openrouter.ai/api/v1"
-                                    value={formData.baseUrl || ""}
-                                    onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
-                                />
-                            </div>
-                            <div className="model-form-actions">
-                                <button className="btn-secondary" onClick={handleCancel}>
-                                    Cancelar
-                                </button>
-                                <button className="btn-primary" onClick={handleSave}>
-                                    <Save size={14} /> Agregar
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
+                        )}
+                    </div>
 
                     <div className="modal-footer">
                         {!isAdding && (
