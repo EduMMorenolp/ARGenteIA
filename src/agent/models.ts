@@ -14,11 +14,11 @@ export function detectProvider(modelKey: string): ModelProvider {
 
 // Nombre del modelo limpio (sin prefijo proveedor)
 export function modelName(modelKey: string): string {
-  const parts = modelKey.split('/');
   // Para openrouter: "openrouter/meta-llama/llama-3.3-70b" → "meta-llama/llama-3.3-70b"
-  if (modelKey.startsWith('openrouter/')) return parts.slice(1).join('/');
-  // Para ollama/llama3 -> "llama3" o gpt-4o -> "gpt-4o"
-  if (parts.length === 2) return parts[1];
+  if (modelKey.startsWith('openrouter/')) return modelKey.slice('openrouter/'.length);
+  // Para ollama: "ollama/llama3" → "llama3"
+  if (modelKey.startsWith('ollama/')) return modelKey.slice('ollama/'.length);
+  // Todo lo demás se deja intacto (ej: "qwen/qwen3-vl-235b-a22b-thinking", "gpt-4o")
   return modelKey;
 }
 
@@ -33,23 +33,34 @@ export function createClient(modelKey: string, config: Config): OpenAI | Anthrop
   try {
     const dbModel = getModel(modelKey);
     if (dbModel) {
-      apiKey = dbModel.apiKey;
-      baseUrl = dbModel.baseUrl;
+      apiKey = dbModel.apiKey || undefined;
+      baseUrl = dbModel.baseUrl || undefined;
     }
   } catch {
     // DB no disponible aún, usar config
   }
 
-  // 2. Fallback a config.json
-  if (!apiKey && !baseUrl) {
-    const modelCfg = config.models[modelKey];
+  // 2. Fallback a config.json (buscar key exacta y también con prefijo openrouter/)
+  if (!apiKey || !baseUrl) {
+    const modelCfg = config.models[modelKey] || config.models[`openrouter/${modelKey}`];
     if (modelCfg) {
-      apiKey = modelCfg.apiKey;
-      baseUrl = modelCfg.baseUrl;
+      if (!apiKey) apiKey = modelCfg.apiKey;
+      if (!baseUrl) baseUrl = modelCfg.baseUrl;
     }
   }
 
-  // 3. Si es Ollama y aún no tenemos config, buscar baseUrl de otro modelo Ollama
+  // 3. Si aún no tenemos apiKey y el modelo parece de OpenRouter, buscar key de otro modelo OR
+  if (!apiKey && (baseUrl?.includes('openrouter.ai') || modelKey.startsWith('openrouter/'))) {
+    const orConfigKey = Object.keys(config.models).find(
+      (k) => k.startsWith('openrouter/') && config.models[k].apiKey,
+    );
+    if (orConfigKey) {
+      apiKey = config.models[orConfigKey].apiKey;
+      if (!baseUrl) baseUrl = config.models[orConfigKey].baseUrl;
+    }
+  }
+
+  // 4. Si es Ollama y aún no tenemos config, buscar baseUrl de otro modelo Ollama
   if (!apiKey && !baseUrl && provider === 'ollama') {
     const otherOllamaKey = Object.keys(config.models).find((k) => k.startsWith('ollama/'));
     baseUrl = config.models[otherOllamaKey || '']?.baseUrl || 'http://localhost:11434/v1';

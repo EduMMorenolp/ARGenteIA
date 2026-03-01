@@ -131,8 +131,12 @@ async function runOpenAI(
   const config = getConfig();
   const userId = opts.userId;
 
-  // 0. Preparar lista de modelos (el principal primero, luego el resto como fallback)
-  const allAvailableModels = Object.keys(config.models);
+  // 0. Preparar lista de modelos (el principal primero, luego DB + config como fallback)
+  const { listModels } = await import('../memory/model-db.ts');
+  const dbModelNames = listModels().map((m) => m.name);
+  const configModelNames = Object.keys(config.models);
+  // Merge: DB primero (gestionados por el usuario), luego config como fallback, sin duplicados
+  const allAvailableModels = [...new Set([...dbModelNames, ...configModelNames])];
   const modelsToTry = [model, ...allAvailableModels.filter((m) => m !== model)];
 
   try {
