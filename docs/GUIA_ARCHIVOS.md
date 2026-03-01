@@ -23,7 +23,10 @@ El archivo `src/index.ts` es el punto de entrada de la aplicación. Cuando ejecu
 
 ### 1. `agent/`
 Contiene la "inteligencia" del asistente.
-- **`loop.ts`:** Es el motor principal (el "bucle" de pensamiento). Decide si debe usar una herramienta, responder al usuario o delegar a un experto. Ahora incluye **Action Logs** para reportar progreso en tiempo real.
+- **`loop.ts`:** Es el motor principal (el "bucle" de pensamiento). Decide si debe usar una herramienta, responder al usuario o delegar a un experto. Incluye **Action Logs** y **Streaming de respuestas** en tiempo real. Tiene un sistema de **fallback inteligente** que intenta con otros modelos si el principal falla.
+- **`models.ts`:** Detecta automáticamente el proveedor (OpenAI, Anthropic, Ollama) y resuelve credenciales con un fallback escalonado (DB → config.json → key compartida).
+- **`model-info.ts`:** Consulta las capacidades de un modelo desde la API de OpenRouter (visión, audio, contexto, pricing).
+- **`expert-runner.ts`:** Permite delegar tareas a "Expertos" con sus propios prompts y herramientas.
 - **`scheduler-manager.ts`:** Maneja las tareas programadas en memoria.
 
 ### 2. `channels/`
@@ -36,10 +39,14 @@ Maneja las vías de comunicación.
 
 ### 4. `memory/`
 Es el cerebro a largo plazo del asistente.
-- **`db.ts`:** Definición del esquema SQLite.
+- **`db.ts`:** Definición del esquema SQLite (creación de todas las tablas).
 - **`message-db.ts`:** Guarda y recupera el historial de conversaciones.
 - **`user-db.ts`:** Gestiona los perfiles de usuario (nombre, zona horaria, tokens).
-- **`expert-db.ts` (Sub-Agentes):** Gestiona los "Expertos" que puedes crear con prompts específicos.
+- **`expert-db.ts`:** Gestiona los "Expertos" (sub-agentes con prompts específicos).
+- **`model-db.ts`:** CRUD de modelos de IA configurados (nombre, displayName, API Key, Base URL) con seed desde `config.json`.
+- **`chat-db.ts`:** Gestiona los chats: creación, listado, renombrado, pin y eliminación.
+- **`stats-db.ts`:** Extrae métricas agregadas para el Dashboard de estadísticas.
+- **`scheduler-db.ts`:** Persistencia de tareas CRON programadas.
 
 ### 5. `tools/`
 Son las habilidades prácticas del asistente. Cada archivo es una herramienta que el LLM puede invocar:
@@ -54,7 +61,7 @@ Carga fragmentos de texto o instrucciones adicionales que extienden el conocimie
 ---
 
 ## 💻 Interfaz de Usuario (`ui/`)
-Contiene una aplicación moderna construida en React/Vite que se comunica con el servidor vía WebSockets. Es el panel de control donde puedes chatear, crear expertos y gestionar tus tareas.
+Contiene una aplicación moderna construida en React/Vite que se comunica con el servidor vía WebSockets. Es el panel de control donde puedes chatear, crear expertos, gestionar modelos (con búsqueda integrada de OpenRouter), ver estadísticas y administrar tus tareas programadas. Los estilos están organizados en módulos CSS independientes (`modals.css`, `sidebar.css`, `model-manager.css`, etc.).
 
 ---
 

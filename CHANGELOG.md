@@ -2,6 +2,33 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [1.8.0] - 2026-03-01
+
+### Añadido
+- **Streaming de Respuestas:** Integración de streaming de texto vía WebSockets para visualizar las respuestas del asistente en tiempo real a medida que se generan (`assistant_chunk`).
+- **Dashboard de Estadísticas:** Nuevo modal interactivo (`DashboardModal`) para visualizar métricas de uso, consumos e historial general del sistema. Soporte completo en backend (`stats-db.ts`).
+- **Gestión Avanzada de Modelos:**
+  - Posibilidad de otorgar un **nombre personalizado** (`displayName`) a los modelos guardados.
+  - Integración de **Model Info** desde OpenRouter para detección automática de capacidades (Visión, Audio, Contexto, Pricing).
+  - Nuevo layout del modal `ModelManager` con **paneles laterales deslizables**.
+  - Panel izquierdo dedicado a la búsqueda directa e integración de modelos desde **OpenRouter** con botón "Añadir".
+  - Panel derecho preparado para futuras **Herramientas de Modelo**.
+  - **Solapas laterales** (`modal-side-tab`) integradas visualmente al borde del modal principal.
+
+### Mejorado
+- **CSS Modular:** Refactorización de la hoja de estilos global (`index.css`), separándola en múltiples módulos: `sidebar.css`, `chat-sidebar.css`, `modals.css`, `model-manager.css`.
+- **Timestamps en Chat:** Visualización de la fecha y hora debajo de cada burbuja de mensaje.
+- **UI/UX en Paneles Laterales:** Refinamientos en el `Sidebar` general y el `ChatSidebar` (mejor organización, transiciones fluidas).
+- **Resolución Inteligente de Credenciales:**
+  - `createClient()` ahora busca API Keys con fallback escalonado: DB → `config.json` (key exacta) → `config.json` (con prefijo `openrouter/`) → cualquier otra key OpenRouter disponible.
+- **Fallback de Modelos Mejorado:** El sistema de fallback en `loop.ts` ahora combina modelos de la **DB** y de `config.json` (antes solo usaba `config.json`).
+
+### Corregido
+- **Bug crítico en `modelName()`:** La función eliminaba incorrectamente el namespace del vendor en IDs de modelo de 2 partes (ej: `qwen/qwen3-vl-235b-a22b-thinking` → `qwen3-vl-235b-a22b-thinking`). Ahora solo elimina prefijos conocidos (`openrouter/`, `ollama/`).
+- **Compilación Frontend:** Resoluciones a conflictos de tipado con la propiedad `model` y múltiples errores de sintaxis JSX en `ModelManager.tsx`.
+- **Compilación Backend:** Solucionado error de parseo en `agent/loop.ts` (TS1005: 'try' expected).
+- **Layout de Modales:** Ajustado el diseño CSS para garantizar un ancho fijo de 480px en modales principales con expansión fluida de paneles.
+
 ## [1.7.0] - 2026-02-27
 
 ### Corregido

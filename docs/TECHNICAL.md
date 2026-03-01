@@ -84,10 +84,14 @@ El archivo de configuración utiliza **Zod** para validación en tiempo de ejecu
 La comunicación entre la UI y el servidor se basa en mensajes JSON con un campo `type`. Algunos tipos clave son:
 
 - `user_message`: Envío de texto del usuario.
+- `assistant_chunk`: Fragmento parcial de la respuesta en streaming.
 - `assistant_message`: Respuesta final del asistente con historial y metadatos.
 - `action_log`: Logs en tiempo real sobre el uso de herramientas o estados internos.
 - `status`: Información de sesión e inicialización del cliente.
 - `list_chats`: Recuperación del historial de conversaciones del usuario.
+- `list_models` / `model_update`: Gestión de modelos configurados.
+- `request_model_info` / `model_info`: Consulta de capacidades de un modelo (visión, audio, contexto, pricing).
+- `request_dashboard` / `dashboard_stats`: Solicitud y envío de métricas de uso del sistema.
 
 ---
 
@@ -101,6 +105,7 @@ Se utiliza SQLite con el driver `better-sqlite3`. Las tablas principales son:
 - `user_facts`: Memoria a largo plazo (recuerdos).
 - `scheduled_tasks`: Tareas CRON persistentes.
 - `sub_agents`: Configuración de expertos personalizados.
+- `models`: Modelos de IA configurados (nombre, displayName, API Key, Base URL).
 
 ---
 

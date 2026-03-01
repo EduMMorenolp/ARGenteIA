@@ -1,4 +1,4 @@
-# 🤖 ARGenteIA `v1.7.0`
+# 🤖 ARGenteIA `v1.8.0`
 
 ### El Asistente Personal que Vive en tu PC
 
@@ -13,6 +13,8 @@ ARGenteIA es mucho más que un simple chatbot. Es un ecosistema de IA diseñado 
 *   **🤖 Sistema de Expertos (Multi-Agente):** Crea agentes especializados para tareas específicas: un experto en programación, un asistente de cocina o un analista financiero.
 *   **🐚 Terminal Inteligente:** Pídele que ejecute comandos, instale paquetes o analice logs. Soporta **Windows (PowerShell)** y **Linux (Bash)**.
 *   **📅 Automatización CRON:** Programa tareas para que el asistente las haga por ti mientras duermes (reportes, recordatorios, monitoreo).
+*   **📊 Dashboard y Gestor de Modelos:** Control visual del consumo y gestión integral de tus APIs (OpenRouter, Ollama) con búsqueda e integración directa desde la UI.
+*   **⚡ Respuestas en Tiempo Real:** Interfaz **Streaming** nativa para que la interacción fluya como un chat humano.
 *   **📱 Multi-Canal Nativo:** Chatea con una interfaz Web moderna y premium o usa el bot de **Telegram** para enviarte archivos y comandos desde cualquier lugar.
 
 ---
@@ -56,6 +58,8 @@ pnpm dev
 
 - [**Guía Técnica**](./docs/TECHNICAL.md): Arquitectura, Instalación y Configuración.
 - [**Guía de Archivos**](./docs/GUIA_ARCHIVOS.md): Entiende cómo funciona el código por dentro.
+- [**Arquitectura del Sistema**](./docs/ARQUITECTURA.md): Flujos de datos y diseño interno.
+- [**Changelog**](./CHANGELOG.md): Historial detallado de cambios por versión.
 
 ---
 

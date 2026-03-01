@@ -74,8 +74,9 @@ Manejan la idiosincrasia de cada plataforma:
 
 ### 4. El Cerebro (`src/agent/`)
 Aquí reside la magia. El Agente no solo "responde", sino que "piensa" en ciclos.
-- **`loop.ts`**: Controla el ciclo de razonamiento (ReAct). Si el modelo decide usar una herramienta, el loop la ejecuta, obtiene el resultado y vuelve a llamar al modelo hasta que tenga una respuesta final.
-- **`models.ts`**: Detecta automáticamente si debe usar OpenAI, Anthropic u Ollama. Es el que permite la flexibilidad de modelos.
+- **`loop.ts`**: Controla el ciclo de razonamiento (ReAct). Si el modelo decide usar una herramienta, el loop la ejecuta, obtiene el resultado y vuelve a llamar al modelo hasta que tenga una respuesta final. Soporta **streaming** nativo y tiene un sistema de **fallback automático** entre modelos.
+- **`models.ts`**: Detecta automáticamente si debe usar OpenAI, Anthropic u Ollama. Resuelve credenciales con fallback escalonado (DB → config.json → key compartida de OpenRouter).
+- **`model-info.ts`**: Consulta la API de OpenRouter para obtener capacidades del modelo (visión, audio, contexto, pricing).
 - **`expert-runner.ts`**: Permite delegar tareas a "Expertos". Cada experto es como un sub-agente con su propio prompt especializado y herramientas limitadas.
 
 ### 5. Herramientas (`src/tools/`)
@@ -89,6 +90,9 @@ Usa SQLite para persistencia:
 - **`message-db.ts`**: Guarda cada mensaje para que no se pierdan al reiniciar.
 - **`user-db.ts`**: Gestiona perfiles de usuario y preferencias.
 - **`expert-db.ts`**: Guarda la configuración de tus agentes personalizados.
+- **`model-db.ts`**: CRUD de modelos de IA (nombre, displayName, API Key, Base URL) con seed automático desde config.json.
+- **`chat-db.ts`**: Gestión de chats (creación, listado, renombrado, pin, eliminación).
+- **`stats-db.ts`**: Métricas agregadas para el Dashboard.
 
 ---
 
@@ -99,8 +103,8 @@ Usa SQLite para persistencia:
 3. **Invocación**: Se llama a `runAgent` en `loop.ts`.
 4. **Razonamiento (Paso 1)**: El modelo (ej: llama3) responde: *"Necesito usar la herramienta 'weather' para Buenos Aires"*.
 5. **Ejecución**: El sistema ejecuta el handler de la herramienta `weather`.
-6. **Razonamiento (Paso 2)**: El Agente recibe el resultado ("22°C y nublado") y genera la respuesta final en español.
-7. **Salida**: El canal (Telegram) envía el texto final al usuario junto con las métricas de tiempo y tokens.
+6. **Razonamiento (Paso 2)**: El Agente recibe el resultado ("22°C y nublado") y genera la respuesta final en español, transmitida vía **streaming** al cliente.
+7. **Salida**: El canal (Telegram/WebChat) envía el texto final al usuario junto con las métricas de tiempo y tokens. Si el modelo falla, el sistema intenta automáticamente con otro modelo disponible.
 
 ---
 
