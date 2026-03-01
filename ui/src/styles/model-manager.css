@@ -334,3 +334,184 @@
   color: var(--text-main);
   background: var(--border);
 }
+
+/* ─── Modal Wrapped Layout (Buscador OpenRouter y Extras) ─────────────────────────────── */
+.modal-centered-wrapper {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  z-index: 101;
+  max-height: 85vh;
+}
+
+.modal-centered-wrapper .modal-content {
+  width: 480px;
+  flex-shrink: 0;
+}
+
+.modal-side-panel {
+  width: 0;
+  overflow: hidden;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), margin 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  opacity: 0;
+}
+
+.modal-side-panel.open {
+  width: 320px;
+  opacity: 1;
+}
+
+.modal-side-panel.left.open {
+  margin-right: 16px;
+}
+
+.modal-side-panel.right.open {
+  margin-left: 16px;
+}
+
+.modal-side-inner {
+  width: 320px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Tabs adjuntos al modal-content */
+.modal-side-tab {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 64px;
+  background: var(--bg-surface);
+  border: none;
+  cursor: pointer;
+  z-index: -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.modal-side-tab:hover {
+  filter: brightness(1.1);
+}
+
+.modal-side-tab.left {
+  left: -39px;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.modal-side-tab.left:hover {
+  color: var(--accent);
+  background: var(--bg-surface);
+}
+
+.modal-side-tab.right {
+  right: -39px;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.modal-side-tab.right:hover {
+  color: var(--accent);
+  background: var(--bg-surface);
+}
+
+.or-search-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  font-size: 13px;
+  margin-bottom: 12px;
+  transition: var(--transition);
+}
+
+.or-search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.or-models-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.or-model-item {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  transition: var(--transition);
+}
+
+.or-model-item:hover {
+  border-color: rgba(79, 140, 255, 0.3);
+}
+
+.or-model-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.or-model-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.or-model-id {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.or-model-caps {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.btn-add-or {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+
+.btn-add-or:hover {
+  filter: brightness(1.15);
+}

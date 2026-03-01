@@ -15,6 +15,7 @@ import {
     Type,
     Layers,
     DollarSign,
+    Search,
 } from "lucide-react";
 import type { ModelConfig, ModelCapabilities } from "../../types";
 
@@ -45,6 +46,42 @@ export function ModelManager({
         apiKey: "",
         baseUrl: "",
     });
+
+    // OpenRouter y Paneles
+    const [orQuery, setOrQuery] = useState("");
+    const [orModels, setOrModels] = useState<any[]>([]);
+    const [loadingOr, setLoadingOr] = useState(false);
+    const [isOrSidebarOpen, setIsOrSidebarOpen] = useState(false);
+    const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+
+    useEffect(() => {
+        setLoadingOr(true);
+        fetch("https://openrouter.ai/api/v1/models")
+            .then((res) => res.json())
+            .then((data) => {
+                if (data && data.data) {
+                    setOrModels(data.data);
+                }
+            })
+            .catch((err) => console.error("Error fetching OR models", err))
+            .finally(() => setLoadingOr(false));
+    }, []);
+
+    const filteredOrModels = orModels
+        .filter((m) => (m.name + " " + m.id).toLowerCase().includes(orQuery.toLowerCase()))
+        .slice(0, 50);
+
+    const addOrModel = (m: any) => {
+        setFormData({
+            name: `openrouter/${m.id}`,
+            displayName: m.name,
+            apiKey: "",
+            baseUrl: "https://openrouter.ai/api/v1",
+        });
+        setIsAdding(true);
+        setEditingName(null);
+        setExpandedModel(null);
+    };
 
     // Pedir info cuando se expande un modelo
     useEffect(() => {
@@ -118,16 +155,83 @@ export function ModelManager({
 
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h3>
-                        <Server size={18} style={{ marginRight: 8 }} />
-                        Gestión de Modelos
-                    </h3>
-                    <button className="icon-btn" onClick={onClose}>
-                        <X size={18} />
-                    </button>
+            <div className="modal-centered-wrapper" onClick={(e) => e.stopPropagation()}>
+
+                {/* Panel Izquierdo: Buscador OpenRouter */}
+                <div className={`modal-side-panel left ${isOrSidebarOpen ? "open" : ""}`}>
+                    <div className="modal-side-inner" style={{ paddingTop: '56px' }}>
+                        <h4 style={{ marginBottom: "12px", fontSize: "14px", color: "var(--text-main)" }}>Buscar en OpenRouter</h4>
+                        <input
+                            type="text"
+                            className="or-search-input"
+                            placeholder="Ej: claude 3.5, mixtral..."
+                            value={orQuery}
+                            onChange={(e) => setOrQuery(e.target.value)}
+                        />
+                        <div className="or-models-list">
+                            {loadingOr ? (
+                                <div className="model-loading" style={{ justifyContent: "center" }}>
+                                    <div className="typing-loader"><span></span><span></span><span></span></div>
+                                </div>
+                            ) : filteredOrModels.length === 0 ? (
+                                <div className="empty-state">No se encontraron modelos.</div>
+                            ) : (
+                                filteredOrModels.map((m) => {
+                                    const promptPrice = m.pricing?.prompt ? parseFloat(m.pricing.prompt) * 1000000 : 0;
+                                    return (
+                                        <div key={m.id} className="or-model-item">
+                                            <div className="or-model-header">
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div className="or-model-name">{m.name}</div>
+                                                    <div className="or-model-id">{m.id.split('/').pop()}</div>
+                                                </div>
+                                                <button className="btn-add-or" onClick={() => addOrModel(m)}>
+                                                    <Plus size={12} /> Añadir
+                                                </button>
+                                            </div>
+                                            <div className="or-model-caps">
+                                                {promptPrice > 0 ? (
+                                                    <span className="cap-dot context">${promptPrice.toFixed(2)}/M</span>
+                                                ) : (
+                                                    <span className="cap-dot context or" style={{ color: "#10b981" }}>Gratis</span>
+                                                )}
+                                                <span className="cap-dot context">{formatContext(m.context_length)} ctx</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
                 </div>
+
+                {/* Main Modal */}
+                <div className="modal-content" style={{ position: 'relative', zIndex: 10, margin: 0 }}>
+                    <button
+                        className="modal-side-tab left"
+                        onClick={() => setIsOrSidebarOpen(!isOrSidebarOpen)}
+                        title="Buscador OpenRouter"
+                    >
+                        <Search size={16} />
+                    </button>
+
+                    <button
+                        className="modal-side-tab right"
+                        onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                        title="Herramientas"
+                    >
+                        <Layers size={16} />
+                    </button>
+
+                    <div className="modal-header">
+                        <h3>
+                            <Server size={18} style={{ marginRight: 8 }} />
+                            Gestión de Modelos
+                        </h3>
+                        <button className="icon-btn" onClick={onClose}>
+                            <X size={18} />
+                        </button>
+                    </div>
 
                 <div className="modal-body max-h-600">
                     {/* Lista de modelos */}
@@ -416,15 +520,26 @@ export function ModelManager({
                     )}
                 </div>
 
-                <div className="modal-footer">
-                    {!isAdding && (
-                        <button className="btn-primary" onClick={startAdd}>
-                            <Plus size={14} /> Agregar Modelo
+                    <div className="modal-footer">
+                        {!isAdding && (
+                            <button className="btn-primary" onClick={startAdd}>
+                                <Plus size={14} /> Agregar Modelo
+                            </button>
+                        )}
+                        <button className="btn-secondary" onClick={onClose}>
+                            Cerrar
                         </button>
-                    )}
-                    <button className="btn-secondary" onClick={onClose}>
-                        Cerrar
-                    </button>
+                    </div>
+                </div>
+
+                {/* Panel Derecho: Herramientas (En construcción) */}
+                <div className={`modal-side-panel right ${isRightSidebarOpen ? "open" : ""}`}>
+                    <div className="modal-side-inner" style={{ paddingTop: '56px' }}>
+                        <h4 style={{ marginBottom: "12px", fontSize: "14px", color: "var(--text-main)" }}>Herramientas</h4>
+                        <div className="empty-state">
+                            En construcción...
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
