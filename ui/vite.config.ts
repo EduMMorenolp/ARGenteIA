@@ -12,6 +12,7 @@ export default defineConfig({
       },
       // Si tienes otros endpoints de API, agrégalos aquí
       '/health': 'http://localhost:19666',
+      '/api': 'http://localhost:19666',
     }
   },
   build: {

@@ -51,7 +51,7 @@ export function DashboardModal({
                     <h2>
                         <BarChart3 size={22} /> Dashboard
                     </h2>
-                    <button className="modal-close" onClick={onClose}>
+                    <button className="icon-btn" onClick={onClose}>
                         <X size={18} />
                     </button>
                 </div>

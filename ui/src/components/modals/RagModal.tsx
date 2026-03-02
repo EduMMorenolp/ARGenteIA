@@ -67,7 +67,7 @@ export function RagModal({ onClose, ownerId }: ComponentProps) {
         if (!newText.trim()) return;
         try {
             setIsSubmitting(true);
-            await fetch('/api/rag', {
+            const response = await fetch('/api/rag', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -76,12 +76,19 @@ export function RagModal({ onClose, ownerId }: ComponentProps) {
                     source: newSource || 'manual_entry',
                 }),
             });
+            const data = await response.json();
+
+            if (!response.ok || data.error) {
+                throw new Error(data.error || 'Network response was not ok');
+            }
+
+            console.log(`✅ [RAG] Documento "${newSource || 'manual_entry'}" subido exitosamente al contexto de ${ownerId}. ID: ${data.id}`);
             setNewText('');
             setNewSource('');
             fetchChunks();
         } catch (err) {
-            console.error(err);
-            alert('Error al guardar documento');
+            console.error('[RAG] Error al guardar documento:', err);
+            alert('Error al guardar documento. Revisa la consola para más detalles.');
         } finally {
             setIsSubmitting(false);
         }
