@@ -6,11 +6,16 @@ import type { CompletionUsage } from 'openai/resources/completions';
 import { getExpert } from '../memory/expert-db.ts';
 import { saveMessage } from '../memory/message-db.ts';
 import chalk from 'chalk';
+
+type ContentPart =
+  | { type: 'text'; text: string }
+  | { type: 'image_url'; image_url: { url: string; detail?: 'auto' | 'low' | 'high' } };
 export interface ExpertRequest {
   expertName: string;
   task: string;
   userId?: string;
   chatId?: string;
+  attachments?: Array<{ name: string; type: string; data: string }>;
 }
 
 /**
@@ -54,9 +59,21 @@ export async function runExpert(
       ? allTools.filter((t) => expert.tools.includes(t.function.name))
       : [];
 
+  // Construir contenido del usuario (con posibles archivos adjuntos)
+  let userContent: string | ContentPart[] = req.task;
+  if (req.attachments && req.attachments.length > 0) {
+    const parts: ContentPart[] = [{ type: 'text', text: req.task }];
+    for (const att of req.attachments) {
+      if (att.type.startsWith('image/')) {
+        parts.push({ type: 'image_url', image_url: { url: att.data, detail: 'auto' } });
+      }
+    }
+    userContent = parts;
+  }
+
   const messages: ChatCompletionMessageParam[] = [
     { role: 'system', content: expert.system_prompt },
-    { role: 'user', content: Array.isArray(req.task) ? JSON.stringify(req.task) : req.task },
+    { role: 'user', content: userContent as string },
   ];
 
   try {

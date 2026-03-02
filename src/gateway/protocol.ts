@@ -104,6 +104,7 @@ export interface WsUserMessage {
   sessionId?: string;
   expertName?: string; // Si se define, el mensaje va directo a este experto
   chatId?: string;
+  attachments?: Array<{ name: string; type: string; data: string }>; // base64 data URLs
 }
 
 export interface WsAssistantMessage {

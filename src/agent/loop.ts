@@ -14,6 +14,61 @@ import chalk from 'chalk';
 
 export const activeChats = new Set<string>();
 
+// ─── Helpers para contenido multipart ──────────────────────────────────────────
+type ContentPart =
+  | { type: 'text'; text: string }
+  | { type: 'image_url'; image_url: { url: string; detail?: 'auto' | 'low' | 'high' } };
+
+/**
+ * Construye el contenido del mensaje del usuario.
+ * Si hay archivos adjuntos, genera un array multipart compatible con OpenAI Vision.
+ * Si no hay adjuntos, retorna el texto plano.
+ */
+function buildUserContent(
+  text: string,
+  attachments?: Array<{ name: string; type: string; data: string }>,
+): string | ContentPart[] {
+  if (!attachments || attachments.length === 0) return text;
+
+  const parts: ContentPart[] = [];
+  let extraText = '';
+
+  for (const att of attachments) {
+    if (att.type.startsWith('image/')) {
+      // Imágenes → image_url part
+      parts.push({
+        type: 'image_url',
+        image_url: { url: att.data, detail: 'auto' },
+      });
+      console.log(chalk.magenta(`   📎 Imagen adjunta: ${att.name}`));
+    } else if (att.type.startsWith('text/') || att.type === 'application/json') {
+      // Archivos de texto → extraer contenido del base64 e inyectar
+      try {
+        const base64Content = att.data.split(',')[1] || '';
+        const decoded = Buffer.from(base64Content, 'base64').toString('utf-8');
+        extraText += `\n\n--- Archivo: ${att.name} ---\n${decoded}\n--- Fin archivo ---`;
+        console.log(chalk.magenta(`   📎 Archivo texto adjunto: ${att.name} (${decoded.length} chars)`));
+      } catch {
+        extraText += `\n\n[Error al leer archivo: ${att.name}]`;
+      }
+    } else {
+      // Otros tipos (PDF, etc.) → notificar que se recibió pero no se puede procesar inline
+      console.log(chalk.yellow(`   📎 Archivo no soportado inline: ${att.name} (${att.type})`));
+      extraText += `\n\n[Archivo adjunto: ${att.name} (${att.type}) - no se puede procesar inline]`;
+    }
+  }
+
+  const fullText = text + extraText;
+
+  if (parts.length === 0) {
+    // Solo archivos de texto, no imágenes → retornar texto simple
+    return fullText;
+  }
+
+  // Hay imágenes → retornar content array multipart
+  parts.unshift({ type: 'text', text: fullText });
+  return parts;
+}
 export interface AgentOptions {
   userId: string;
   chatId: string;
@@ -23,6 +78,7 @@ export interface AgentOptions {
   onChunk?: (text: string) => void;
   origin?: 'web' | 'telegram'; // Origen del mensaje
   telegramChatId?: number; // ID de chat si viene de Telegram
+  attachments?: Array<{ name: string; type: string; data: string }>; // Archivos adjuntos (base64 data URLs)
 }
 
 export interface AgentResponse {
@@ -42,10 +98,13 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
   const model = generalOverride?.model || config.agent.model;
   const provider = detectProvider(model);
 
+  // Construir contenido del mensaje (texto simple o multipart con archivos)
+  const userContent = buildUserContent(opts.userText, opts.attachments);
+
   // Añadir mensaje del usuario al historial en memoria (aislado por chatId)
   addMessage(
     opts.chatId,
-    { role: 'user', content: opts.userText },
+    { role: 'user', content: userContent },
     config.agent.maxContextMessages,
   );
 

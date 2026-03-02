@@ -65,3 +65,93 @@ textarea {
   cursor: not-allowed;
 }
 
+/* ─── Attach Button ────────────────────────────────────────────────────── */
+.attach-btn {
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.attach-btn:hover:not(:disabled) {
+  color: var(--accent);
+  background: rgba(79, 140, 255, 0.1);
+}
+
+.attach-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Attachment Preview ───────────────────────────────────────────────── */
+.attachment-preview {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 0 32px 8px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.attachment-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 4px 8px 4px 4px;
+  font-size: 12px;
+  color: var(--text-dim);
+  animation: slideDown 0.15s ease-out;
+}
+
+.attachment-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.attachment-icon {
+  font-size: 18px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.attachment-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-remove {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.attachment-remove:hover {
+  color: #ff4d6a;
+  background: rgba(255, 77, 106, 0.15);
+}
+

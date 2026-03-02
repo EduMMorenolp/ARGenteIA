@@ -88,6 +88,10 @@ export default function App() {
     // Model Info
     modelCapabilities,
     requestModelInfo,
+    // Attachments
+    attachments,
+    addAttachment,
+    removeAttachment,
   } = useAssistant();
 
   const quickCommands = [
@@ -219,6 +223,9 @@ export default function App() {
           isWaiting={isWaiting}
           selectedExpert={selectedExpert}
           textareaRef={textareaRef}
+          attachments={attachments}
+          onAttach={addAttachment}
+          onRemoveAttachment={removeAttachment}
         />
       </main>
 

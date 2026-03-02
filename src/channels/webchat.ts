@@ -15,6 +15,7 @@ interface WebChatHandlerOpts {
   text: string;
   send: (ws: WebSocket, msg: WsMessage) => void;
   expertName?: string | null;
+  attachments?: Array<{ name: string; type: string; data: string }>;
 }
 
 export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<void> {
@@ -79,6 +80,7 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
         task: opts.text,
         userId: sessionId,
         chatId: currentChatId,
+        attachments: opts.attachments,
       });
 
       result = {
@@ -93,6 +95,7 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
         chatId: currentChatId,
         userText: text,
         origin: 'web',
+        attachments: opts.attachments,
         onAction: (text) =>
           send(ws, {
             type: 'action_log',

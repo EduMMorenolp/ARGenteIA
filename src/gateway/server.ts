@@ -135,6 +135,7 @@ export function createGateway(): GatewayServer {
           chatId: msg.chatId,
           text: msg.text,
           expertName: msg.expertName,
+          attachments: msg.attachments,
           send,
         } as unknown as Parameters<typeof handleWebChatMessage>[0]);
       } else if (msg.type === 'identify') {

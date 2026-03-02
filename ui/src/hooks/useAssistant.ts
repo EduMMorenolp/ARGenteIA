@@ -40,6 +40,9 @@ export function useAssistant() {
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [modelCapabilities, setModelCapabilities] = useState<Record<string, ModelCapabilities>>({});
 
+  // File attachments
+  const [attachments, setAttachments] = useState<Array<{ name: string; type: string; dataUrl: string; preview?: string }>>([]); 
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const addMessage = useCallback(
@@ -276,24 +279,49 @@ export function useAssistant() {
     });
   };
 
+  const addAttachment = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      let preview: string | undefined;
+      if (file.type.startsWith('image/')) {
+        preview = dataUrl; // Use data URL as thumbnail preview
+      }
+      setAttachments((prev) => [...prev, { name: file.name, type: file.type, dataUrl, preview }]);
+    };
+    reader.readAsDataURL(file);
+  }, []);
+
+  const removeAttachment = useCallback((index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
   const sendMessage = useCallback(
     (text: string) => {
-      if (!text.trim()) return;
-      addMessage("user", text);
+      if (!text.trim() && attachments.length === 0) return;
+
+      // Build display text with file info
+      const fileNames = attachments.map((a) => `📎 ${a.name}`).join(', ');
+      const displayText = fileNames ? `${text}\n${fileNames}` : text;
+      addMessage("user", displayText);
 
       send({
         type: "user_message",
         text,
         expertName: selectedExpert || undefined,
         chatId: activeChatId || undefined,
+        attachments: attachments.length > 0
+          ? attachments.map((a) => ({ name: a.name, type: a.type, data: a.dataUrl }))
+          : undefined,
       });
 
       setIsWaiting(true);
       setIsTyping(true);
       setInputText("");
+      setAttachments([]);
       if (textareaRef.current) textareaRef.current.style.height = "auto";
     },
-    [addMessage, send, selectedExpert, activeChatId],
+    [addMessage, send, selectedExpert, activeChatId, attachments],
   );
 
   const upsertExpert = (expert: Expert) => {
@@ -575,5 +603,9 @@ export function useAssistant() {
     modelCapabilities,
     requestModelInfo: (modelName: string) =>
       send({ type: "request_model_info", modelName } as any),
+    // Attachments
+    attachments,
+    addAttachment,
+    removeAttachment,
   };
 }
