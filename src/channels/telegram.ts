@@ -343,7 +343,7 @@ async function handleTelegramCommand(
     }
 
     case '/tools': {
-      const tools = getTools();
+      const tools = await getTools();
       if (tools.length === 0) {
         await bot!.sendMessage(chatId, 'No hay herramientas habilitadas.');
       } else {

@@ -25,6 +25,7 @@ import { ProfileModal } from "./components/modals/ProfileModal";
 import { ModelManager } from "./components/modals/ModelManager";
 import { DashboardModal } from "./components/modals/DashboardModal";
 import { ChatSidebar } from "./components/layout/ChatSidebar";
+import { RagModal } from "./components/modals/RagModal";
 
 export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -32,6 +33,7 @@ export default function App() {
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isChatSidebarOpen, setIsChatSidebarOpen] = useState(true);
+  const [ragOwnerId, setRagOwnerId] = useState<string | null>(null);
   const {
     messages,
     inputText,
@@ -194,6 +196,7 @@ export default function App() {
         isWaiting={isWaiting}
         availableModels={availableModels}
         onOpenModels={() => setIsModelsOpen(true)}
+        onOpenRag={setRagOwnerId}
         isOpen={isSidebarOpen}
         onToggleOpen={() => setIsSidebarOpen(!isSidebarOpen)}
       />
@@ -300,6 +303,13 @@ export default function App() {
           stats={dashboardStats}
           onClose={() => setIsDashboardOpen(false)}
           onRequestStats={requestStats}
+        />
+      )}
+
+      {ragOwnerId && (
+        <RagModal
+          ownerId={ragOwnerId}
+          onClose={() => setRagOwnerId(null)}
         />
       )}
     </div>

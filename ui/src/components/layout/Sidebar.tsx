@@ -9,6 +9,7 @@ import {
   Server,
   ChevronLeft,
   ChevronRight,
+  Database,
 } from 'lucide-react';
 import type { Expert, ModelConfig, ScheduledTask } from '../../types';
 
@@ -38,6 +39,7 @@ interface SidebarProps {
   isWaiting: boolean;
   availableModels: ModelConfig[];
   onOpenModels: () => void;
+  onOpenRag: (agentName: string) => void;
   isOpen: boolean;
   onToggleOpen: () => void;
 }
@@ -62,6 +64,7 @@ export function Sidebar({
   isWaiting,
   availableModels,
   onOpenModels,
+  onOpenRag,
   isOpen,
   onToggleOpen,
 }: SidebarProps) {
@@ -122,6 +125,9 @@ export function Sidebar({
                     <button onClick={onEditGeneral} title="Configurar Asistente General">
                       <Edit2 size={12} />
                     </button>
+                    <button onClick={() => onOpenRag('__general__')} title="Memoria de Contexto (RAG)">
+                      <Database size={12} />
+                    </button>
                     <button
                       onClick={() => {
                         if (confirm('¿Restablecer configuración original del Asistente General?')) {
@@ -151,15 +157,27 @@ export function Sidebar({
                       </div>
                     </button>
                     <div className="expert-actions">
-                      <button onClick={() => onEditExpert(exp)}>
+                      <button onClick={() => onEditExpert(exp)} title="Editar Experto">
                         <Edit2 size={12} />
                       </button>
-                      <button onClick={() => onDeleteExpert(exp.name)}>
+                      <button onClick={() => onOpenRag(exp.name)} title="Memoria de Contexto (RAG)">
+                        <Database size={12} />
+                      </button>
+                      <button onClick={() => onDeleteExpert(exp.name)} title="Eliminar Experto">
                         <Trash2 size={12} />
                       </button>
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            <div className="nav-section">
+              <div className="section-header">
+                <span className="section-title">Memoria Global (RAG)</span>
+                <button className="icon-btn-sm" onClick={() => onOpenRag('global')} title="Gestionar Conocimiento Base">
+                  <Database size={12} />
+                </button>
               </div>
             </div>
 

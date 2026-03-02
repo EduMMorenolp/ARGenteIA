@@ -204,10 +204,14 @@ async function runOpenAI(
       const client = createClient(currentModel, config) as OpenAI;
       const name = modelName(currentModel);
 
-      // 1. Obtener override/perfil/herramientas (necesario en cada intento por si cambian)
+      // Extraer el último mensaje del usuario para RAG
+      const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+      const userQuery = lastUserMsg && typeof lastUserMsg.content === 'string' ? lastUserMsg.content : undefined;
+
+      // 1. Obtener override/perfil/herramientas (filtrado por Tool RAG)
       const { getExpert } = await import('../memory/expert-db.ts');
       const generalOverride = getExpert('__general__');
-      const toolSpecs: ToolSpec[] = getTools(generalOverride?.tools);
+      const toolSpecs: ToolSpec[] = await getTools(generalOverride?.tools, userQuery);
       const tools =
         toolSpecs.length > 0 ? (toolSpecs as unknown as ChatCompletionTool[]) : undefined;
 
@@ -235,9 +239,20 @@ async function runOpenAI(
         systemPrompt += `\n\n# COMPETENCIAS Y HABILIDADES ADICIONALES:\n${skills.join('\n\n')}`;
       }
 
-      // 3. RAG Context Placeholder (Prepared for semantic search tools)
-      // TODO: Inject context here if a RAG tool was called in this turn
-      // systemPrompt += `\n\n# CONTEXTO RECUPERADO (RAG):\n...`;
+      // 3. RAG Context Placeholder & Retrieval
+      if (userQuery) {
+          try {
+              const { searchSimilarChunks } = await import('../memory/rag-db.ts');
+              // Buscar fragmentos globales y específicos del agente '__general__'
+              const chunks = await searchSimilarChunks(userQuery, ['global', '__general__'], 3);
+              if (chunks.length > 0) {
+                  const ragText = chunks.map((c, i) => `[Documento ${i+1}]:\n${c.text_content}`).join('\n\n');
+                  systemPrompt += `\n\n# CONTEXTO RECUPERADO (MEMORIA):\n${ragText}`;
+              }
+          } catch(err) {
+              console.error(chalk.yellow("⚠️ Error en búsqueda RAG:"), err);
+          }
+      }
 
       // 4. Expert Delegation
       const { listExperts } = await import('../memory/expert-db.ts');

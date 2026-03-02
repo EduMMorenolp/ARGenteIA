@@ -31,7 +31,8 @@ export async function loadSkills(): Promise<string[]> {
   const mdFiles = files.filter((f) => f.endsWith('.md')).sort();
 
   // Obtener nombres de tools habilitadas
-  const enabledTools = getTools().map((t) => t.function.name);
+  const fetchedTools = await getTools();
+  const enabledTools = fetchedTools.map((t) => t.function.name);
 
   const skills: string[] = [];
   for (const file of mdFiles) {

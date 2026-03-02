@@ -11,7 +11,6 @@ export function registerSchedulerTools(_config: Config): void {
       type: 'function',
       function: {
         name: 'schedule_task',
-        name: 'schedule_task',
         description: "Programa una acción recurrente en formato cron (ej local: '30 7 * * *').",
         parameters: {
           type: 'object',

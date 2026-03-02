@@ -51,7 +51,7 @@ export async function runExpert(
 
   // 1. Configurar herramientas disponibles para este experto
   const { getTools, executeTool } = await import('../tools/index.ts');
-  const allTools = getTools();
+  const allTools = await getTools();
 
   // Filtrar herramientas si el experto tiene una lista definida
   const tools =
@@ -75,9 +75,22 @@ export async function runExpert(
   const maxHistory = 15;
   const prunedUserContent = Array.isArray(userContent) ? userContent : userContent;
 
+  let finalSystemPrompt = expert.system_prompt;
+  
+  // 2. RAG Context Retrieval (Global + Expert Specific)
+  try {
+      const { searchSimilarChunks } = await import('../memory/rag-db.ts');
+      const chunks = await searchSimilarChunks(req.task, ['global', expert.name], 3);
+      if (chunks.length > 0) {
+          const ragText = chunks.map((c, i) => `[Documento ${i+1}]:\n${c.text_content}`).join('\n\n');
+          finalSystemPrompt += `\n\n# CONTEXTO RECUPERADO (MEMORIA):\n${ragText}`;
+      }
+  } catch(err) {
+      console.log(chalk.yellow(`   ⚠️ [Expert ${expert.name}] Error en RAG:`), err);
+  }
+
   const messages: ChatCompletionMessageParam[] = [
-    { role: 'system', content: expert.system_prompt },
-    // TODO: Context RAG Placeholder if needed for experts
+    { role: 'system', content: finalSystemPrompt },
     { role: 'user', content: prunedUserContent as string },
   ];
 

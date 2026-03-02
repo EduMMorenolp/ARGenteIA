@@ -225,7 +225,7 @@ async function handleCommand(
     }
 
     case 'tools': {
-      const tools = getTools();
+      const tools = await getTools();
       if (tools.length === 0) {
         sendFn(ws, {
           type: 'command_result',

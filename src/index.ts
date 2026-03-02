@@ -17,7 +17,7 @@ try {
   console.error(chalk.red('❌ Error al inicializar la base de datos:'), err);
 }
 
-initTools();
+await initTools();
 await initScheduler();
 
 // 3. Crear e iniciar gateway (Express + WebSocket)

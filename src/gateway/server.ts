@@ -37,6 +37,43 @@ export function createGateway(): GatewayServer {
     res.json({ status: 'ok', model: config.agent.model });
   });
 
+  // ─── API RAG (Memory Context) ──────────────────────────────────────────────
+  app.post('/api/rag', express.json(), async (req, res) => {
+      try {
+          const { owner_id, text_content, source } = req.body;
+          if (!owner_id || !text_content) {
+              return res.status(400).json({ error: 'owner_id and text_content are required' });
+          }
+          const { addDocumentChunk } = await import('../memory/rag-db.ts');
+          const id = await addDocumentChunk(owner_id, text_content, source || 'manual_upload');
+          res.json({ success: true, id });
+      } catch(err: any) {
+          console.error('[API RAG Error]', err);
+          res.status(500).json({ error: err.message });
+      }
+  });
+
+  app.get('/api/rag/:owner_id', async (req, res) => {
+      try {
+          const { getDb } = await import('../memory/db.ts');
+          const owner_id = req.params.owner_id;
+          const rows = getDb().prepare('SELECT id, owner_id, text_content, source, created_at FROM document_chunks WHERE owner_id = ?').all(owner_id);
+          res.json({ chunks: rows });
+      } catch(err: any) {
+          res.status(500).json({ error: err.message });
+      }
+  });
+
+  app.delete('/api/rag/:owner_id/:id', async (req, res) => {
+      try {
+          const { deleteChunk } = await import('../memory/rag-db.ts');
+          const success = deleteChunk(Number(req.params.id), req.params.owner_id);
+          res.json({ success });
+      } catch(err: any) {
+          res.status(500).json({ error: err.message });
+      }
+  });
+
   // ─── WebSocket ─────────────────────────────────────────────────────────────
   wss.on('connection', (ws: WebSocket) => {
     let sessionId = `webchat-${Date.now()}`;
@@ -50,7 +87,8 @@ export function createGateway(): GatewayServer {
       const { loadSkills } = await import('../skills/loader.ts');
 
       const override = getExpert('__general__');
-      const allTools = getTools().map((t) => t.function.name);
+      const loadedTools = await getTools();
+      const allTools = loadedTools.map((t) => t.function.name);
       const allExpertsList = listExperts().map((e) => e.name);
 
       if (override) {
@@ -106,8 +144,9 @@ export function createGateway(): GatewayServer {
     });
 
     // Enviar lista de herramientas disponibles
-    import('../tools/index.ts').then(({ getTools }) => {
-      const toolNames = getTools().map((t) => t.function.name);
+    import('../tools/index.ts').then(async ({ getTools }) => {
+      const toolsResult = await getTools();
+      const toolNames = toolsResult.map((t) => t.function.name);
       send(ws, { type: 'list_tools', tools: toolNames } as unknown as WsMessage);
     });
 

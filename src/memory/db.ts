@@ -102,12 +102,22 @@ export function getDb(): Database.Database {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS document_chunks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      owner_id TEXT NOT NULL,
+      text_content TEXT NOT NULL,
+      embedding TEXT,
+      source TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_user_facts_userId ON user_facts(userId);
     CREATE INDEX IF NOT EXISTS idx_tasks_userId ON scheduled_tasks(userId);
     CREATE INDEX IF NOT EXISTS idx_sub_agents_name ON sub_agents(name);
     CREATE INDEX IF NOT EXISTS idx_messages_userId ON messages(userId);
     CREATE INDEX IF NOT EXISTS idx_chats_userId ON chats(userId);
     CREATE INDEX IF NOT EXISTS idx_stats_log_userId ON stats_log(userId);
+    CREATE INDEX IF NOT EXISTS idx_document_chunks_owner_id ON document_chunks(owner_id);
   `);
 
   // Migración: Asegurar columna 'experts' en 'sub_agents'
