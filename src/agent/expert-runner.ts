@@ -83,7 +83,7 @@ export async function runExpert(
     let response = await client.chat.completions.create({
       model: name,
       messages,
-      max_tokens: config.agent.maxTokens,
+      max_tokens: undefined,
       temperature: expert.temperature ?? 0.7,
       tools: tools.length > 0 ? (tools as unknown as OpenAI.Chat.ChatCompletionTool[]) : undefined,
       tool_choice: tools.length > 0 ? 'auto' : undefined,
@@ -142,7 +142,7 @@ export async function runExpert(
       response = await client.chat.completions.create({
         model: name,
         messages,
-        max_tokens: config.agent.maxTokens,
+        max_tokens: undefined,
         tools: tools as unknown as OpenAI.Chat.ChatCompletionTool[],
       });
     }

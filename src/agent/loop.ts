@@ -263,15 +263,18 @@ async function runOpenAI(
 
           while (retries > 0) {
             try {
-              const stream = await client.chat.completions.create({
+              const callPayload = {
                 model: name,
                 messages,
-                max_tokens: maxTokens,
+                max_tokens: undefined, // Let provider dynamically bound based on remaining credits / context
                 temperature: generalOverride?.temperature ?? 0.7,
                 tools: useTools ? tools : undefined,
                 tool_choice: useTools && tools ? 'auto' : undefined,
                 stream: true,
-              });
+              };
+              console.log(chalk.blue(`   [API Request] Payload:`), JSON.stringify(callPayload, null, 2));
+
+              const stream = await client.chat.completions.create(callPayload as OpenAI.Chat.ChatCompletionCreateParamsStreaming);
 
               let fullContent = '';
               let toolCalls: any[] = [];

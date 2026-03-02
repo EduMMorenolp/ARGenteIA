@@ -156,9 +156,28 @@ export async function startTelegram(): Promise<void> {
           }
         });
 
-      // Notificar a WebChat para actualizar preview en la barra lateral
+      // Notificar a WebChat para actualizar preview en la barra lateral e historial de chat actual
       const { listChats, listChannelChats } = await import('../memory/chat-db.ts');
       const { broadcastToUser } = await import('../gateway/server.ts');
+
+      broadcastToUser(effectiveUserId, {
+        type: 'user_message',
+        text: text,
+        chatId: channelChat.id,
+        sessionId: effectiveUserId,
+      } as any);
+
+      broadcastToUser(effectiveUserId, {
+        type: 'assistant_message',
+        text: result.text,
+        model: result.model,
+        usage: result.usage,
+        latencyMs: result.latencyMs,
+        sessionId: effectiveUserId,
+        chatId: channelChat.id,
+        origin: 'telegram',
+        timestamp: new Date().toISOString(),
+      } as any);
 
       broadcastToUser(effectiveUserId, {
         type: 'list_chats',
