@@ -102,7 +102,8 @@ Se utiliza SQLite con el driver `better-sqlite3`. Las tablas principales son:
 - `users`: Perfiles, zonas horarias y tokens de acceso.
 - `messages`: Registro histórico de todos los chats.
 - `chats`: Agrupación de mensajes por contexto y experto.
-- `user_facts`: Memoria a largo plazo (recuerdos).
+- `user_facts`: Memoria a largo plazo (recuerdos precisos).
+- `document_chunks`: Memoria a largo plazo vectorial (RAG) con embeddings para búsqueda por similitud semántica.
 - `scheduled_tasks`: Tareas CRON persistentes.
 - `sub_agents`: Configuración de expertos personalizados.
 - `models`: Modelos de IA configurados (nombre, displayName, API Key, Base URL).

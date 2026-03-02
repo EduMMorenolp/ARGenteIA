@@ -77,7 +77,8 @@ Aquí reside la magia. El Agente no solo "responde", sino que "piensa" en ciclos
 - **`loop.ts`**: Controla el ciclo de razonamiento (ReAct). Si el modelo decide usar una herramienta, el loop la ejecuta, obtiene el resultado y vuelve a llamar al modelo hasta que tenga una respuesta final. Soporta **streaming** nativo y tiene un sistema de **fallback automático** entre modelos.
 - **`models.ts`**: Detecta automáticamente si debe usar OpenAI, Anthropic u Ollama. Resuelve credenciales con fallback escalonado (DB → config.json → key compartida de OpenRouter).
 - **`model-info.ts`**: Consulta la API de OpenRouter para obtener capacidades del modelo (visión, audio, contexto, pricing).
-- **`expert-runner.ts`**: Permite delegar tareas a "Expertos". Cada experto es como un sub-agente con su propio prompt especializado y herramientas limitadas.
+- **`expert-runner.ts`**: Permite delegar tareas a "Expertos". Cada experto es como un sub-agente con su propio prompt especializado, herramientas limitadas y acceso a su propia memoria RAG.
+- **`embeddings/`**: Módulo especializado en convertir texto a vectores. Usa un embedder local (`nomic-embed-text` vía Ollama) con fallback REST.
 
 ### 5. Herramientas (`src/tools/`)
 Son las capacidades del asistente. Cada herramienta tiene un **Spec** (que la IA lee para saber cómo usarla) y un **Handler** (el código Typescript que hace el trabajo real).
@@ -93,6 +94,7 @@ Usa SQLite para persistencia:
 - **`model-db.ts`**: CRUD de modelos de IA (nombre, displayName, API Key, Base URL) con seed automático desde config.json.
 - **`chat-db.ts`**: Gestión de chats (creación, listado, renombrado, pin, eliminación).
 - **`stats-db.ts`**: Métricas agregadas para el Dashboard.
+- **`rag-db.ts`**: Base de datos vectorial (Embeddings) para la memoria RAG (`document_chunks`). Su motor local calcula similitud de coseno en memoria para buscar contexto semánticamente relevante.
 
 ---
 

@@ -2,9 +2,14 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
-## [1.8.0] - 2026-03-01
+## [0.8.0] - 2026-03-01
 
 ### Añadido
+- **Triple RAG (Memoria Vectorial):** Implementación de memoria a largo plazo con *Embeddings* locales (`nomic-embed-text`) y búsqueda por similitud de coseno, dividida en 3 niveles: 
+  - **Tool RAG:** Inyección dinámica de descripciones de herramientas para ahorrar tokens.
+  - **Global RAG:** Memoria de contexto compartida (`__general__`).
+  - **Expert RAG:** Memoria privada para cada sub-agente especialista.
+- **RAG Modal Manager:** Creada nueva interfaz en el cliente Web (`RagModal`) para visualizar, subir archivos locales reales y organizar el contexto inyectado en la base de datos `document_chunks`.
 - **Streaming de Respuestas:** Integración de streaming de texto vía WebSockets para visualizar las respuestas del asistente en tiempo real a medida que se generan (`assistant_chunk`).
 - **Dashboard de Estadísticas:** Nuevo modal interactivo (`DashboardModal`) para visualizar métricas de uso, consumos e historial general del sistema. Soporte completo en backend (`stats-db.ts`).
 - **Gestión Avanzada de Modelos:**
