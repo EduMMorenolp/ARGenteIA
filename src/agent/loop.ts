@@ -216,21 +216,30 @@ async function runOpenAI(
       const userProfile = getUser(userId);
       const skills = await loadSkills();
 
-      let systemPrompt =
-        generalOverride?.system_prompt ||
-        config.agent.systemPrompt ||
-        'Eres un asistente personal útil.';
+      let systemPrompt = `Eres un asistente personal útil y conciso. Respondes en español.`;
 
-      if (skills.length > 0 && !systemPrompt.includes('COMPETENCIAS Y HABILIDADES ADICIONALES')) {
-        systemPrompt += `\n\nCOMPETENCIAS Y HABILIDADES ADICIONALES:\n${skills.join('\n\n')}`;
-      }
-
+      // 1. Core Profile
       if (userProfile && userProfile.name) {
-        systemPrompt += `\nESTÁS HABLANDO CON: ${userProfile.name}. Su zona horaria es: ${userProfile.timezone}.`;
+        systemPrompt += `\n\nESTÁS HABLANDO CON: ${userProfile.name}. Su zona horaria es: ${userProfile.timezone}.`;
       } else {
-        systemPrompt += '\n' + loadPrompt('onboarding');
+        systemPrompt += `\n\n` + loadPrompt('onboarding');
       }
 
+      // 2. Base Rules & Skills (without duplication)
+      const basePrompt = generalOverride?.system_prompt || config.agent.systemPrompt;
+      if (basePrompt && basePrompt.length > 0) {
+        systemPrompt += `\n\n# REGLAS DEL SISTEMA:\n${basePrompt}`;
+      }
+      
+      if (skills.length > 0) {
+        systemPrompt += `\n\n# COMPETENCIAS Y HABILIDADES ADICIONALES:\n${skills.join('\n\n')}`;
+      }
+
+      // 3. RAG Context Placeholder (Prepared for semantic search tools)
+      // TODO: Inject context here if a RAG tool was called in this turn
+      // systemPrompt += `\n\n# CONTEXTO RECUPERADO (RAG):\n...`;
+
+      // 4. Expert Delegation
       const { listExperts } = await import('../memory/expert-db.ts');
       let experts = listExperts();
       if (generalOverride?.experts && generalOverride.experts.length > 0) {
@@ -243,15 +252,20 @@ async function runOpenAI(
         systemPrompt += '\n\n' + loadPrompt('experts-delegation', { expertsList });
       }
 
+      // 5. Channel Constraints
       if (opts.origin === 'telegram') {
         systemPrompt += '\n\n' + loadPrompt('channel-telegram');
       } else {
         systemPrompt += '\n\n' + loadPrompt('channel-web');
       }
 
+      // HISTORY PRUNING: Only keep the last 15 messages to prevent context explosion on long chats
+      const maxHistory = 15;
+      const prunedMessages = messages.length > maxHistory ? messages.slice(-maxHistory) : messages;
+
       const loopMessages: ChatCompletionMessageParam[] = [
         { role: 'system', content: systemPrompt },
-        ...messages,
+        ...prunedMessages,
       ];
       let iterations = 0;
       const MAX_ITERATIONS = 6;
@@ -266,7 +280,7 @@ async function runOpenAI(
               const callPayload = {
                 model: name,
                 messages,
-                max_tokens: undefined, // Let provider dynamically bound based on remaining credits / context
+                max_tokens: Math.min(maxTokens || 1500, 1500), // Default to 1500 to save OpenRouter credits
                 temperature: generalOverride?.temperature ?? 0.7,
                 tools: useTools ? tools : undefined,
                 tool_choice: useTools && tools ? 'auto' : undefined,

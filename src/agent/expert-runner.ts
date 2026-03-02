@@ -71,9 +71,14 @@ export async function runExpert(
     userContent = parts;
   }
 
+  // HISTORY PRUNING
+  const maxHistory = 15;
+  const prunedUserContent = Array.isArray(userContent) ? userContent : userContent;
+
   const messages: ChatCompletionMessageParam[] = [
     { role: 'system', content: expert.system_prompt },
-    { role: 'user', content: userContent as string },
+    // TODO: Context RAG Placeholder if needed for experts
+    { role: 'user', content: prunedUserContent as string },
   ];
 
   try {
@@ -83,7 +88,7 @@ export async function runExpert(
     let response = await client.chat.completions.create({
       model: name,
       messages,
-      max_tokens: undefined,
+      max_tokens: Math.min(config.agent.maxTokens || 1500, 1500),
       temperature: expert.temperature ?? 0.7,
       tools: tools.length > 0 ? (tools as unknown as OpenAI.Chat.ChatCompletionTool[]) : undefined,
       tool_choice: tools.length > 0 ? 'auto' : undefined,
@@ -142,7 +147,7 @@ export async function runExpert(
       response = await client.chat.completions.create({
         model: name,
         messages,
-        max_tokens: undefined,
+        max_tokens: Math.min(config.agent.maxTokens || 1500, 1500),
         tools: tools as unknown as OpenAI.Chat.ChatCompletionTool[],
       });
     }

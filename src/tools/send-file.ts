@@ -11,19 +11,17 @@ export function registerSendFile(_config: Config): void {
       type: 'function',
       function: {
         name: 'send_file_telegram',
-        description:
-          "Envía un archivo local al usuario a través de Telegram. Úsalo cuando el usuario pida un archivo (documento, imagen, excel, etc.).\nIMPORTANTE: Usa siempre rutas absolutas o usa '$HOME' para referirte a la carpeta del usuario. NO pongas comillas extra dentro del parámetro path.",
+        description: "Envía un archivo local al usuario por Telegram. Usa rutas absolutas o '$HOME'. NO incluyas comillas extras en la ruta.",
         parameters: {
           type: 'object',
           properties: {
             path: {
               type: 'string',
-              description:
-                "Ruta al archivo. Ejemplo: '$HOME\\Downloads\\archivo.xlsx' o 'C:\\Users\\admin\\file.txt'",
+              description: "Ruta al archivo (ej: '$HOME\\Downloads\\archivo.xlsx').",
             },
             caption: {
               type: 'string',
-              description: 'Opcional: Un mensaje de texto para acompañar al archivo.',
+              description: 'Opcional: mensaje adjunto.',
             },
           },
           required: ['path'],

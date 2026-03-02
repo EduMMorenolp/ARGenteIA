@@ -11,19 +11,18 @@ export function registerSchedulerTools(_config: Config): void {
       type: 'function',
       function: {
         name: 'schedule_task',
-        description:
-          "Programa una acción o recordatorio para realizar automáticamente en un momento específico usando formato cron (ej local: '30 7 * * *' para las 7:30 AM).",
+        name: 'schedule_task',
+        description: "Programa una acción recurrente en formato cron (ej local: '30 7 * * *').",
         parameters: {
           type: 'object',
           properties: {
             task: {
               type: 'string',
-              description: 'Descripción detallada de la tarea a realizar.',
+              description: 'Descripción de la tarea.',
             },
             cron: {
               type: 'string',
-              description:
-                "Horario en formato cron (minuto, hora, día, mes, día-semana). Ej: '0 8 * * *' para las 8 AM diario.",
+              description: "Horario cron (ej: '0 8 * * *').",
             },
           },
           required: ['task', 'cron'],

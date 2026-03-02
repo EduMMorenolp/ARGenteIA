@@ -50,16 +50,14 @@ export function registerBash(config: Config): void {
       function: {
         name: 'bash',
         description: isWindows
-          ? `Ejecuta comandos en PowerShell (Windows). Soporta pipes y comandos completos.\nComandos permitidos: ${config.tools.bash.allowlist.join(', ')}.\nIMPORTANTE: En Windows, usa comillas dobles para rutas con espacios o caracteres especiales (ej: "ruta\\archivo (1).txt"). NO uses escapes de barra invertida (\\) para paréntesis.\nEjemplos:\n- Listar descargas: \`Get-ChildItem "$HOME\\Downloads" | Sort-Object LastWriteTime -Descending | Select-Object -First 5\`\n- Explorar home: \`Get-ChildItem "$HOME"\`\n- Leer archivo: \`Get-Content "$HOME\\Documents\\plan.txt"\``
-          : `Ejecuta comandos en bash (Linux/macOS). Soporta pipes.\nComandos permitidos: ${config.tools.bash.allowlist.join(', ')}.\nEjemplos:\n- Listar descargas: \`ls -lt ~/Downloads | head -5\`\n- Fecha: \`date\``,
+          ? `Ejecuta comandos en PowerShell (Windows). Comandos: ${config.tools.bash.allowlist.join(', ')}. Usa comillas dobles para rutas con espacios ("ruta\\archivo.txt").`
+          : `Ejecuta comandos en bash (Linux/macOS). Comandos: ${config.tools.bash.allowlist.join(', ')}.`,
         parameters: {
           type: 'object',
           properties: {
             command: {
               type: 'string',
-              description: isWindows
-                ? 'Comando completo de PowerShell. Usa comillas para rutas: "$HOME\\Downloads\\file (1).txt"'
-                : 'Comando completo de bash.',
+              description: 'Comando a ejecutar.',
             },
           },
           required: ['command'],
