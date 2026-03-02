@@ -160,20 +160,20 @@ export function RagModal({ onClose, ownerId }: ComponentProps) {
                     ) : chunks.length === 0 ? (
                         <p className="text-muted text-sm text-center py-4">No hay documentos en la memoria de este agente.</p>
                     ) : (
-                        <div className="flex flex-col gap-3">
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '350px', overflowY: 'auto', paddingRight: '0.5rem' }}>
                             {chunks.map(chunk => (
-                                <div key={chunk.id} className="p-3 rounded-lg border flex gap-3" style={{ borderColor: 'var(--border)' }}>
-                                    <div className="flex-1">
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className="text-xs font-semibold text-accent">{chunk.source}</span>
-                                            <span className="text-[10px] text-muted">{new Date(chunk.created_at).toLocaleDateString()}</span>
+                                <div key={chunk.id} style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', display: 'flex', gap: '0.75rem', backgroundColor: 'var(--surface-hover)' }}>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                                            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent)' }}>{chunk.source}</span>
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{new Date(chunk.created_at).toLocaleDateString()}</span>
                                         </div>
-                                        <p className="text-xs text-muted" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'pre-wrap' }}>
                                             {chunk.text_content}
                                         </p>
                                     </div>
-                                    <button className="icon-btn self-start text-error hover:bg-error/10" onClick={() => handleDelete(chunk.id)} title="Eliminar Documento">
-                                        <Trash2 size={14} />
+                                    <button className="icon-btn focus:outline-none" style={{ alignSelf: 'flex-start', color: 'var(--error)' }} onClick={() => handleDelete(chunk.id)} title="Eliminar Documento">
+                                        <Trash2 size={16} />
                                     </button>
                                 </div>
                             ))}
