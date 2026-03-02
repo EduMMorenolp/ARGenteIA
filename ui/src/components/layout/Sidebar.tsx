@@ -208,7 +208,7 @@ export function Sidebar({
             <div className="nav-section">
               <div className="section-header">
                 <span className="section-title">Modelos</span>
-                <button className="icon-btn-sm" onClick={onOpenModels}>
+                <button className="icon-btn" onClick={onOpenModels}>
                   <Server size={12} />
                 </button>
               </div>

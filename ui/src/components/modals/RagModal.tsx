@@ -49,6 +49,20 @@ export function RagModal({ onClose, ownerId }: ComponentProps) {
         }
     };
 
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+            const text = await file.text();
+            setNewSource(file.name);
+            setNewText(text);
+        } catch (err) {
+            alert('Error al leer el archivo. Asegúrate de que sea texto.');
+        }
+        // clear input value so the same file can be uploaded again if needed
+        e.target.value = '';
+    };
+
     const handleAdd = async () => {
         if (!newText.trim()) return;
         try {
@@ -81,7 +95,7 @@ export function RagModal({ onClose, ownerId }: ComponentProps) {
                         <div className="icon-box"><Database size={20} /></div>
                         <h2>Memoria de Contexto (RAG)</h2>
                     </div>
-                    <button className="icon-btn-sm" onClick={onClose}><X size={16} /></button>
+                    <button className="icon-btn" onClick={onClose}><X size={16} /></button>
                 </div>
 
                 <p className="modal-subtitle mb-4">
@@ -90,29 +104,50 @@ export function RagModal({ onClose, ownerId }: ComponentProps) {
 
                 <div className="modal-body scrollbar-hide">
                     <div className="rag-form mb-6 p-4 rounded-xl" style={{ background: 'var(--surface)' }}>
-                        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><UploadCloud size={14} /> Nuevo Documento</h3>
-                        <input
-                            type="text"
-                            className="input-field mb-2 text-sm"
-                            placeholder="Fuente o Título (ej: Documentación API)"
-                            value={newSource}
-                            onChange={(e) => setNewSource(e.target.value)}
-                        />
-                        <textarea
-                            className="input-field text-sm"
-                            style={{ minHeight: '100px', resize: 'vertical' }}
-                            placeholder="Pega el texto que quieres que el agente memorice y use como contexto..."
-                            value={newText}
-                            onChange={(e) => setNewText(e.target.value)}
-                        />
-                        <div className="flex justify-end mt-3">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '14px', fontWeight: 600 }}>
+                                <UploadCloud size={14} /> Nuevo Documento
+                            </h3>
+                            <label className="btn-secondary btn-sm" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                                <input
+                                    type="file"
+                                    style={{ display: 'none' }}
+                                    accept=".txt,.md,.csv,.json,.ts,.js,.html,.css"
+                                    onChange={handleFileUpload}
+                                />
+                                <span>Subir Archivo Local</span>
+                            </label>
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: '1rem' }}>
+                            <input
+                                type="text"
+                                className="input-field"
+                                style={{ width: '100%', fontSize: '14px' }}
+                                placeholder="Fuente o Título (ej: Documentación API)"
+                                value={newSource}
+                                onChange={(e) => setNewSource(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: '1rem' }}>
+                            <textarea
+                                className="input-field"
+                                style={{ width: '100%', minHeight: '100px', resize: 'vertical', fontSize: '14px' }}
+                                placeholder="Pega el texto que quieres que el agente memorice y use como contexto..."
+                                value={newText}
+                                onChange={(e) => setNewText(e.target.value)}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
                             <button className="btn-primary btn-sm" onClick={handleAdd} disabled={isSubmitting || !newText.trim()}>
                                 {isSubmitting ? 'Guardando...' : <><Plus size={14} /> Incorporar Conocimiento</>}
                             </button>
                         </div>
                     </div>
 
-                    <h3 className="text-sm font-semibold mb-3">Conocimiento Almacenado</h3>
+                    <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '0.75rem' }}>Conocimiento Almacenado</h3>
                     {loading ? (
                         <p className="text-muted text-sm text-center py-4">Cargando...</p>
                     ) : chunks.length === 0 ? (
@@ -130,7 +165,7 @@ export function RagModal({ onClose, ownerId }: ComponentProps) {
                                             {chunk.text_content}
                                         </p>
                                     </div>
-                                    <button className="icon-btn-sm self-start text-error hover:bg-error/10" onClick={() => handleDelete(chunk.id)} title="Eliminar Documento">
+                                    <button className="icon-btn self-start text-error hover:bg-error/10" onClick={() => handleDelete(chunk.id)} title="Eliminar Documento">
                                         <Trash2 size={14} />
                                     </button>
                                 </div>
