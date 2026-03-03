@@ -34,7 +34,7 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 - **Compilación Backend:** Solucionado error de parseo en `agent/loop.ts` (TS1005: 'try' expected).
 - **Layout de Modales:** Ajustado el diseño CSS para garantizar un ancho fijo de 480px en modales principales con expansión fluida de paneles.
 
-## [1.7.0] - 2026-02-27
+## [0.7.0] - 2026-02-27
 
 ### Corregido
 - **Validación de Expertos:** Implementada validación obligatoria en `upsertExpert` para prevenir la inserción de sub-agentes sin nombre o con nombres inválidos.
@@ -47,7 +47,7 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 - **Estabilidad del Arranque:** El asistente ahora es más resiliente ante datos inconsistentes en la tabla `sub_agents`.
 
 
-## [1.6.0] - 2026-02-27
+## [0.6.0] - 2026-02-27
 
 ### Añadido
 - **Flujo Dinámico de Comunicación:**
@@ -73,7 +73,7 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 - **Error `NOT NULL constraint failed: messages.userId`** en la ejecución de tareas programadas por el sistema.
 - **Variable `sessionId` indefinida** en diversas funciones del núcleo del agente tras la refactorización a Multi-Chat.
 
-## [1.5.0] - 2026-02-26
+## [0.5.0] - 2026-02-26
 
 ### Añadido
 - **Gestión de Modelos desde la Web:**
@@ -105,7 +105,7 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 - Imports no utilizados y variables `@ts-ignore` reemplazadas por `@ts-expect-error`.
 - Empty catch blocks y parámetros no usados prefijados con `_`.
 
-## [1.4.0] - 2026-02-22
+## [0.4.0] - 2026-02-22
 
 ### Añadido
 - **Gestión Completa de Tareas (Web & Telegram):**
@@ -136,7 +136,7 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
   - Eliminados errores de compilación por iconos no utilizados (`ChevronRight`) y variables de estado perdidas tras refactorización.
   - Solucionado el problema de alias del comando de ayuda (`/ayuda` ahora es universal).
 
-## [1.3.1] - 2026-02-22
+## [0.3.1] - 2026-02-22
 
 ### Añadido
 - **Historial de Chat Persistente (SQLite):** Implementada una nueva tabla `messages` para almacenar de forma definitiva todas las conversaciones del asistente y sus expertos.
@@ -158,7 +158,7 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 - **Build de Producción:** Corregidos errores de tipos y de importaciones de iconos no utilizados que bloqueaban `npm run build`.
 - **Integridad de Base de Datos:** Eliminado error de sintaxis en el script de inicialización de tablas SQL.
 
-## [1.3.0] - 2026-02-22
+## [0.3.0] - 2026-02-22
 
 ### Añadido
 - **Migración Major a Vite + React:** Interfaz de usuario reconstruida desde cero para mayor velocidad, modularidad y estética premium.
@@ -190,7 +190,7 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 - **Inconsistencia de Dependencias:** Corregido error de módulo no encontrado para `zod-to-json-schema` en el entorno de ejecución.
 - **WebSocket Protocol:** Robustez mejorada en el manejo de mensajes para evitar desincronización entre cliente y servidor.
 
-## [1.2.0] - 2026-02-22
+## [0.2.0] - 2026-02-22
 
 ### Añadido
 - **Envío de Archivos por Telegram:** Nueva herramienta `send_file_telegram` que permite al asistente enviar archivos locales (PDF, XLSX, imágenes, etc.) directamente al chat de Telegram con soporte para archivos de hasta 50MB.
@@ -217,7 +217,7 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 - **SyntaxError en Herramientas:** Corregidos varios fallos de parseo de argumentos JSON cuando el modelo incluía caracteres especiales sin escape.
 
 
-## [1.1.0] - 2026-02-21
+## [0.1.0] - 2026-02-21
 
 ### Añadido
 - **Memoria a Largo Plazo (SQLite):** Implementación de una base de datos persistente para que el asistente pueda recordar hechos sobre el usuario entre sesiones y tras usar `/reset`.
@@ -246,7 +246,7 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ---
 
-## [1.0.0] - 2026-02-15
+## [0.0.1] - 2026-02-15
 ### Añadido
 - Proyecto inicial (OpenClaw Lite).
 - Soporte para OpenAI y OpenRouter.
