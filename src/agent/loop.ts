@@ -301,7 +301,7 @@ async function runOpenAI(
                 tool_choice: useTools && tools ? 'auto' : undefined,
                 stream: true,
               };
-              console.log(chalk.blue(`   [API Request] Payload:`), JSON.stringify(callPayload, null, 2));
+             // console.log(chalk.blue(`   [API Request] Payload:`), JSON.stringify(callPayload, null, 2));
 
               const stream = await client.chat.completions.create(callPayload as OpenAI.Chat.ChatCompletionCreateParamsStreaming);
 
