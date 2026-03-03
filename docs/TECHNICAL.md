@@ -1,129 +1,90 @@
-# ⚙️ Guía Técnica de ARGenteIA
+# Guía Técnica de ARGenteIA
 
-Este documento contiene los detalles técnicos, instrucciones de instalación, configuración avanzada y arquitectura del sistema para desarrolladores o usuarios avanzados.
-
----
-
-## 🏗️ Arquitectura del Sistema
-
-ARGenteIA funciona como un middleware inteligente entre el usuario y los Modelos de Lenguaje (LLMs).
-
-```mermaid
-graph TD
-    User((Usuario))
-    TG[Canal Telegram]
-    WC[WebChat UI - React]
-    GW[Gateway - Express/WS]
-    Loop[Agent Loop - Motor Central]
-    DB[(SQLite DB)]
-    Tools[Registry de Herramientas]
-    LLM[Proveedores de IA - Ollama/OpenRouter/OpenAI]
-
-    User --> TG
-    User --> WC
-    WC <--> GW
-    TG <--> Loop
-    GW <--> Loop
-    Loop <--> DB
-    Loop <--> Tools
-    Loop <--> LLM
-```
-
----
-
-## 🚀 Instalación y Despliegue
+## Instalación y Despliegue
 
 ### Requisitos Previos
-- **Node.js:** Versión 22 o superior.
-- **PNPM:** El gestor de paquetes recomendado (`npm install -g pnpm`).
-- **Ollama (Opcional):** Si deseas ejecutar modelos 100% locales.
 
-### Pasos
-1. **Clonar el repositorio:**
-   ```bash
-   git clone <url-del-repo>
-   cd asistentePersonal
-   ```
-2. **Instalar dependencias:**
-   ```bash
-   pnpm install
-   ```
-3. **Configuración inicial:**
-   Copia el archivo de ejemplo y edítalo con tus credenciales.
-   ```bash
-   cp config.example.json config.json
-   ```
-4. **Ejecución en desarrollo:**
-   ```bash
-   pnpm dev
-   ```
+- **Node.js**: Versión 22 o superior
+- **PNPM**: El gestor de paquetes recomendado (npm install -g pnpm)
+- **Ollama** (Opcional): Si deseas ejecutar modelos 100% locales
 
----
+### Pasos de Instalación
 
-## 🛠️ Configuración (`config.json`)
+- Clonar el repositorio: `git clone https://github.com/EduMMorenolp/ARGenteIA.git`
+- Entrar al directorio: `cd ARGenteIA`
+- Instalar dependencias: `pnpm install`
+- Copiar configuración: `cp config.example.json config.json`
+- Ejecutar en desarrollo: `pnpm dev`
 
-El archivo de configuración utiliza **Zod** para validación en tiempo de ejecución.
+## Configuración
 
-### Ejemplo de Configuración Bash (Windows vs Linux)
-```json5
-"tools": {
-  "bash": {
-    "enabled": true,
-    "os": "windows", // Cambiar a "linux" en sistemas Unix
-    // Opcional: Ruta al ejecutable de PowerShell si no está en el PATH
-    "psExe": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-    "allowlist": ["ls", "cat", "echo", "pwd"] // Comandos permitidos
-  }
-}
-```
+El archivo `config.json` utiliza Zod para validación en tiempo de ejecución.
 
----
+### Configuración de Bash
 
-## 📋 Protocolo WebSocket (`src/gateway/protocol.ts`)
+- **enabled**: true/false para habilitar/deshabilitar la herramienta de terminal
+- **os**: "windows" o "linux" según el sistema operativo
+- **psExe**: Ruta opcional al ejecutable de PowerShell
+- **allowlist**: Lista de comandos permitidos (ls, cat, echo, pwd, etc.)
 
-La comunicación entre la UI y el servidor se basa en mensajes JSON con un campo `type`. Algunos tipos clave son:
+### Configuración de Modelos
 
-- `user_message`: Envío de texto del usuario.
-- `assistant_chunk`: Fragmento parcial de la respuesta en streaming.
-- `assistant_message`: Respuesta final del asistente con historial y metadatos.
-- `action_log`: Logs en tiempo real sobre el uso de herramientas o estados internos.
-- `status`: Información de sesión e inicialización del cliente.
-- `list_chats`: Recuperación del historial de conversaciones del usuario.
-- `list_models` / `model_update`: Gestión de modelos configurados.
-- `request_model_info` / `model_info`: Consulta de capacidades de un modelo (visión, audio, contexto, pricing).
-- `request_dashboard` / `dashboard_stats`: Solicitud y envío de métricas de uso del sistema.
+- Se pueden configurar múltiples modelos de IA en config.json
+- Cada modelo tiene: name, apiKey, baseURL opcional
+- El sistema hace fallback automático entre modelos si uno falla
 
----
+## Protocolo WebSocket
 
-## 🗄️ Esquema de Base de Datos (`src/memory/db.ts`)
+La comunicación entre UI y servidor usa mensajes JSON con campo `type`:
 
-Se utiliza SQLite con el driver `better-sqlite3`. Las tablas principales son:
+- **user_message**: Envío de texto del usuario
+- **assistant_chunk**: Fragmento parcial de la respuesta en streaming
+- **assistant_message**: Respuesta final del asistente con historial y metadatos
+- **action_log**: Logs en tiempo real sobre el uso de herramientas
+- **status**: Información de sesión e inicialización del cliente
+- **list_chats**: Recuperación del historial de conversaciones
+- **list_models / model_update**: Gestión de modelos configurados
+- **request_model_info / model_info**: Consulta de capacidades de un modelo (visión, audio, contexto, pricing)
+- **request_dashboard / dashboard_stats**: Solicitud y envío de métricas del sistema
+- **rag_upload / rag_list / rag_delete**: Gestión de documentos RAG
 
-- `users`: Perfiles, zonas horarias y tokens de acceso.
-- `messages`: Registro histórico de todos los chats.
-- `chats`: Agrupación de mensajes por contexto y experto.
-- `user_facts`: Memoria a largo plazo (recuerdos precisos).
-- `document_chunks`: Memoria a largo plazo vectorial (RAG) con embeddings para búsqueda por similitud semántica.
-- `scheduled_tasks`: Tareas CRON persistentes.
-- `sub_agents`: Configuración de expertos personalizados.
-- `models`: Modelos de IA configurados (nombre, displayName, API Key, Base URL).
+## Esquema de Base de Datos
 
----
+Se utiliza SQLite con el driver better-sqlite3. Las tablas principales:
 
-## 🔧 Extensibilidad: Tools y Skills
+- **users**: Perfiles, zonas horarias y tokens de acceso
+- **messages**: Registro histórico de todos los chats
+- **chats**: Agrupación de mensajes por contexto y experto
+- **user_facts**: Memoria a largo plazo (recuerdos precisos del usuario)
+- **document_chunks**: Memoria vectorial RAG con embeddings para búsqueda por similitud semántica
+- **scheduled_tasks**: Tareas CRON persistentes
+- **sub_agents**: Configuración de expertos personalizados (nombre, prompt, herramientas)
+- **models**: Modelos de IA configurados (nombre, displayName, API Key, Base URL)
+
+## Extensibilidad
 
 ### Añadir una nueva herramienta
-1. Crea un archivo en `src/tools/tu-herramienta.ts`.
-2. Define el esquema compatible con OpenAI (Spec).
-3. Implementa el `handler` (lógica en TypeScript).
-4. Regístrala en `src/tools/index.ts`.
+
+- Crear archivo en `src/tools/tu-herramienta.ts`
+- Definir el esquema Spec compatible con OpenAI function calling
+- Implementar el handler (lógica en TypeScript)
+- Registrar en `src/tools/index.ts`
 
 ### Añadir una Skill
-Simplemente añade un archivo `.md` en la carpeta `skills/` en la raíz. El contenido de este archivo se inyectará automáticamente en el prompt del sistema durante el inicio.
 
----
+- Añadir un archivo .md en la carpeta `skills/` en la raíz del proyecto
+- El contenido se inyecta automáticamente en el prompt del sistema durante el inicio
 
-## 📡 Canales de Comunicación
+## Canales de Comunicación
 
-- **Telegram:** Implementado con `node-telegram-bot-api`. Soporta Webhooks o Polling (default).
-- **WebChat:** Aplicación Single Page (SPA) en `ui/` construida con React, Vite y WebSockets.
+- **Telegram**: Implementado con node-telegram-bot-api. Soporta Webhooks o Polling (default). Comandos: /start, /model, /expert
+- **WebChat**: Aplicación SPA en ui/ construida con React, Vite y WebSockets. Login multi-usuario con persistencia de sesión
+
+## Triple RAG (Memoria Vectorial)
+
+Sistema de memoria a largo plazo con embeddings locales (nomic-embed-text) y búsqueda por similitud de coseno:
+
+- **Tool RAG**: Inyección dinámica de descripciones de herramientas para ahorrar tokens. Solo las herramientas relevantes se incluyen en el contexto
+- **Global RAG**: Memoria de contexto compartida entre todos los expertos. Accesible vía la sesión __general__
+- **Expert RAG**: Memoria privada para cada sub-agente especialista. Cada experto tiene su propia colección de documentos
+- **RAG Modal**: Interfaz en el cliente Web para visualizar, subir archivos locales y organizar el contexto vectorial
