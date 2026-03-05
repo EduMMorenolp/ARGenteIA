@@ -288,7 +288,24 @@ $btnStart.Add_Click({
     $psi.EnvironmentVariables["NODE_ENV"] = "production"
 
     try {
-        $script:serverProcess = [System.Diagnostics.Process]::Start($psi)
+        $script:serverProcess = New-Object System.Diagnostics.Process
+        $script:serverProcess.StartInfo = $psi
+        $script:serverProcess.EnableRaisingEvents = $true
+
+        $q = $script:logQueue
+        $script:serverProcess.add_OutputDataReceived({
+            param($s, $e)
+            if ($e.Data) { $q.Enqueue($e.Data) }
+        })
+        $script:serverProcess.add_ErrorDataReceived({
+            param($s, $e)
+            if ($e.Data) { $q.Enqueue("[ERR] " + $e.Data) }
+        })
+
+        [void]$script:serverProcess.Start()
+        $script:serverProcess.BeginOutputReadLine()
+        $script:serverProcess.BeginErrorReadLine()
+
         Set-ServerRunning
         Write-Log "Servidor iniciado (PID: $($script:serverProcess.Id))"
         $timer.Start()
@@ -343,30 +360,26 @@ $btnFolder.Add_Click({
     Start-Process "explorer.exe" -ArgumentList $scriptDir
 })
 
+# Cola thread-safe para logs asincrono
+$script:logQueue = New-Object System.Collections.Concurrent.ConcurrentQueue[string]
+
 $timer.Add_Tick({
-    if ($script:serverProcess -eq $null -or $script:serverProcess.HasExited) {
-        $timer.Stop()
-        if ($script:serverProcess -ne $null) {
-            Write-Log "El servidor se detuvo inesperadamente."
-        }
-        $script:serverProcess = $null
-        Set-ServerStopped
-        return
+    $line = $null
+    while ($script:logQueue.TryDequeue([ref]$line)) {
+        $timestamp = Get-Date -Format "HH:mm:ss"
+        $txtLog.AppendText("[$timestamp] $line`r`n")
     }
 
-    try {
-        while ($script:serverProcess.StandardOutput.Peek() -ge 0) {
-            $line = $script:serverProcess.StandardOutput.ReadLine()
-            if ($line) { Write-Log $line }
+    if ($script:serverProcess -ne $null -and $script:serverProcess.HasExited) {
+        $timer.Stop()
+        while ($script:logQueue.TryDequeue([ref]$line)) {
+            $timestamp = Get-Date -Format "HH:mm:ss"
+            $txtLog.AppendText("[$timestamp] $line`r`n")
         }
-    } catch {}
-
-    try {
-        while ($script:serverProcess.StandardError.Peek() -ge 0) {
-            $line = $script:serverProcess.StandardError.ReadLine()
-            if ($line) { Write-Log "[ERR] $line" }
-        }
-    } catch {}
+        Write-Log "El servidor se detuvo."
+        $script:serverProcess = $null
+        Set-ServerStopped
+    }
 })
 
 $form.Add_FormClosing({
