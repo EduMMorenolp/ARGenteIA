@@ -260,12 +260,12 @@ function Kill-PortProcess($port) {
         $lines = netstat -ano 2>$null | Select-String ":$port\s" | Select-String "LISTENING"
         foreach ($l in $lines) {
             if ($l -match '\s(\d+)\s*$') {
-                $pid = [int]$Matches[1]
-                if ($pid -gt 0) {
-                    $proc = Get-Process -Id $pid -ErrorAction SilentlyContinue
+                $procId = [int]$Matches[1]
+                if ($procId -gt 0) {
+                    $proc = Get-Process -Id $procId -ErrorAction SilentlyContinue
                     $procName = if ($proc) { $proc.ProcessName } else { "desconocido" }
-                    Write-Log "Liberando puerto $port (proceso: $procName, PID: $pid)"
-                    Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+                    Write-Log "Liberando puerto $port (proceso: $procName, PID: $procId)"
+                    Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue
                     Start-Sleep -Milliseconds 500
                 }
             }
@@ -285,6 +285,7 @@ function Stop-Server {
         Write-Log "Servidor detenido."
     }
     $script:serverProcess = $null
+    $script:lastLogLines = 0
     $timer.Stop()
     # Asegurar que el puerto quede libre
     Kill-PortProcess 19666
@@ -316,34 +317,23 @@ $btnStart.Add_Click({
     }
 
     $psi = New-Object System.Diagnostics.ProcessStartInfo
-    $psi.FileName = $tsxPath
-    $psi.Arguments = "src/index.ts"
+    $psi.FileName = "cmd.exe"
+    $psi.Arguments = "/c set NO_COLOR=1 && set NODE_ENV=production && `"$tsxPath`" src/index.ts > `"$(Join-Path $scriptDir '.server.log')`" 2>&1"
     $psi.WorkingDirectory = $scriptDir
     $psi.UseShellExecute = $false
-    $psi.RedirectStandardOutput = $true
-    $psi.RedirectStandardError = $true
     $psi.CreateNoWindow = $true
-    $psi.EnvironmentVariables["NODE_ENV"] = "production"
+
+    # Preparar archivo de log del servidor
+    $script:serverLogFile = Join-Path $scriptDir ".server.log"
+    if (Test-Path $script:serverLogFile) { Remove-Item $script:serverLogFile -Force }
+    "" | Out-File $script:serverLogFile -Encoding UTF8
+    $script:lastLogLines = 0
 
     $script:serverProcess = New-Object System.Diagnostics.Process
     $script:serverProcess.StartInfo = $psi
-    $script:serverProcess.EnableRaisingEvents = $true
-    $script:exitDetectedAt = $null
-
-    $q = $script:logQueue
-    $script:serverProcess.add_OutputDataReceived({
-        param($s, $e)
-        try { if ($e.Data) { $q.Enqueue($e.Data) } } catch {}
-    })
-    $script:serverProcess.add_ErrorDataReceived({
-        param($s, $e)
-        try { if ($e.Data) { $q.Enqueue($e.Data) } } catch {}
-    })
-
     [void]$script:serverProcess.Start()
-    $script:serverProcess.BeginOutputReadLine()
-    $script:serverProcess.BeginErrorReadLine()
 
+    $script:exitDetectedAt = $null
     Set-ServerRunning
     Write-Log "Servidor iniciado (PID: $($script:serverProcess.Id))"
     $timer.Start()
@@ -409,21 +399,46 @@ $btnFolder.Add_Click({
     Start-Process "explorer.exe" -ArgumentList $scriptDir
 })
 
-# Cola thread-safe para logs asincrono
-$script:logQueue = New-Object System.Collections.Concurrent.ConcurrentQueue[string]
+# Función para leer nuevas líneas del log del servidor (thread-safe via archivo)
+function Read-ServerLog {
+    if (-not $script:serverLogFile -or -not (Test-Path $script:serverLogFile)) { return }
+    try {
+        $fs = New-Object System.IO.FileStream(
+            $script:serverLogFile,
+            [System.IO.FileMode]::Open,
+            [System.IO.FileAccess]::Read,
+            [System.IO.FileShare]::ReadWrite
+        )
+        $reader = New-Object System.IO.StreamReader($fs)
+        $content = $reader.ReadToEnd()
+        $reader.Close()
+        $fs.Close()
+
+        if (-not $content) { return }
+        $lines = $content -split "`r?`n"
+        if ($lines.Count -gt $script:lastLogLines) {
+            for ($i = $script:lastLogLines; $i -lt $lines.Count; $i++) {
+                if ($lines[$i].Trim()) {
+                    $ts = Get-Date -Format "HH:mm:ss"
+                    $txtLog.AppendText("[$ts] $($lines[$i])`r`n")
+                }
+            }
+            $script:lastLogLines = $lines.Count
+        }
+    } catch {
+        # Archivo puede estar bloqueado por un instante, ignorar este tick
+    }
+}
 
 $script:exitDetectedAt = $null
 
 $timer.Add_Tick({
   try {
-    $line = $null
-    while ($script:logQueue.TryDequeue([ref]$line)) {
-        $timestamp = Get-Date -Format "HH:mm:ss"
-        $txtLog.AppendText("[$timestamp] $line`r`n")
-    }
+    # Leer nuevas líneas del archivo de log
+    Read-ServerLog
 
     if ($script:serverProcess -ne $null -and $script:serverProcess.HasExited) {
-        # Esperar 2 segundos después de detectar exit para capturar toda la salida async
+        # Esperar 2 segundos después de detectar exit para capturar toda la salida
         if ($script:exitDetectedAt -eq $null) {
             $script:exitDetectedAt = Get-Date
             return
@@ -434,11 +449,8 @@ $timer.Add_Tick({
         }
 
         $timer.Stop()
-        # Drenar cola final
-        while ($script:logQueue.TryDequeue([ref]$line)) {
-            $timestamp = Get-Date -Format "HH:mm:ss"
-            $txtLog.AppendText("[$timestamp] $line`r`n")
-        }
+        # Lectura final del log
+        Read-ServerLog
 
         $exitCode = $script:serverProcess.ExitCode
         if ($exitCode -ne 0) {
@@ -494,3 +506,5 @@ $form.Add_Shown({ $form.TopMost = $false })
         )
     } catch {}
 }
+
+exit 0
