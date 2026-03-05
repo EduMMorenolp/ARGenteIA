@@ -191,8 +191,8 @@ echo.
 echo  ========================================================
 echo.
 echo   Instalacion completada!
-echo.
-echo   Para iniciar, hace doble click en: ARGenteIA.bat
+echo.  Al cerrarse el instalador.
+echo   Para iniciar el servidor, hace click en: Iniciar Servidor
 echo.
 echo  ========================================================
 echo.
