@@ -19,7 +19,7 @@ const AgentConfigSchema = z.object({
 });
 
 const GatewayConfigSchema = z.object({
-  port: z.number().int().min(1024).max(65535).default(18000),
+  port: z.number().int().min(1024).max(65535).default(19666),
 });
 
 const TelegramConfigSchema = z.object({
