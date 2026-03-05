@@ -10,6 +10,15 @@ Add-Type -AssemblyName System.Drawing
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $serverProcess = $null
+$crashLogFile = Join-Path $scriptDir ".launcher-crash.log"
+
+# Función para escribir errores a archivo (funciona siempre, incluso si la UI crashea)
+function Write-CrashLog($msg) {
+    $ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    "[$ts] $msg" | Out-File -FilePath $crashLogFile -Append -Encoding UTF8
+}
+
+Write-CrashLog "=== Launcher iniciado ==="
 
 # ─── Colores ───────────────────────────────────────────────────────────
 
@@ -247,18 +256,22 @@ function Set-ServerStopped {
 
 function Kill-PortProcess($port) {
     try {
-        $conn = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
-        if ($conn) {
-            foreach ($c in $conn) {
-                $proc = Get-Process -Id $c.OwningProcess -ErrorAction SilentlyContinue
-                if ($proc) {
-                    Write-Log "Liberando puerto $port (proceso: $($proc.ProcessName), PID: $($proc.Id))"
-                    Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+        # Usar netstat (disponible en todos los Windows) en lugar de Get-NetTCPConnection
+        $lines = netstat -ano 2>$null | Select-String ":$port\s" | Select-String "LISTENING"
+        foreach ($l in $lines) {
+            if ($l -match '\s(\d+)\s*$') {
+                $pid = [int]$Matches[1]
+                if ($pid -gt 0) {
+                    $proc = Get-Process -Id $pid -ErrorAction SilentlyContinue
+                    $procName = if ($proc) { $proc.ProcessName } else { "desconocido" }
+                    Write-Log "Liberando puerto $port (proceso: $procName, PID: $pid)"
+                    Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
                     Start-Sleep -Milliseconds 500
                 }
             }
         }
     } catch {
+        Write-CrashLog "Kill-PortProcess error: $_"
         Write-Log "No se pudo verificar el puerto $port : $_"
     }
 }
@@ -281,6 +294,7 @@ function Stop-Server {
 # ─── Eventos ───────────────────────────────────────────────────────────
 
 $btnStart.Add_Click({
+  try {
     Write-Log "Iniciando servidor..."
 
     $srcIndex = Join-Path $scriptDir "src\index.ts"
@@ -311,43 +325,49 @@ $btnStart.Add_Click({
     $psi.CreateNoWindow = $true
     $psi.EnvironmentVariables["NODE_ENV"] = "production"
 
-    try {
-        $script:serverProcess = New-Object System.Diagnostics.Process
-        $script:serverProcess.StartInfo = $psi
-        $script:serverProcess.EnableRaisingEvents = $true
-        $script:exitDetectedAt = $null
+    $script:serverProcess = New-Object System.Diagnostics.Process
+    $script:serverProcess.StartInfo = $psi
+    $script:serverProcess.EnableRaisingEvents = $true
+    $script:exitDetectedAt = $null
 
-        $q = $script:logQueue
-        $script:serverProcess.add_OutputDataReceived({
-            param($s, $e)
-            if ($e.Data) { $q.Enqueue($e.Data) }
-        })
-        $script:serverProcess.add_ErrorDataReceived({
-            param($s, $e)
-            if ($e.Data) { $q.Enqueue("[ERR] " + $e.Data) }
-        })
+    $q = $script:logQueue
+    $script:serverProcess.add_OutputDataReceived({
+        param($s, $e)
+        try { if ($e.Data) { $q.Enqueue($e.Data) } } catch {}
+    })
+    $script:serverProcess.add_ErrorDataReceived({
+        param($s, $e)
+        try { if ($e.Data) { $q.Enqueue($e.Data) } } catch {}
+    })
 
-        [void]$script:serverProcess.Start()
-        $script:serverProcess.BeginOutputReadLine()
-        $script:serverProcess.BeginErrorReadLine()
+    [void]$script:serverProcess.Start()
+    $script:serverProcess.BeginOutputReadLine()
+    $script:serverProcess.BeginErrorReadLine()
 
-        Set-ServerRunning
-        Write-Log "Servidor iniciado (PID: $($script:serverProcess.Id))"
-        Write-Log "Capturando salida del servidor..."
-        $timer.Start()
-    } catch {
-        Write-Log "ERROR al iniciar: $_"
-        Write-Log "Detalle: $($_.Exception.Message)"
-        Write-Log "Para diagnosticar manualmente, abre PowerShell en esta carpeta y ejecuta:"
-        Write-Log "  npx tsx src/index.ts"
-    }
+    Set-ServerRunning
+    Write-Log "Servidor iniciado (PID: $($script:serverProcess.Id))"
+    $timer.Start()
+  } catch {
+    $errMsg = $_.Exception.Message
+    $errLine = $_.InvocationInfo.ScriptLineNumber
+    Write-CrashLog "btnStart error (linea $errLine): $errMsg"
+    Write-CrashLog $_.Exception.ToString()
+    Write-Log "ERROR al iniciar: $errMsg"
+    Write-Log "Detalle guardado en .launcher-crash.log"
+    Write-Log "Para diagnosticar manualmente, abre PowerShell en esta carpeta y ejecuta:"
+    Write-Log "  npx tsx src/index.ts"
+  }
 })
 
 $btnStop.Add_Click({
-    Stop-Server
+    try { Stop-Server } catch {
+        Write-CrashLog "btnStop error: $($_.Exception.Message)"
+        Write-Log "Error al detener: $($_.Exception.Message)"
+    }
 })
 
 $btnInstall.Add_Click({
+  try {
     $batPath = Join-Path $scriptDir "instalar.bat"
     if (-not (Test-Path $batPath)) {
         Write-Log "ERROR: instalar.bat no encontrado en la carpeta del proyecto."
@@ -364,12 +384,12 @@ $btnInstall.Add_Click({
     $psi.UseShellExecute = $true
     $psi.CreateNoWindow = $false
 
-    try {
-        $proc = [System.Diagnostics.Process]::Start($psi)
-        Write-Log "Instalador iniciado. Espera a que termine."
-    } catch {
-        Write-Log "ERROR al ejecutar instalador: $_"
-    }
+    $proc = [System.Diagnostics.Process]::Start($psi)
+    Write-Log "Instalador iniciado. Espera a que termine."
+  } catch {
+    Write-CrashLog "btnInstall error: $($_.Exception.Message)"
+    Write-Log "ERROR al ejecutar instalador: $($_.Exception.Message)"
+  }
 })
 
 $btnBrowser.Add_Click({
@@ -395,6 +415,7 @@ $script:logQueue = New-Object System.Collections.Concurrent.ConcurrentQueue[stri
 $script:exitDetectedAt = $null
 
 $timer.Add_Tick({
+  try {
     $line = $null
     while ($script:logQueue.TryDequeue([ref]$line)) {
         $timestamp = Get-Date -Format "HH:mm:ss"
@@ -422,8 +443,8 @@ $timer.Add_Tick({
         $exitCode = $script:serverProcess.ExitCode
         if ($exitCode -ne 0) {
             Write-Log "ERROR: El servidor se detuvo con codigo de salida: $exitCode"
-            Write-Log "Para diagnosticar, abre una terminal en la carpeta del proyecto y ejecuta:"
-            Write-Log "  npx tsx src/index.ts"
+            Write-Log "Revisa los mensajes de arriba para ver el error."
+            Write-Log "Para diagnosticar, abre PowerShell aqui y ejecuta:  npx tsx src/index.ts"
         } else {
             Write-Log "El servidor se detuvo normalmente."
         }
@@ -432,6 +453,10 @@ $timer.Add_Tick({
         $script:exitDetectedAt = $null
         Set-ServerStopped
     }
+  } catch {
+    Write-CrashLog "Timer tick error: $($_.Exception.ToString())"
+    try { Write-Log "Error interno: $($_.Exception.Message) - Ver .launcher-crash.log" } catch {}
+  }
 })
 
 $form.Add_FormClosing({
@@ -457,11 +482,15 @@ $form.Add_Shown({ $form.TopMost = $false })
 [void]$form.ShowDialog()
 
 } catch {
-    Add-Type -AssemblyName System.Windows.Forms
-    [System.Windows.Forms.MessageBox]::Show(
-        "Error al iniciar ARGenteIA Server Manager:`n`n$($_.Exception.Message)`n`nLinea: $($_.InvocationInfo.ScriptLineNumber)",
-        "ARGenteIA - Error",
-        [System.Windows.Forms.MessageBoxButtons]::OK,
-        [System.Windows.Forms.MessageBoxIcon]::Error
-    )
+    $errDetail = "Error: $($_.Exception.Message)`nLinea: $($_.InvocationInfo.ScriptLineNumber)`nStack: $($_.Exception.ToString())"
+    try { Write-CrashLog "FATAL: $errDetail" } catch {}
+    try {
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.MessageBox]::Show(
+            "Error al iniciar ARGenteIA Server Manager:`n`n$($_.Exception.Message)`n`nLinea: $($_.InvocationInfo.ScriptLineNumber)`n`nDetalle guardado en .launcher-crash.log",
+            "ARGenteIA - Error",
+            [System.Windows.Forms.MessageBoxButtons]::OK,
+            [System.Windows.Forms.MessageBoxIcon]::Error
+        )
+    } catch {}
 }

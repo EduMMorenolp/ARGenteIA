@@ -35,13 +35,26 @@ pause
 exit /b 1
 
 :launch
-"%PS_EXE%" -ExecutionPolicy Bypass -File "%~dp0launcher.ps1"
-if %ERRORLEVEL% neq 0 (
+"%PS_EXE%" -ExecutionPolicy Bypass -File "%~dp0launcher.ps1" 2>"%~dp0.launcher-ps-error.log"
+set PS_EXIT=%ERRORLEVEL%
+if %PS_EXIT% neq 0 (
     echo.
     echo  ==================================================
     echo    El launcher finalizo con un error.
-    echo    Codigo de salida: %ERRORLEVEL%
+    echo    Codigo de salida: %PS_EXIT%
     echo.
+    if exist "%~dp0.launcher-crash.log" (
+        echo    --- Ultimo error del launcher: ---
+        echo.
+        type "%~dp0.launcher-crash.log" 2>nul
+        echo.
+    )
+    if exist "%~dp0.launcher-ps-error.log" (
+        echo    --- Salida de error PowerShell: ---
+        echo.
+        type "%~dp0.launcher-ps-error.log" 2>nul
+        echo.
+    )
     echo    Para diagnosticar, abre PowerShell aqui y ejecuta:
     echo      npx tsx src/index.ts
     echo  ==================================================
