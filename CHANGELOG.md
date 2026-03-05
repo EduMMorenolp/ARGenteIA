@@ -2,6 +2,32 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.9.0] - 2026-03-04
+
+### Añadido
+- **Instalador One-Click (`instalar.bat`):** Script batch que permite a usuarios no técnicos instalar el proyecto con un doble click:
+  - Verificación automática de Node.js (abre página de descarga si no está instalado).
+  - Instalación global de pnpm.
+  - Instalación de dependencias y compilación del proyecto.
+  - Creación automática de `config.json` desde el template de ejemplo.
+- **Lanzador GUI (`ARGenteIA.bat` + `launcher.ps1`):** Panel de control gráfico nativo con Windows Forms:
+  - Botones **Iniciar** / **Detener** servidor con indicadores visuales de estado (🟢/🔴).
+  - **Log en vivo** del servidor con timestamps.
+  - Botón para **abrir en el navegador** (puerto 19666).
+  - Botón para **editar `config.json`** directamente desde el panel.
+  - Cierre seguro: detiene el servidor automáticamente al cerrar la ventana.
+  - Tema oscuro premium acorde a la identidad visual del proyecto.
+- **Guía de Instalación Web (`InstallGuide`):** Nuevo componente en la landing page (ARGenteIA Web) visible solo para el rol **usuario**:
+  - 4 pasos visuales con íconos: Descargar → Instalar → Configurar → Iniciar.
+  - Nota informativa sobre obtención de API keys (OpenRouter, Ollama).
+  - Diseño responsive con cards, conectores entre pasos y animaciones reveal.
+- **Scripts de UI en `package.json`:**
+  - `pnpm run ui:install` — Instala dependencias del frontend (`ui/`).
+  - `pnpm run ui:dev` — Levanta el dev server Vite del frontend.
+
+### Mejorado
+- **Experiencia de Onboarding:** El flujo completo de instalación ahora es accesible para usuarios sin conocimientos técnicos, reduciendo la barrera de entrada al proyecto.
+
 ## [0.8.0] - 2026-03-01
 
 ### Añadido
