@@ -1,0 +1,124 @@
+#!/bin/bash
+# ─── ARGenteIA — Instalador Automático ─────────────────────────────────
+
+set -e
+
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+BLUE='\033[1;34m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR"
+
+echo ""
+echo -e "${BLUE}${BOLD}"
+echo "  ╔══════════════════════════════════════════════════════╗"
+echo "  ║                                                      ║"
+echo "  ║      █████╗ ██████╗  ██████╗ ███████╗███╗   ██╗      ║"
+echo "  ║     ██╔══██╗██╔══██╗██╔════╝ ██╔════╝████╗  ██║      ║"
+echo "  ║     ███████║██████╔╝██║  ███╗█████╗  ██╔██╗ ██║      ║"
+echo "  ║     ██╔══██║██╔══██╗██║   ██║██╔══╝  ██║╚██╗██║      ║"
+echo "  ║     ██║  ██║██║  ██║╚██████╔╝███████╗██║ ╚████║      ║"
+echo "  ║     ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ║"
+echo "  ║              ████████╗███████╗██╗ █████╗              ║"
+echo "  ║              ╚══██╔══╝██╔════╝██║██╔══██╗             ║"
+echo "  ║                 ██║   █████╗  ██║███████║             ║"
+echo "  ║                 ██║   ██╔══╝  ██║██╔══██║             ║"
+echo "  ║                 ██║   ███████╗██║██║  ██║             ║"
+echo "  ║                 ╚═╝   ╚══════╝╚═╝╚═╝  ╚═╝            ║"
+echo "  ║                                                      ║"
+echo "  ║          Instalador Automatico v1.0                  ║"
+echo "  ╚══════════════════════════════════════════════════════╝"
+echo -e "${NC}"
+
+# ─── Paso 1: Verificar Node.js ─────────────────────────────────────────
+echo -e "  ${BOLD}[1/5] Verificando Node.js...${NC}"
+if ! command -v node &> /dev/null; then
+    echo ""
+    echo -e "  ${RED}╔══════════════════════════════════════════════╗${NC}"
+    echo -e "  ${RED}║  ⚠  Node.js no está instalado.              ║${NC}"
+    echo -e "  ${RED}║                                              ║${NC}"
+    echo -e "  ${RED}║  Instalá Node.js con:                        ║${NC}"
+    echo -e "  ${RED}║  curl -fsSL https://fnm.vercel.app/install   ║${NC}"
+    echo -e "  ${RED}║  | bash && fnm install 22                    ║${NC}"
+    echo -e "  ${RED}║                                              ║${NC}"
+    echo -e "  ${RED}║  O visitá: https://nodejs.org/               ║${NC}"
+    echo -e "  ${RED}╚══════════════════════════════════════════════╝${NC}"
+    echo ""
+    exit 1
+fi
+NODE_VER=$(node -v)
+echo -e "        ${GREEN}✓ Node.js encontrado: ${NODE_VER}${NC}"
+echo ""
+
+# ─── Paso 2: Instalar pnpm ─────────────────────────────────────────────
+echo -e "  ${BOLD}[2/5] Verificando pnpm...${NC}"
+if ! command -v pnpm &> /dev/null; then
+    echo "        Instalando pnpm globalmente..."
+    npm install -g pnpm
+    if [ $? -ne 0 ]; then
+        echo -e "  ${RED}✗ Error al instalar pnpm.${NC}"
+        exit 1
+    fi
+fi
+PNPM_VER=$(pnpm -v)
+echo -e "        ${GREEN}✓ pnpm encontrado: v${PNPM_VER}${NC}"
+echo ""
+
+# ─── Paso 3: Instalar dependencias ─────────────────────────────────────
+echo -e "  ${BOLD}[3/5] Instalando dependencias...${NC}"
+echo "        Esto puede tardar unos minutos..."
+echo ""
+pnpm install
+if [ $? -ne 0 ]; then
+    echo -e "  ${RED}✗ Error al instalar dependencias.${NC}"
+    exit 1
+fi
+echo ""
+echo -e "        ${GREEN}✓ Dependencias instaladas correctamente${NC}"
+echo ""
+
+# ─── Paso 4: Compilar el proyecto ──────────────────────────────────────
+echo -e "  ${BOLD}[4/5] Compilando el proyecto...${NC}"
+pnpm run build
+if [ $? -ne 0 ]; then
+    echo -e "  ${RED}✗ Error al compilar.${NC}"
+    exit 1
+fi
+echo ""
+echo -e "        ${GREEN}✓ Proyecto compilado correctamente${NC}"
+echo ""
+
+# ─── Paso 5: Configuración ─────────────────────────────────────────────
+echo -e "  ${BOLD}[5/5] Verificando configuración...${NC}"
+if [ ! -f "config.json" ]; then
+    cp config.example.json config.json
+    echo -e "        ${GREEN}✓ Archivo config.json creado desde el ejemplo${NC}"
+    echo ""
+    echo -e "  ${YELLOW}╔══════════════════════════════════════════════════════╗${NC}"
+    echo -e "  ${YELLOW}║  ⚠  IMPORTANTE: Editá config.json con tu API key    ║${NC}"
+    echo -e "  ${YELLOW}║                                                      ║${NC}"
+    echo -e "  ${YELLOW}║  Abrí config.json con un editor de texto y           ║${NC}"
+    echo -e "  ${YELLOW}║  reemplazá \"sk-...\" con tu clave de API real.        ║${NC}"
+    echo -e "  ${YELLOW}║                                                      ║${NC}"
+    echo -e "  ${YELLOW}║  Podés obtener una en:                               ║${NC}"
+    echo -e "  ${YELLOW}║  → https://openrouter.ai/keys                       ║${NC}"
+    echo -e "  ${YELLOW}║  → https://platform.openai.com/api-keys             ║${NC}"
+    echo -e "  ${YELLOW}╚══════════════════════════════════════════════════════╝${NC}"
+else
+    echo -e "        ${GREEN}✓ config.json ya existe, no se modificó${NC}"
+fi
+
+echo ""
+echo -e "  ${GREEN}╔══════════════════════════════════════════════════════╗${NC}"
+echo -e "  ${GREEN}║                                                      ║${NC}"
+echo -e "  ${GREEN}║   ✓ Instalación completada exitosamente!             ║${NC}"
+echo -e "  ${GREEN}║                                                      ║${NC}"
+echo -e "  ${GREEN}║   Para iniciar el servidor, ejecutá:                 ║${NC}"
+echo -e "  ${GREEN}║   → ./argenteia.sh                                   ║${NC}"
+echo -e "  ${GREEN}║                                                      ║${NC}"
+echo -e "  ${GREEN}╚══════════════════════════════════════════════════════╝${NC}"
+echo ""

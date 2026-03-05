@@ -1,82 +1,111 @@
 # ─── ARGenteIA Server Manager ──────────────────────────────────────────
-# GUI nativa con Windows Forms para iniciar/detener el servidor
+# GUI nativa con Windows Forms para instalar/iniciar/detener el servidor
+
+try {
 
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
+[System.Windows.Forms.Application]::EnableVisualStyles()
+
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $serverProcess = $null
 
-# ─── Crear la ventana principal ────────────────────────────────────────
+# ─── Colores ───────────────────────────────────────────────────────────
+
+$colBg        = [System.Drawing.Color]::FromArgb(13, 13, 20)
+$colSurface   = [System.Drawing.Color]::FromArgb(22, 22, 32)
+$colSurface2  = [System.Drawing.Color]::FromArgb(30, 30, 44)
+$colAccent    = [System.Drawing.Color]::FromArgb(79, 140, 255)
+$colGreen     = [System.Drawing.Color]::FromArgb(16, 185, 129)
+$colRed       = [System.Drawing.Color]::FromArgb(239, 68, 68)
+$colYellow    = [System.Drawing.Color]::FromArgb(250, 204, 21)
+$colPurple    = [System.Drawing.Color]::FromArgb(168, 85, 247)
+$colTextMain  = [System.Drawing.Color]::FromArgb(230, 230, 240)
+$colTextMuted = [System.Drawing.Color]::FromArgb(120, 120, 150)
+$colTextDim   = [System.Drawing.Color]::FromArgb(80, 80, 110)
+$colLogBg     = [System.Drawing.Color]::FromArgb(8, 8, 14)
+$colLogText   = [System.Drawing.Color]::FromArgb(160, 210, 160)
+
+# ─── Ventana principal ─────────────────────────────────────────────────
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "ARGenteIA — Server Manager"
-$form.Size = New-Object System.Drawing.Size(620, 520)
+$form.Text = "ARGenteIA - Server Manager"
+$form.Size = New-Object System.Drawing.Size(660, 600)
 $form.StartPosition = "CenterScreen"
 $form.FormBorderStyle = "FixedSingle"
 $form.MaximizeBox = $false
-$form.BackColor = [System.Drawing.Color]::FromArgb(18, 18, 24)
-$form.ForeColor = [System.Drawing.Color]::White
+$form.BackColor = $colBg
+$form.ForeColor = $colTextMain
 $form.Font = New-Object System.Drawing.Font("Segoe UI", 10)
+$form.TopMost = $true
 
 # ─── Header ────────────────────────────────────────────────────────────
 
+$pnlHeader = New-Object System.Windows.Forms.Panel
+$pnlHeader.Dock = "Top"
+$pnlHeader.Height = 70
+$pnlHeader.BackColor = $colSurface
+$form.Controls.Add($pnlHeader)
+
 $lblTitle = New-Object System.Windows.Forms.Label
-$lblTitle.Text = "🤖 ARGenteIA Server"
-$lblTitle.Font = New-Object System.Drawing.Font("Segoe UI", 18, [System.Drawing.FontStyle]::Bold)
-$lblTitle.ForeColor = [System.Drawing.Color]::FromArgb(79, 140, 255)
+$lblTitle.Text = "ARGenteIA"
+$lblTitle.Font = New-Object System.Drawing.Font("Segoe UI", 20, [System.Drawing.FontStyle]::Bold)
+$lblTitle.ForeColor = $colAccent
 $lblTitle.AutoSize = $true
-$lblTitle.Location = New-Object System.Drawing.Point(20, 15)
-$form.Controls.Add($lblTitle)
+$lblTitle.Location = New-Object System.Drawing.Point(24, 8)
+$pnlHeader.Controls.Add($lblTitle)
 
-$lblVersion = New-Object System.Windows.Forms.Label
-$lblVersion.Text = "v1.8.0"
-$lblVersion.Font = New-Object System.Drawing.Font("Segoe UI", 9)
-$lblVersion.ForeColor = [System.Drawing.Color]::FromArgb(120, 120, 140)
-$lblVersion.AutoSize = $true
-$lblVersion.Location = New-Object System.Drawing.Point(20, 50)
-$form.Controls.Add($lblVersion)
+$lblSubtitle = New-Object System.Windows.Forms.Label
+$lblSubtitle.Text = "Server Manager v1.8.0"
+$lblSubtitle.Font = New-Object System.Drawing.Font("Segoe UI", 9)
+$lblSubtitle.ForeColor = $colTextMuted
+$lblSubtitle.AutoSize = $true
+$lblSubtitle.Location = New-Object System.Drawing.Point(26, 45)
+$pnlHeader.Controls.Add($lblSubtitle)
 
-# ─── Status Panel ──────────────────────────────────────────────────────
+# ─── Status bar ────────────────────────────────────────────────────────
 
 $pnlStatus = New-Object System.Windows.Forms.Panel
-$pnlStatus.Size = New-Object System.Drawing.Size(570, 50)
-$pnlStatus.Location = New-Object System.Drawing.Point(20, 75)
-$pnlStatus.BackColor = [System.Drawing.Color]::FromArgb(25, 25, 35)
+$pnlStatus.Size = New-Object System.Drawing.Size(612, 48)
+$pnlStatus.Location = New-Object System.Drawing.Point(20, 82)
+$pnlStatus.BackColor = $colSurface
 $form.Controls.Add($pnlStatus)
 
-$lblStatusIcon = New-Object System.Windows.Forms.Label
-$lblStatusIcon.Text = "⬤"
-$lblStatusIcon.Font = New-Object System.Drawing.Font("Segoe UI", 14)
-$lblStatusIcon.ForeColor = [System.Drawing.Color]::FromArgb(239, 68, 68)
-$lblStatusIcon.AutoSize = $true
-$lblStatusIcon.Location = New-Object System.Drawing.Point(15, 12)
-$pnlStatus.Controls.Add($lblStatusIcon)
+$lblDot = New-Object System.Windows.Forms.Label
+$lblDot.Text = [char]0x25CF
+$lblDot.Font = New-Object System.Drawing.Font("Segoe UI", 16)
+$lblDot.ForeColor = $colRed
+$lblDot.Size = New-Object System.Drawing.Size(30, 30)
+$lblDot.Location = New-Object System.Drawing.Point(14, 9)
+$pnlStatus.Controls.Add($lblDot)
 
 $lblStatus = New-Object System.Windows.Forms.Label
 $lblStatus.Text = "Servidor Detenido"
 $lblStatus.Font = New-Object System.Drawing.Font("Segoe UI", 12, [System.Drawing.FontStyle]::Bold)
-$lblStatus.ForeColor = [System.Drawing.Color]::FromArgb(239, 68, 68)
+$lblStatus.ForeColor = $colRed
 $lblStatus.AutoSize = $true
-$lblStatus.Location = New-Object System.Drawing.Point(45, 14)
+$lblStatus.Location = New-Object System.Drawing.Point(42, 13)
 $pnlStatus.Controls.Add($lblStatus)
 
 $lblPort = New-Object System.Windows.Forms.Label
 $lblPort.Text = ""
 $lblPort.Font = New-Object System.Drawing.Font("Segoe UI", 9)
-$lblPort.ForeColor = [System.Drawing.Color]::FromArgb(120, 120, 140)
+$lblPort.ForeColor = $colTextMuted
 $lblPort.AutoSize = $true
-$lblPort.Location = New-Object System.Drawing.Point(350, 16)
+$lblPort.Location = New-Object System.Drawing.Point(430, 16)
 $pnlStatus.Controls.Add($lblPort)
 
-# ─── Botones ───────────────────────────────────────────────────────────
+# ─── Botones principales ──────────────────────────────────────────────
+
+$y = 145
 
 $btnStart = New-Object System.Windows.Forms.Button
-$btnStart.Text = "▶  Iniciar Servidor"
-$btnStart.Size = New-Object System.Drawing.Size(275, 45)
-$btnStart.Location = New-Object System.Drawing.Point(20, 140)
+$btnStart.Text = "Iniciar Servidor"
+$btnStart.Size = New-Object System.Drawing.Size(196, 48)
+$btnStart.Location = New-Object System.Drawing.Point(20, $y)
 $btnStart.FlatStyle = "Flat"
-$btnStart.BackColor = [System.Drawing.Color]::FromArgb(16, 185, 129)
+$btnStart.BackColor = $colGreen
 $btnStart.ForeColor = [System.Drawing.Color]::White
 $btnStart.Font = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.FontStyle]::Bold)
 $btnStart.FlatAppearance.BorderSize = 0
@@ -84,11 +113,11 @@ $btnStart.Cursor = [System.Windows.Forms.Cursors]::Hand
 $form.Controls.Add($btnStart)
 
 $btnStop = New-Object System.Windows.Forms.Button
-$btnStop.Text = "■  Detener Servidor"
-$btnStop.Size = New-Object System.Drawing.Size(275, 45)
-$btnStop.Location = New-Object System.Drawing.Point(315, 140)
+$btnStop.Text = "Detener"
+$btnStop.Size = New-Object System.Drawing.Size(196, 48)
+$btnStop.Location = New-Object System.Drawing.Point(228, $y)
 $btnStop.FlatStyle = "Flat"
-$btnStop.BackColor = [System.Drawing.Color]::FromArgb(239, 68, 68)
+$btnStop.BackColor = $colRed
 $btnStop.ForeColor = [System.Drawing.Color]::White
 $btnStop.Font = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.FontStyle]::Bold)
 $btnStop.FlatAppearance.BorderSize = 0
@@ -96,56 +125,93 @@ $btnStop.Cursor = [System.Windows.Forms.Cursors]::Hand
 $btnStop.Enabled = $false
 $form.Controls.Add($btnStop)
 
+$btnInstall = New-Object System.Windows.Forms.Button
+$btnInstall.Text = "Instalar / Actualizar"
+$btnInstall.Size = New-Object System.Drawing.Size(196, 48)
+$btnInstall.Location = New-Object System.Drawing.Point(436, $y)
+$btnInstall.FlatStyle = "Flat"
+$btnInstall.BackColor = $colPurple
+$btnInstall.ForeColor = [System.Drawing.Color]::White
+$btnInstall.Font = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.FontStyle]::Bold)
+$btnInstall.FlatAppearance.BorderSize = 0
+$btnInstall.Cursor = [System.Windows.Forms.Cursors]::Hand
+$form.Controls.Add($btnInstall)
+
+# ─── Botones secundarios ──────────────────────────────────────────────
+
+$y2 = 205
+
 $btnBrowser = New-Object System.Windows.Forms.Button
-$btnBrowser.Text = "🌐  Abrir en Navegador"
-$btnBrowser.Size = New-Object System.Drawing.Size(275, 35)
-$btnBrowser.Location = New-Object System.Drawing.Point(20, 195)
+$btnBrowser.Text = "Abrir en Navegador"
+$btnBrowser.Size = New-Object System.Drawing.Size(196, 38)
+$btnBrowser.Location = New-Object System.Drawing.Point(20, $y2)
 $btnBrowser.FlatStyle = "Flat"
-$btnBrowser.BackColor = [System.Drawing.Color]::FromArgb(35, 35, 50)
-$btnBrowser.ForeColor = [System.Drawing.Color]::FromArgb(79, 140, 255)
-$btnBrowser.Font = New-Object System.Drawing.Font("Segoe UI", 10)
-$btnBrowser.FlatAppearance.BorderColor = [System.Drawing.Color]::FromArgb(79, 140, 255)
+$btnBrowser.BackColor = $colSurface2
+$btnBrowser.ForeColor = $colAccent
+$btnBrowser.Font = New-Object System.Drawing.Font("Segoe UI", 9.5)
+$btnBrowser.FlatAppearance.BorderColor = $colAccent
 $btnBrowser.FlatAppearance.BorderSize = 1
 $btnBrowser.Cursor = [System.Windows.Forms.Cursors]::Hand
 $btnBrowser.Enabled = $false
 $form.Controls.Add($btnBrowser)
 
 $btnConfig = New-Object System.Windows.Forms.Button
-$btnConfig.Text = "⚙  Editar config.json"
-$btnConfig.Size = New-Object System.Drawing.Size(275, 35)
-$btnConfig.Location = New-Object System.Drawing.Point(315, 195)
+$btnConfig.Text = "Editar config.json"
+$btnConfig.Size = New-Object System.Drawing.Size(196, 38)
+$btnConfig.Location = New-Object System.Drawing.Point(228, $y2)
 $btnConfig.FlatStyle = "Flat"
-$btnConfig.BackColor = [System.Drawing.Color]::FromArgb(35, 35, 50)
-$btnConfig.ForeColor = [System.Drawing.Color]::FromArgb(160, 160, 180)
-$btnConfig.Font = New-Object System.Drawing.Font("Segoe UI", 10)
-$btnConfig.FlatAppearance.BorderColor = [System.Drawing.Color]::FromArgb(60, 60, 80)
+$btnConfig.BackColor = $colSurface2
+$btnConfig.ForeColor = $colTextMuted
+$btnConfig.Font = New-Object System.Drawing.Font("Segoe UI", 9.5)
+$btnConfig.FlatAppearance.BorderColor = $colTextDim
 $btnConfig.FlatAppearance.BorderSize = 1
 $btnConfig.Cursor = [System.Windows.Forms.Cursors]::Hand
 $form.Controls.Add($btnConfig)
 
+$btnFolder = New-Object System.Windows.Forms.Button
+$btnFolder.Text = "Abrir Carpeta"
+$btnFolder.Size = New-Object System.Drawing.Size(196, 38)
+$btnFolder.Location = New-Object System.Drawing.Point(436, $y2)
+$btnFolder.FlatStyle = "Flat"
+$btnFolder.BackColor = $colSurface2
+$btnFolder.ForeColor = $colTextMuted
+$btnFolder.Font = New-Object System.Drawing.Font("Segoe UI", 9.5)
+$btnFolder.FlatAppearance.BorderColor = $colTextDim
+$btnFolder.FlatAppearance.BorderSize = 1
+$btnFolder.Cursor = [System.Windows.Forms.Cursors]::Hand
+$form.Controls.Add($btnFolder)
+
+# ─── Separador ─────────────────────────────────────────────────────────
+
+$sep = New-Object System.Windows.Forms.Label
+$sep.Size = New-Object System.Drawing.Size(612, 1)
+$sep.Location = New-Object System.Drawing.Point(20, 255)
+$sep.BackColor = $colSurface2
+$form.Controls.Add($sep)
+
 # ─── Log area ──────────────────────────────────────────────────────────
 
 $lblLog = New-Object System.Windows.Forms.Label
-$lblLog.Text = "📋 Log del Servidor"
-$lblLog.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
-$lblLog.ForeColor = [System.Drawing.Color]::FromArgb(160, 160, 180)
+$lblLog.Text = "Log del Servidor"
+$lblLog.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$lblLog.ForeColor = $colTextMuted
 $lblLog.AutoSize = $true
-$lblLog.Location = New-Object System.Drawing.Point(20, 245)
+$lblLog.Location = New-Object System.Drawing.Point(20, 265)
 $form.Controls.Add($lblLog)
 
 $txtLog = New-Object System.Windows.Forms.TextBox
 $txtLog.Multiline = $true
 $txtLog.ReadOnly = $true
 $txtLog.ScrollBars = "Vertical"
-$txtLog.Size = New-Object System.Drawing.Size(570, 210)
-$txtLog.Location = New-Object System.Drawing.Point(20, 270)
-$txtLog.BackColor = [System.Drawing.Color]::FromArgb(12, 12, 18)
-$txtLog.ForeColor = [System.Drawing.Color]::FromArgb(180, 220, 180)
-$txtLog.Font = New-Object System.Drawing.Font("Cascadia Code, Consolas", 9)
+$txtLog.Size = New-Object System.Drawing.Size(612, 270)
+$txtLog.Location = New-Object System.Drawing.Point(20, 288)
+$txtLog.BackColor = $colLogBg
+$txtLog.ForeColor = $colLogText
+$txtLog.Font = New-Object System.Drawing.Font("Consolas", 9)
 $txtLog.BorderStyle = "FixedSingle"
 $form.Controls.Add($txtLog)
 
-# ─── Timer para leer output ────────────────────────────────────────────
+# ─── Timer ─────────────────────────────────────────────────────────────
 
 $timer = New-Object System.Windows.Forms.Timer
 $timer.Interval = 500
@@ -158,23 +224,25 @@ function Write-Log($msg) {
 }
 
 function Set-ServerRunning {
-    $lblStatusIcon.ForeColor = [System.Drawing.Color]::FromArgb(16, 185, 129)
+    $lblDot.ForeColor = $colGreen
     $lblStatus.Text = "Servidor Activo"
-    $lblStatus.ForeColor = [System.Drawing.Color]::FromArgb(16, 185, 129)
+    $lblStatus.ForeColor = $colGreen
     $lblPort.Text = "Puerto: 19666"
     $btnStart.Enabled = $false
     $btnStop.Enabled = $true
     $btnBrowser.Enabled = $true
+    $btnInstall.Enabled = $false
 }
 
 function Set-ServerStopped {
-    $lblStatusIcon.ForeColor = [System.Drawing.Color]::FromArgb(239, 68, 68)
+    $lblDot.ForeColor = $colRed
     $lblStatus.Text = "Servidor Detenido"
-    $lblStatus.ForeColor = [System.Drawing.Color]::FromArgb(239, 68, 68)
+    $lblStatus.ForeColor = $colRed
     $lblPort.Text = ""
     $btnStart.Enabled = $true
     $btnStop.Enabled = $false
     $btnBrowser.Enabled = $false
+    $btnInstall.Enabled = $true
 }
 
 function Stop-Server {
@@ -198,7 +266,7 @@ $btnStart.Add_Click({
     $distIndex = Join-Path $scriptDir "dist\index.js"
     if (-not (Test-Path $distIndex)) {
         Write-Log "ERROR: dist/index.js no encontrado."
-        Write-Log "Ejecuta instalar.bat primero."
+        Write-Log "Usa el boton 'Instalar / Actualizar' primero."
         return
     }
 
@@ -226,6 +294,31 @@ $btnStop.Add_Click({
     Stop-Server
 })
 
+$btnInstall.Add_Click({
+    $batPath = Join-Path $scriptDir "instalar.bat"
+    if (-not (Test-Path $batPath)) {
+        Write-Log "ERROR: instalar.bat no encontrado en la carpeta del proyecto."
+        return
+    }
+
+    Write-Log "Ejecutando instalador..."
+    Write-Log "Se abrira una ventana de instalacion."
+
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = "cmd.exe"
+    $psi.Arguments = "/c `"$batPath`""
+    $psi.WorkingDirectory = $scriptDir
+    $psi.UseShellExecute = $true
+    $psi.CreateNoWindow = $false
+
+    try {
+        $proc = [System.Diagnostics.Process]::Start($psi)
+        Write-Log "Instalador iniciado. Espera a que termine."
+    } catch {
+        Write-Log "ERROR al ejecutar instalador: $_"
+    }
+})
+
 $btnBrowser.Add_Click({
     Start-Process "http://localhost:19666"
 })
@@ -235,8 +328,12 @@ $btnConfig.Add_Click({
     if (Test-Path $configPath) {
         Start-Process "notepad.exe" -ArgumentList $configPath
     } else {
-        Write-Log "config.json no encontrado. Ejecuta instalar.bat primero."
+        Write-Log "config.json no encontrado. Usa 'Instalar / Actualizar' primero."
     }
+})
+
+$btnFolder.Add_Click({
+    Start-Process "explorer.exe" -ArgumentList $scriptDir
 })
 
 $timer.Add_Tick({
@@ -271,9 +368,25 @@ $form.Add_FormClosing({
 
 # ─── Mensaje inicial ──────────────────────────────────────────────────
 
+$distExists = Test-Path (Join-Path $scriptDir "dist\index.js")
 Write-Log "ARGenteIA Server Manager listo."
-Write-Log "Presiona 'Iniciar Servidor' para comenzar."
+if ($distExists) {
+    Write-Log "Proyecto compilado. Podes iniciar el servidor."
+} else {
+    Write-Log "Proyecto no compilado. Usa 'Instalar / Actualizar' primero."
+}
 
 # ─── Mostrar ventana ──────────────────────────────────────────────────
 
+$form.Add_Shown({ $form.TopMost = $false })
 [void]$form.ShowDialog()
+
+} catch {
+    Add-Type -AssemblyName System.Windows.Forms
+    [System.Windows.Forms.MessageBox]::Show(
+        "Error al iniciar ARGenteIA Server Manager:`n`n$($_.Exception.Message)`n`nLinea: $($_.InvocationInfo.ScriptLineNumber)",
+        "ARGenteIA - Error",
+        [System.Windows.Forms.MessageBoxButtons]::OK,
+        [System.Windows.Forms.MessageBoxIcon]::Error
+    )
+}
