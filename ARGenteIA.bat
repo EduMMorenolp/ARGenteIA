@@ -1,5 +1,5 @@
 @echo off
-title ARGenteIA — Server Manager
+title ARGenteIA - Server Manager
 chcp 65001 >nul 2>&1
 
 :: Buscar PowerShell: pwsh (7+), powershell (5.1), ruta completa (5.1)
@@ -24,12 +24,12 @@ if exist "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" (
 
 :: No encontrado
 echo.
-echo  ╔══════════════════════════════════════════════╗
-echo  ║  ERROR: PowerShell no encontrado             ║
-echo  ║                                              ║
-echo  ║  Instala PowerShell desde:                   ║
-echo  ║  https://aka.ms/powershell                   ║
-echo  ╚══════════════════════════════════════════════╝
+echo  ==================================================
+echo    ERROR: PowerShell no encontrado
+echo.
+echo    Instala PowerShell desde:
+echo    https://aka.ms/powershell
+echo  ==================================================
 echo.
 pause
 exit /b 1

@@ -5,26 +5,16 @@ title ARGenteIA - Instalador
 color 0B
 
 echo.
-echo  ╔══════════════════════════════════════════════════════╗
-echo  ║                                                      ║
-echo  ║      █████╗ ██████╗  ██████╗ ███████╗███╗   ██╗      ║
-echo  ║     ██╔══██╗██╔══██╗██╔════╝ ██╔════╝████╗  ██║      ║
-echo  ║     ███████║██████╔╝██║  ███╗█████╗  ██╔██╗ ██║      ║
-echo  ║     ██╔══██║██╔══██╗██║   ██║██╔══╝  ██║╚██╗██║      ║
-echo  ║     ██║  ██║██║  ██║╚██████╔╝███████╗██║ ╚████║      ║
-echo  ║     ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝      ║
-echo  ║              ████████╗███████╗██╗ █████╗             ║
-echo  ║              ╚══██╔══╝██╔════╝██║██╔══██╗            ║
-echo  ║                 ██║   █████╗  ██║███████║            ║
-echo  ║                 ██║   ██╔══╝  ██║██╔══██║            ║
-echo  ║                 ██║   ███████╗██║██║  ██║            ║
-echo  ║                 ╚═╝   ╚══════╝╚═╝╚═╝  ╚═╝            ║
-echo  ║                                                      ║
-echo  ║          Instalador Automatico v1.0                  ║
-echo  ╚══════════════════════════════════════════════════════╝
+echo  ========================================================
+echo.
+echo            A R G e n t e I A
+echo.
+echo            Instalador Automatico v1.0
+echo.
+echo  ========================================================
 echo.
 
-:: ─── Detectar si estamos dentro del proyecto o standalone ────────────
+:: --- Detectar si estamos dentro del proyecto o standalone ---
 set "INSTALL_DIR=%~dp0"
 
 if exist "%INSTALL_DIR%package.json" (
@@ -35,7 +25,7 @@ if exist "%INSTALL_DIR%package.json" (
     goto :check_node
 )
 
-:: ─── Elegir carpeta de instalacion ──────────────────────────────────
+:: --- Elegir carpeta de instalacion ---
 echo  Selecciona la carpeta donde instalar ARGenteIA...
 echo.
 
@@ -105,7 +95,7 @@ echo.
 cd /d "!INSTALL_DIR!"
 
 :check_node
-:: ─── Paso 1: Node.js ───────────────────────────────────────────────────
+:: --- Paso 1: Node.js ---
 echo  [1/5] Verificando Node.js...
 where node >nul 2>&1
 if !ERRORLEVEL! neq 0 (
@@ -124,7 +114,7 @@ for /f "tokens=*" %%v in ('node -v') do set NODE_VER=%%v
 echo        OK - Node.js %NODE_VER%
 echo.
 
-:: ─── Paso 2: pnpm ─────────────────────────────────────────────────────
+:: --- Paso 2: pnpm ---
 echo  [2/5] Verificando pnpm...
 where pnpm >nul 2>&1
 if !ERRORLEVEL! neq 0 (
@@ -140,7 +130,7 @@ for /f "tokens=*" %%v in ('pnpm -v') do set PNPM_VER=%%v
 echo        OK - pnpm v%PNPM_VER%
 echo.
 
-:: ─── Paso 3: Dependencias ─────────────────────────────────────────────
+:: --- Paso 3: Dependencias ---
 echo  [3/5] Instalando dependencias...
 echo        Esto puede tardar unos minutos...
 echo.
@@ -154,7 +144,7 @@ echo.
 echo        OK - Dependencias instaladas
 echo.
 
-:: ─── Paso 4: UI ───────────────────────────────────────────────────────
+:: --- Paso 4: UI ---
 echo  [4/5] Preparando la interfaz web...
 if not exist "ui\package.json" goto :skip_ui
 
@@ -176,7 +166,7 @@ echo        Omitido
 echo.
 
 :step5
-:: ─── Paso 5: Config ───────────────────────────────────────────────────
+:: --- Paso 5: Config ---
 echo  [5/5] Verificando configuracion...
 if exist "config.json" (
     echo        OK - config.json ya existe
