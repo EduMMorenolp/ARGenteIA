@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch --exclude memoryUser/** --exclude ui/** --exclude temp/** src/index.ts",
+    "ui:install": "cd ui && pnpm install",
+    "ui:dev": "cd ui && pnpm run dev",
     "start": "node dist/index.js",
     "build": "tsc",
     "lint": "eslint src/",
