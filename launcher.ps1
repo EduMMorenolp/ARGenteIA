@@ -263,16 +263,23 @@ function Stop-Server {
 $btnStart.Add_Click({
     Write-Log "Iniciando servidor..."
 
-    $distIndex = Join-Path $scriptDir "dist\index.js"
-    if (-not (Test-Path $distIndex)) {
-        Write-Log "ERROR: dist/index.js no encontrado."
+    $srcIndex = Join-Path $scriptDir "src\index.ts"
+    if (-not (Test-Path $srcIndex)) {
+        Write-Log "ERROR: src/index.ts no encontrado."
         Write-Log "Usa el boton 'Instalar / Actualizar' primero."
         return
     }
 
+    # Buscar tsx
+    $tsxPath = Join-Path $scriptDir "node_modules\.bin\tsx.cmd"
+    if (-not (Test-Path $tsxPath)) {
+        Write-Log "ERROR: tsx no encontrado. Ejecuta el instalador primero."
+        return
+    }
+
     $psi = New-Object System.Diagnostics.ProcessStartInfo
-    $psi.FileName = "node"
-    $psi.Arguments = "dist/index.js"
+    $psi.FileName = $tsxPath
+    $psi.Arguments = "src/index.ts"
     $psi.WorkingDirectory = $scriptDir
     $psi.UseShellExecute = $false
     $psi.RedirectStandardOutput = $true
@@ -368,12 +375,15 @@ $form.Add_FormClosing({
 
 # ─── Mensaje inicial ──────────────────────────────────────────────────
 
-$distExists = Test-Path (Join-Path $scriptDir "dist\index.js")
+$srcExists = Test-Path (Join-Path $scriptDir "src\index.ts")
+$depsExist = Test-Path (Join-Path $scriptDir "node_modules")
 Write-Log "ARGenteIA Server Manager listo."
-if ($distExists) {
-    Write-Log "Proyecto compilado. Podes iniciar el servidor."
+if ($srcExists -and $depsExist) {
+    Write-Log "Proyecto listo. Podes iniciar el servidor."
+} elseif ($srcExists) {
+    Write-Log "Faltan dependencias. Usa 'Instalar / Actualizar' primero."
 } else {
-    Write-Log "Proyecto no compilado. Usa 'Instalar / Actualizar' primero."
+    Write-Log "Proyecto no encontrado. Usa 'Instalar / Actualizar' primero."
 }
 
 # ─── Mostrar ventana ──────────────────────────────────────────────────

@@ -28,9 +28,9 @@ set "INSTALL_DIR=%~dp0"
 
 if exist "%INSTALL_DIR%package.json" (
     echo  Proyecto detectado en: %INSTALL_DIR%
+    echo  Instalando...
     echo.
-    set /p CONFIRM="  Instalar aqui? (S/N): "
-    if /i "!CONFIRM!"=="N" goto :choose_folder
+    cd /d "%INSTALL_DIR%"
     goto :check_node
 )
 
@@ -147,7 +147,7 @@ for /f "tokens=*" %%v in ('pnpm -v') do set PNPM_VER=%%v
 echo         ✓ pnpm encontrado: v%PNPM_VER%
 echo.
 
-:: ─── Paso 3: Instalar dependencias ─────────────────────────────────────
+:: ─── Paso 3: Instalar dependencias ──────────────────────────────────────
 echo  [3/5] Instalando dependencias...
 echo         Esto puede tardar unos minutos...
 echo.
@@ -159,20 +159,27 @@ if %ERRORLEVEL% neq 0 (
     exit /b 1
 )
 echo.
-echo         ✓ Dependencias instaladas correctamente
+echo         ✓ Dependencias instaladas
 echo.
 
-:: ─── Paso 4: Compilar el proyecto ──────────────────────────────────────
-echo  [4/5] Compilando el proyecto...
-call pnpm run build
-if %ERRORLEVEL% neq 0 (
-    echo.
-    echo  ✗ Error al compilar.
-    pause
-    exit /b 1
+:: ─── Paso 4: Compilar interfaz web ─────────────────────────────────────
+echo  [4/5] Preparando la interfaz web...
+if exist "ui\package.json" (
+    call pnpm run ui:install
+    if %ERRORLEVEL% neq 0 (
+        echo         ! Error al instalar dependencias de la UI.
+    ) else (
+        call pnpm run ui:build
+        if %ERRORLEVEL% neq 0 (
+            echo         ! Error al compilar la UI.
+        ) else (
+            echo.
+            echo         ✓ Interfaz web lista
+        )
+    )
+) else (
+    echo         - Carpeta ui/ no encontrada, omitiendo
 )
-echo.
-echo         ✓ Proyecto compilado correctamente
 echo.
 
 :: ─── Paso 5: Configuracion ─────────────────────────────────────────────
