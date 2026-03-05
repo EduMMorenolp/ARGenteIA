@@ -245,6 +245,24 @@ function Set-ServerStopped {
     $btnInstall.Enabled = $true
 }
 
+function Kill-PortProcess($port) {
+    try {
+        $conn = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
+        if ($conn) {
+            foreach ($c in $conn) {
+                $proc = Get-Process -Id $c.OwningProcess -ErrorAction SilentlyContinue
+                if ($proc) {
+                    Write-Log "Liberando puerto $port (proceso: $($proc.ProcessName), PID: $($proc.Id))"
+                    Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+                    Start-Sleep -Milliseconds 500
+                }
+            }
+        }
+    } catch {
+        Write-Log "No se pudo verificar el puerto $port : $_"
+    }
+}
+
 function Stop-Server {
     if ($script:serverProcess -and !$script:serverProcess.HasExited) {
         try {
@@ -255,6 +273,8 @@ function Stop-Server {
     }
     $script:serverProcess = $null
     $timer.Stop()
+    # Asegurar que el puerto quede libre
+    Kill-PortProcess 19666
     Set-ServerStopped
 }
 
@@ -269,6 +289,10 @@ $btnStart.Add_Click({
         Write-Log "Usa el boton 'Instalar / Actualizar' primero."
         return
     }
+
+    # Liberar el puerto si esta ocupado por otro proceso
+    Write-Log "Verificando puerto 19666..."
+    Kill-PortProcess 19666
 
     # Buscar tsx
     $tsxPath = Join-Path $scriptDir "node_modules\.bin\tsx.cmd"
@@ -291,6 +315,7 @@ $btnStart.Add_Click({
         $script:serverProcess = New-Object System.Diagnostics.Process
         $script:serverProcess.StartInfo = $psi
         $script:serverProcess.EnableRaisingEvents = $true
+        $script:exitDetectedAt = $null
 
         $q = $script:logQueue
         $script:serverProcess.add_OutputDataReceived({
@@ -308,9 +333,13 @@ $btnStart.Add_Click({
 
         Set-ServerRunning
         Write-Log "Servidor iniciado (PID: $($script:serverProcess.Id))"
+        Write-Log "Capturando salida del servidor..."
         $timer.Start()
     } catch {
         Write-Log "ERROR al iniciar: $_"
+        Write-Log "Detalle: $($_.Exception.Message)"
+        Write-Log "Para diagnosticar manualmente, abre PowerShell en esta carpeta y ejecuta:"
+        Write-Log "  npx tsx src/index.ts"
     }
 })
 
@@ -363,6 +392,8 @@ $btnFolder.Add_Click({
 # Cola thread-safe para logs asincrono
 $script:logQueue = New-Object System.Collections.Concurrent.ConcurrentQueue[string]
 
+$script:exitDetectedAt = $null
+
 $timer.Add_Tick({
     $line = $null
     while ($script:logQueue.TryDequeue([ref]$line)) {
@@ -371,13 +402,34 @@ $timer.Add_Tick({
     }
 
     if ($script:serverProcess -ne $null -and $script:serverProcess.HasExited) {
+        # Esperar 2 segundos después de detectar exit para capturar toda la salida async
+        if ($script:exitDetectedAt -eq $null) {
+            $script:exitDetectedAt = Get-Date
+            return
+        }
+        $elapsed = (Get-Date) - $script:exitDetectedAt
+        if ($elapsed.TotalSeconds -lt 2) {
+            return
+        }
+
         $timer.Stop()
+        # Drenar cola final
         while ($script:logQueue.TryDequeue([ref]$line)) {
             $timestamp = Get-Date -Format "HH:mm:ss"
             $txtLog.AppendText("[$timestamp] $line`r`n")
         }
-        Write-Log "El servidor se detuvo."
+
+        $exitCode = $script:serverProcess.ExitCode
+        if ($exitCode -ne 0) {
+            Write-Log "ERROR: El servidor se detuvo con codigo de salida: $exitCode"
+            Write-Log "Para diagnosticar, abre una terminal en la carpeta del proyecto y ejecuta:"
+            Write-Log "  npx tsx src/index.ts"
+        } else {
+            Write-Log "El servidor se detuvo normalmente."
+        }
+
         $script:serverProcess = $null
+        $script:exitDetectedAt = $null
         Set-ServerStopped
     }
 })

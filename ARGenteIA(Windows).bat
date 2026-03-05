@@ -36,3 +36,15 @@ exit /b 1
 
 :launch
 "%PS_EXE%" -ExecutionPolicy Bypass -File "%~dp0launcher.ps1"
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo  ==================================================
+    echo    El launcher finalizo con un error.
+    echo    Codigo de salida: %ERRORLEVEL%
+    echo.
+    echo    Para diagnosticar, abre PowerShell aqui y ejecuta:
+    echo      npx tsx src/index.ts
+    echo  ==================================================
+    echo.
+    pause
+)

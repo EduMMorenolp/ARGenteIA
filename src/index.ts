@@ -6,6 +6,21 @@ import { initScheduler } from './agent/scheduler-manager.ts';
 import { getDb } from './memory/db.ts';
 import chalk from 'chalk';
 
+// ─── Captura global de errores no manejados ─────────────────────────────────
+process.on('uncaughtException', (err) => {
+  console.error(chalk.red('❌ Error fatal no capturado:'));
+  console.error(chalk.red(err.stack || err.message || String(err)));
+  console.error(chalk.yellow('El servidor se detendrá.'));
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error(chalk.red('❌ Promesa rechazada no manejada:'));
+  console.error(chalk.red(reason instanceof Error ? (reason.stack || reason.message) : String(reason)));
+  console.error(chalk.yellow('El servidor se detendrá.'));
+  process.exit(1);
+});
+
 // 1. Cargar y validar configuración
 const config = loadConfig();
 

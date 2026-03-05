@@ -456,7 +456,30 @@ export function createGateway(): GatewayServer {
 
   // ─── Start ─────────────────────────────────────────────────────────────────
   const start = (): Promise<void> =>
-    new Promise((resolve) => {
+    new Promise((resolve, reject) => {
+      httpServer.on('error', async (err: NodeJS.ErrnoException) => {
+        if (err.code === 'EADDRINUSE') {
+          console.log(chalk.yellow(`\n⚠️  Puerto ${config.gateway.port} en uso. Intentando liberar...`));
+          try {
+            // Intentar conectar para forzar cierre del proceso anterior
+            const net = await import('node:net');
+            const probe = net.createConnection({ port: config.gateway.port }, () => {
+              probe.end();
+            });
+            probe.on('error', () => {});
+            // Esperar un momento y reintentar
+            await new Promise(r => setTimeout(r, 1500));
+            httpServer.listen(config.gateway.port);
+          } catch {
+            console.error(chalk.red(`❌ No se pudo liberar el puerto ${config.gateway.port}.`));
+            console.error(chalk.yellow(`   Cierra manualmente el proceso que usa ese puerto o cambia el puerto en config.json`));
+            reject(err);
+          }
+        } else {
+          reject(err);
+        }
+      });
+
       httpServer.listen(config.gateway.port, () => {
         import('../memory/expert-db.ts').then(({ getExpert }) => {
           const generalOverride = getExpert('__general__');
