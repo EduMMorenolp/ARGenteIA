@@ -9,7 +9,7 @@ echo  ========================================================
 echo.
 echo            A R G e n t e I A
 echo.
-echo            Instalador Automatico v1.0
+echo            Instalador Automatico v1.1
 echo.
 echo  ========================================================
 echo.
@@ -82,7 +82,7 @@ if !ERRORLEVEL! equ 0 (
 )
 
 echo        Git no encontrado. Descargando ZIP...
-"!PS_CMD!" -ExecutionPolicy Bypass -Command "try { $u='https://github.com/EduMMorenolp/ARGenteIA/archive/refs/heads/main.zip'; $z=\"$env:TEMP\argenteia.zip\"; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest $u -OutFile $z -UseBasicParsing; Expand-Archive $z \"$env:TEMP\argenteia_tmp\" -Force; $s=Get-ChildItem \"$env:TEMP\argenteia_tmp\" | Select -First 1; if(!(Test-Path '!INSTALL_DIR!')){New-Item -ItemType Directory '!INSTALL_DIR!' -Force|Out-Null}; Copy-Item ($s.FullName+'\*') '!INSTALL_DIR!' -Recurse -Force; Remove-Item $z -Force; Remove-Item \"$env:TEMP\argenteia_tmp\" -Recurse -Force; Write-Host 'OK' } catch { Write-Host $_.Exception.Message; exit 1 }"
+"!PS_CMD!" -ExecutionPolicy Bypass -Command "try { $u='https://github.com/EduMMorenolp/ARGenteIA/archive/refs/heads/master.zip'; $z=\"$env:TEMP\argenteia.zip\"; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest $u -OutFile $z -UseBasicParsing; Expand-Archive $z \"$env:TEMP\argenteia_tmp\" -Force; $s=Get-ChildItem \"$env:TEMP\argenteia_tmp\" | Select -First 1; if(!(Test-Path '!INSTALL_DIR!')){New-Item -ItemType Directory '!INSTALL_DIR!' -Force|Out-Null}; Copy-Item ($s.FullName+'\*') '!INSTALL_DIR!' -Recurse -Force; Remove-Item $z -Force; Remove-Item \"$env:TEMP\argenteia_tmp\" -Recurse -Force; Write-Host 'OK' } catch { Write-Host $_.Exception.Message; exit 1 }"
 if !ERRORLEVEL! neq 0 (
     echo  ERROR: No se pudo descargar el proyecto.
     pause
