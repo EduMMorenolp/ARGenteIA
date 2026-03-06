@@ -14,6 +14,18 @@ echo.
 echo  ========================================================
 echo.
 
+:: --- Detectar PowerShell disponible ---
+set "PS_CMD="
+where pwsh >nul 2>&1
+if !ERRORLEVEL! equ 0 (
+    set "PS_CMD=pwsh"
+    goto :ps_found
+)
+if exist "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" (
+    set "PS_CMD=C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+)
+:ps_found
+
 :: --- Detectar si estamos dentro del proyecto o standalone ---
 set "INSTALL_DIR=%~dp0"
 
@@ -29,19 +41,7 @@ if exist "%INSTALL_DIR%package.json" (
 echo  Selecciona la carpeta donde instalar ARGenteIA...
 echo.
 
-set "PS_CMD="
-where pwsh >nul 2>&1
-if !ERRORLEVEL! equ 0 (
-    set "PS_CMD=pwsh"
-    goto :has_ps
-)
-if exist "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" (
-    set "PS_CMD=C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
-    goto :has_ps
-)
-goto :manual_path
-
-:has_ps
+if "!PS_CMD!"=="" goto :manual_path
 for /f "usebackq delims=" %%i in (`"!PS_CMD!" -ExecutionPolicy Bypass -Command "Add-Type -AssemblyName System.Windows.Forms; $f = New-Object System.Windows.Forms.FolderBrowserDialog; $f.Description = 'Selecciona donde instalar ARGenteIA'; $f.ShowNewFolderButton = $true; if ($f.ShowDialog() -eq 'OK') { $f.SelectedPath } else { 'CANCELLED' }"`) do set "SELECTED_DIR=%%i"
 
 if "!SELECTED_DIR!"=="CANCELLED" (
@@ -98,18 +98,48 @@ cd /d "!INSTALL_DIR!"
 :: --- Paso 1: Node.js ---
 echo  [1/5] Verificando Node.js...
 where node >nul 2>&1
-if !ERRORLEVEL! neq 0 (
-    echo.
-    echo  --------------------------------------------------------
-    echo   Node.js no esta instalado.
-    echo   Se abrira la pagina de descarga.
-    echo   Instala Node.js y vuelve a ejecutar este instalador.
-    echo  --------------------------------------------------------
-    echo.
-    start https://nodejs.org/
-    pause
-    exit /b 1
-)
+if !ERRORLEVEL! equ 0 goto :node_found
+
+echo        Node.js no encontrado. Instalando automaticamente...
+echo.
+
+:: Intentar con winget
+where winget >nul 2>&1
+if !ERRORLEVEL! neq 0 goto :node_try_download
+
+echo        Instalando Node.js con winget...
+echo        (Se puede solicitar permisos de administrador)
+echo.
+winget install OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements -h
+if !ERRORLEVEL! neq 0 goto :node_try_download
+call :refresh_path
+where node >nul 2>&1
+if !ERRORLEVEL! equ 0 goto :node_found
+
+:node_try_download
+if "!PS_CMD!"=="" goto :node_manual
+echo        Descargando Node.js desde nodejs.org...
+echo        (Se solicitaran permisos de administrador)
+echo.
+"!PS_CMD!" -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $json=Invoke-RestMethod 'https://nodejs.org/dist/index.json'; $lts=($json | Where-Object { $_.lts -ne $false }) | Select-Object -First 1; $ver=$lts.version; if([Environment]::Is64BitOperatingSystem){$arch='x64'}else{$arch='x86'}; $msi='node-'+$ver+'-'+$arch+'.msi'; $url='https://nodejs.org/dist/'+$ver+'/'+$msi; $dest=$env:TEMP+'\'+$msi; Write-Host ('        Descargando '+$msi+'...'); Invoke-WebRequest $url -OutFile $dest -UseBasicParsing; Write-Host '        Instalando...'; Start-Process -FilePath 'msiexec.exe' -ArgumentList @('/i',$dest,'/qb') -Wait -Verb RunAs; Remove-Item $dest -Force -ErrorAction SilentlyContinue; Write-Host 'OK' } catch { Write-Host ('Error: '+$_.Exception.Message); exit 1 }"
+if !ERRORLEVEL! neq 0 goto :node_manual
+call :refresh_path
+where node >nul 2>&1
+if !ERRORLEVEL! equ 0 goto :node_found
+
+:node_manual
+echo.
+echo  --------------------------------------------------------
+echo   No se pudo instalar Node.js automaticamente.
+echo   Se abrira la pagina de descarga.
+echo   Instala Node.js y vuelve a ejecutar este instalador.
+echo  --------------------------------------------------------
+echo.
+start https://nodejs.org/
+pause
+exit /b 1
+
+:node_found
 for /f "tokens=*" %%v in ('node -v') do set NODE_VER=%%v
 echo        OK - Node.js %NODE_VER%
 echo.
@@ -197,3 +227,18 @@ echo.
 echo  ========================================================
 echo.
 pause
+exit /b 0
+
+:: --- Funciones auxiliares ---
+
+:refresh_path
+:: Refresca la variable PATH desde el registro del sistema
+if "!PS_CMD!"=="" goto :refresh_path_reg
+for /f "usebackq delims=" %%P in (`"!PS_CMD!" -ExecutionPolicy Bypass -Command "[Environment]::GetEnvironmentVariable('Path','Machine')+';'+[Environment]::GetEnvironmentVariable('Path','User')"`) do set "PATH=%%P"
+goto :eof
+
+:refresh_path_reg
+for /f "usebackq tokens=2,*" %%A in (`reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul`) do set "SYS_PATH=%%B"
+for /f "usebackq tokens=2,*" %%A in (`reg query "HKCU\Environment" /v Path 2^>nul`) do set "USR_PATH=%%B"
+set "PATH=!SYS_PATH!;!USR_PATH!"
+goto :eof
