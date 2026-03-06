@@ -1,0 +1,15 @@
+# Test: Alpine con Node.js (instalación completa de instalar.sh)
+FROM node:22-alpine
+
+RUN apk add --no-cache \
+    bash \
+    git \
+    python3 \
+    make \
+    g++
+
+WORKDIR /app
+COPY . .
+RUN chmod +x instalar.sh tests/test-install-linux.sh
+
+CMD ["bash", "tests/test-install-linux.sh"]

@@ -1,0 +1,47 @@
+# ─── ARGenteIA — Tests de Instaladores en Docker ────────────────────────
+#
+# Uso:
+#   docker compose -f docker-compose.test.yml up --build
+#
+# Test individual:
+#   docker compose -f docker-compose.test.yml up --build test-debian
+#
+# Limpiar:
+#   docker compose -f docker-compose.test.yml down --rmi local
+#
+
+services:
+  # ─── Linux: Debian 12 + Node 22 (instalación completa) ───────────────
+  test-debian:
+    build:
+      context: .
+      dockerfile: tests/Dockerfile.debian
+    container_name: argenteia-test-debian
+
+  # ─── Linux: Alpine + Node 22 (instalación completa) ──────────────────
+  test-alpine:
+    build:
+      context: .
+      dockerfile: tests/Dockerfile.alpine
+    container_name: argenteia-test-alpine
+
+  # ─── Linux: Ubuntu 22.04 SIN Node (test de error) ────────────────────
+  test-ubuntu-no-node:
+    build:
+      context: .
+      dockerfile: tests/Dockerfile.ubuntu-clean
+    container_name: argenteia-test-ubuntu-nonode
+
+  # ─── PowerShell 7.4 + Node (lógica del instalador Windows) ───────────
+  test-ps74:
+    build:
+      context: .
+      dockerfile: tests/Dockerfile.ps74
+    container_name: argenteia-test-ps74
+
+  # ─── PowerShell 7.2 + Node (lógica del instalador Windows) ───────────
+  test-ps72:
+    build:
+      context: .
+      dockerfile: tests/Dockerfile.ps72
+    container_name: argenteia-test-ps72

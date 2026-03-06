@@ -1,0 +1,17 @@
+# Test: Ubuntu 22.04 SIN Node.js (verifica manejo de error)
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    bash \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY . .
+RUN chmod +x instalar.sh tests/test-install-linux.sh
+
+ENV EXPECT_FAIL=1
+CMD ["bash", "tests/test-install-linux.sh"]
