@@ -2,6 +2,12 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [Unreleased]
+
+### Añadido
+- Establecida regla obligatoria para la IA: registrar todos los cambios en el `CHANGELOG.md`.
+- Archivo de reglas `.cursorrules` y `.agents/rules/changelog-rules.md` para automatizar este proceso.
+
 ## [0.9.0] - 2026-03-04
 
 ### Añadido
