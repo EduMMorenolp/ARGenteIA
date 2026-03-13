@@ -1,0 +1,18 @@
+# Changelog Requirements
+
+Cualquier cambio que se realice en el código DEBE ser documentado en el archivo `CHANGELOG.md` en la raíz del proyecto.
+
+## Reglas de Actualización:
+1.  **Inmediatez**: Actualiza el changelog inmediatamente después de realizar los cambios.
+2.  **Formato**: Sigue el estándar de [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
+3.  **Secciones**: Clasifica los cambios en:
+    -   `### Añadido`: Para nuevas funcionalidades.
+    -   `### Mejorado`: Para mejoras en funcionalidades existentes.
+    -   `### Corregido`: Para cualquier corrección de errores.
+    -   `### Cambiado`: Para cambios en funcionalidades existentes.
+    -   `### Eliminado`: Para funcionalidades que han sido removidas.
+4.  **Idioma**: Mantén el idioma del changelog (Español).
+5.  **Versión**: Si no hay una versión "Unreleased", añádela al principio. Si el cambio es significativo, sugiere un incremento de versión.
+
+---
+**IMPORTANTE**: No des por terminada una tarea hasta que el `CHANGELOG.md` refleje fielmente los cambios realizados.
