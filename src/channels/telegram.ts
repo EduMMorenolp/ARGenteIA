@@ -8,6 +8,8 @@ import { loadSkills } from '../skills/loader.ts';
 
 let bot: TelegramBot | null = null;
 let activeToken: string | null = null;
+let lastErrorTime = 0;
+let errorCount = 0;
 
 export function getBot(): TelegramBot | null {
   return bot;
@@ -255,8 +257,18 @@ export async function startTelegram(): Promise<void> {
     }
   });
 
-  bot.on('polling_error', (err) => {
-    console.error(chalk.red('❌ Telegram polling error:'), err.message);
+  bot.on('polling_error', (err: any) => {
+    const now = Date.now();
+    errorCount++;
+    
+    const isNetworkError = err.code === 'ENOTFOUND' || err.code === 'ETIMEDOUT';
+    
+    if (now - lastErrorTime > 30000 || !isNetworkError) {
+      const countMsg = errorCount > 1 ? ` (Ocurrido ${errorCount} veces)` : '';
+      console.error(chalk.red(`❌ Telegram error [${err.code || 'CODE_UNKNOWN'}]:`), err.message + countMsg);
+      lastErrorTime = now;
+      errorCount = 0;
+    }
   });
 
   // Handle Inline Button clicks (Callback Queries)
