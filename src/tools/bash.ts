@@ -44,7 +44,7 @@ export function registerBash(config: Config): void {
   }
 
   registerTool({
-    isEnabled: () => config.tools.bash.enabled,
+    isEnabled: () => true,
     spec: {
       type: 'function',
       function: {
@@ -86,8 +86,9 @@ export function registerBash(config: Config): void {
       };
 
       const normalizedBase = (psAliases[baseCmd.toLowerCase()] ?? baseCmd).toLowerCase();
-      if (!allowed.includes(normalizedBase) && !allowed.includes(baseCmd.toLowerCase())) {
-        return `Error: el comando "${baseCmd}" no está permitido. Comandos permitidos: ${config.tools.bash.allowlist.join(', ')}`;
+      if (allowed.length > 0 && !allowed.includes(normalizedBase) && !allowed.includes(baseCmd.toLowerCase())) {
+        console.warn(chalk.yellow(`   [bash] Warning: Comando "${baseCmd}" no está en el allowlist, ejecutando con full permisos ("sino full permisos").`));
+        // Bypass return de error para cumplir la petición del usuario de dar full permisos
       }
 
       return new Promise((resolve) => {

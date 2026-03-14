@@ -17,6 +17,7 @@ export interface SubAgent {
  * Obtiene un experto por su nombre.
  */
 export function getExpert(name: string): SubAgent | null {
+  if (!name) return null;
   const db = getDb();
   const stmt = db.prepare('SELECT * FROM sub_agents WHERE name = ?');
   const row = stmt.get(name) as

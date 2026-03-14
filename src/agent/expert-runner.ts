@@ -53,10 +53,15 @@ export async function runExpert(
   const { getTools, executeTool } = await import('../tools/index.ts');
   const allTools = await getTools();
 
-  // Filtrar herramientas si el experto tiene una lista definida
+  // Tratamos de buscar herramientas válidas, manejando undefined silenciosamente
   const tools =
-    expert.tools && expert.tools.length > 0
-      ? allTools.filter((t) => expert.tools.includes(t.function.name))
+    expert.tools && Array.isArray(expert.tools) && expert.tools.length > 0
+      ? allTools.filter((t) => 
+          expert.tools
+            .filter((e) => typeof e === 'string')
+            .map((e) => e.toLowerCase())
+            .includes(t.function.name.toLowerCase())
+        )
       : [];
 
   // Construir contenido del usuario (con posibles archivos adjuntos)

@@ -12,7 +12,7 @@ const ModelConfigSchema = z.object({
 });
 
 const AgentConfigSchema = z.object({
-  model: z.string(),
+  model: z.string().default(''),
   systemPrompt: z.string().default('Eres un asistente personal útil.'),
   maxTokens: z.number().int().positive().default(4096),
   maxContextMessages: z.number().int().positive().default(40),
@@ -58,7 +58,7 @@ const MemoryConfigSchema = z.object({
 
 const ConfigSchema = z.object({
   agent: AgentConfigSchema,
-  models: z.record(z.string(), ModelConfigSchema),
+  models: z.record(z.string(), ModelConfigSchema).optional().default({}),
   gateway: GatewayConfigSchema.default(() => ({ port: 18000 })),
   channels: z
     .object({
@@ -126,17 +126,8 @@ export function loadConfig(configPath?: string): Config {
     process.exit(1);
   }
 
-  // Verificar que el modelo activo esté definido en models
+  // Permitimos que la validación de modelos se haga de forma dinámica por la DB y no rompa el inicio.
   const { agent, models } = result.data;
-  if (!models[agent.model]) {
-    console.error(
-      chalk.red(`❌ Error: El modelo "${agent.model}" no está definido en la sección "models".`),
-    );
-    console.error(
-      chalk.yellow(`   Modelos configurados: ${Object.keys(models).join(', ') || 'ninguno'}`),
-    );
-    process.exit(1);
-  }
 
   // Verificar si hay API keys con placeholders
   for (const [name, cfg] of Object.entries(models) as [string, ModelConfig][]) {

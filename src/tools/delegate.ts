@@ -11,9 +11,15 @@ export const callExperttool = {
       .describe('El nombre del experto a invocar (ej: coder, escritor, researcher).'),
     task: z.string().describe('La tarea o pregunta específica para el experto.'),
   }),
-  execute: async (args: { expertName: string; task: string }) => {
+  execute: async (args: any) => {
     try {
-      const result = await runExpert(args);
+      // Manejar alucinaciones comunes del LLM
+      const expertName = args.expertName || args.expert || args.name || args.experto;
+      const task = args.task || args.prompt || args.query;
+      
+      if (!expertName) return "Error: Falta especificar el nombre del experto (expertName).";
+      
+      const result = await runExpert({ ...args, expertName, task });
       return result;
     } catch (err: unknown) {
       return `Error al llamar al experto: ${err instanceof Error ? err.message : String(err)}`;
