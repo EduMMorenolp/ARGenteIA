@@ -26,7 +26,7 @@ export async function runExpert(
   req: ExpertRequest,
 ): Promise<{ text: string; usage?: CompletionUsage; latencyMs: number }> {
   const startTime = Date.now();
-  const expert = getExpert(req.expertName);
+  const expert = getExpert(req.expertName, true);
   if (!expert) {
     throw new Error(`Experto "${req.expertName}" no encontrado en la base de datos.`);
   }

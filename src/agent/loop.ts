@@ -256,7 +256,7 @@ async function runOpenAI(
 
       // 4. Expert Delegation
       const { listExperts } = await import('../memory/expert-db.ts');
-      let experts = listExperts();
+      let experts = listExperts(true);
       if (generalOverride?.experts && generalOverride.experts.length > 0) {
         experts = experts.filter((e) => generalOverride.experts.includes(e.name));
       }

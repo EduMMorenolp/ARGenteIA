@@ -16,7 +16,7 @@ export interface SubAgent {
 /**
  * Obtiene un experto por su nombre.
  */
-export function getExpert(name: string): SubAgent | null {
+export function getExpert(name: string, includeTemplates = false): SubAgent | null {
   if (!name) return null;
   const db = getDb();
   const stmt = db.prepare('SELECT * FROM sub_agents WHERE name = ?');
@@ -32,15 +32,17 @@ export function getExpert(name: string): SubAgent | null {
       }
     | undefined;
   if (!row) {
-    const template = TEMPLATES.find(t => t.name.toLowerCase() === name.toLowerCase());
-    if (template) {
-      return {
-        name: template.name,
-        model: '',
-        system_prompt: template.prompt,
-        tools: template.tools,
-        experts: [],
-        temperature: 0.7,
+    if (includeTemplates) {
+      const template = TEMPLATES.find(t => t.name.toLowerCase() === name.toLowerCase());
+      if (template) {
+        return {
+          name: template.name,
+          model: '',
+          system_prompt: template.prompt,
+          tools: template.tools,
+          experts: [],
+          temperature: 0.7,
+        }
       }
     }
     return null;
@@ -90,7 +92,7 @@ export function upsertExpert(agent: SubAgent): void {
 /**
  * Lista todos los expertos disponibles.
  */
-export function listExperts(): SubAgent[] {
+export function listExperts(includeTemplates = false): SubAgent[] {
   const db = getDb();
   const rows = db
     .prepare("SELECT * FROM sub_agents WHERE name != '__general__' ORDER BY name ASC")
@@ -108,6 +110,10 @@ export function listExperts(): SubAgent[] {
     tools: JSON.parse(row.tools || '[]') as string[],
     experts: JSON.parse(row.experts || '[]') as string[],
   }));
+
+  if (!includeTemplates) {
+    return dbExperts;
+  }
 
   const dbExpertNames = new Set(dbExperts.map(e => e.name.toLowerCase()));
   

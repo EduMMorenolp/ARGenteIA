@@ -120,7 +120,7 @@ export async function startTelegram(): Promise<void> {
       // Interceptar Tags (@AgentName) para invocar expertos en grupos o chat directo
       let finalUserText = text;
       const { listExperts } = await import('../memory/expert-db.ts');
-      const experts = listExperts();
+      const experts = listExperts(true);
       
       const tagMatch = text.match(/^@([a-zA-Z0-9_]+)\b/i);
       if (tagMatch) {
