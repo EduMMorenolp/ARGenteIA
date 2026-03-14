@@ -74,8 +74,6 @@ export async function generateEmbedding(text: string): Promise<number[]> {
           if (body.data && body.data.length > 0) {
               return body.data[0].embedding;
           }
-      } else {
-        console.warn(`Fallback embedding failed: ${res.statusText}`);
       }
   } catch(err) {
       console.error("Embedding generation failed completely:", err);

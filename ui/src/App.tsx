@@ -166,6 +166,8 @@ export default function App() {
     );
   }
 
+  const activeChat = chats.find(c => c.id === activeChatId) || channelChats.find(c => c.id === activeChatId);
+
   return (
     <div className={`app-container ${!isSidebarOpen ? "sidebar-closed" : ""} ${!isChatSidebarOpen ? "chats-closed" : ""}`}>
       <Sidebar
@@ -204,6 +206,7 @@ export default function App() {
       <main className="chat-area">
         <ChatHeader
           selectedExpert={selectedExpert}
+          chatTitle={activeChat?.title}
           isTyping={isTyping}
           isConnected={isConnected}
         />

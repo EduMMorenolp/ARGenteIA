@@ -35,10 +35,8 @@ function detectPowerShell(override?: string): string {
 let _psExe: string | null = null;
 
 export function registerBash(config: Config): void {
-  const isWindows = config.tools.bash.os === 'windows';
-
-  // Detectar PS una sola vez al registrar
-  if (isWindows && !_psExe) {
+  // Solo la detectamos en load, pero la comprobación final se hace en la llamada real
+  if ((config.tools.bash.os === 'windows' || process.platform === 'win32') && !_psExe) {
     _psExe = detectPowerShell(config.tools.bash.psExe);
     console.log(chalk.dim(`   [bash] PowerShell detectado: ${_psExe}`));
   }
@@ -49,7 +47,7 @@ export function registerBash(config: Config): void {
       type: 'function',
       function: {
         name: 'bash',
-        description: isWindows
+        description: (config.tools.bash.os === 'windows' || process.platform === 'win32')
           ? `Ejecuta comandos en PowerShell (Windows). Comandos: ${config.tools.bash.allowlist.join(', ')}. Usa comillas dobles para rutas con espacios ("ruta\\archivo.txt").`
           : `Ejecuta comandos en bash (Linux/macOS). Comandos: ${config.tools.bash.allowlist.join(', ')}.`,
         parameters: {
@@ -93,9 +91,10 @@ export function registerBash(config: Config): void {
 
       return new Promise((resolve) => {
         let proc: ReturnType<typeof spawn>;
+        const isWindowsNow = config.tools.bash.os === 'windows' || process.platform === 'win32' || process.env.OS === 'Windows_NT';
 
-        if (isWindows) {
-          const exe = _psExe ?? 'powershell';
+        if (isWindowsNow) {
+          const exe = _psExe ?? detectPowerShell(config.tools.bash.psExe) ?? 'powershell';
           // Forzar UTF-8 en la entrada/salida de la sesión de PS
           const utf8Cmd = `$OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; ${command}`;
           proc = spawn(exe, ['-NoProfile', '-NonInteractive', '-Command', utf8Cmd], {

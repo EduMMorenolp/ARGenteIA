@@ -107,7 +107,6 @@ export function useAssistant() {
               };
               return newMessages;
             }
-            // First chunk
             return [
               ...prev,
               {
@@ -164,7 +163,6 @@ export function useAssistant() {
                   };
                   return newMessages;
                 } else if (last && last.role === "assistant" && last.type === "message" && msgText.startsWith(last.text)) {
-                   // Update with the definitive text, since chunking might be slightly off.
                   const newMessages = [...prev];
                   newMessages[newMessages.length - 1] = {
                     ...last,
@@ -176,7 +174,6 @@ export function useAssistant() {
                   };
                   return newMessages;
                 } else if (last && last.role === "assistant" && last.type === "message" && !msgText.startsWith(last.text)) {
-                   // Full fallback just in case chunking didn't start properly or mismatch
                   const newMessages = [...prev];
                   newMessages[newMessages.length - 1] = {
                     ...last,
@@ -205,6 +202,12 @@ export function useAssistant() {
                   }
                 ];
               });
+          }
+          break;
+        case "user_message":
+          if (msg.chatId && msg.chatId !== activeChatId) {
+          } else if (msg.text) {
+             addMessage("user", msg.text, undefined, "message", msg.origin, undefined, undefined, undefined, (msg as any).timestamp);
           }
           break;
         case "command_result":

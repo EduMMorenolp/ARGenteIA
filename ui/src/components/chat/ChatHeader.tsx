@@ -2,12 +2,14 @@ import { Bot, Cpu } from 'lucide-react';
 
 interface ChatHeaderProps {
     selectedExpert: string | null;
+    chatTitle?: string;
     isTyping: boolean;
     isConnected: boolean;
 }
 
 export function ChatHeader({
     selectedExpert,
+    chatTitle,
     isTyping,
     isConnected,
 }: ChatHeaderProps) {
@@ -18,7 +20,7 @@ export function ChatHeader({
                     {selectedExpert ? <Cpu size={18} /> : <Bot size={18} />}
                 </div>
                 <div className="agent-details">
-                    <h2>{selectedExpert || 'Asistente General'}</h2>
+                    <h2>{chatTitle || selectedExpert || 'Asistente General'}</h2>
                     <div className="typing-status">
                         {isTyping ? (
                             <div className="typing-loader">

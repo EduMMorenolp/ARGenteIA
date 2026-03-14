@@ -169,16 +169,10 @@ export async function startTelegram(): Promise<void> {
       // Check if the output is a JSON string (Hybrid UI response from Orquestador)
       let parsedJson: any = null;
       try {
-        // Look for json code blocks or pure json
-        let jsonStr = result.text.trim();
-        if (jsonStr.startsWith('```json')) {
-          jsonStr = jsonStr.replace(/```json\n?/, '').replace(/```\n?$/, '').trim();
-        } else if (jsonStr.startsWith('```')) {
-          jsonStr = jsonStr.replace(/```\n?/, '').replace(/```\n?$/, '').trim();
-        }
-        
-        if (jsonStr.startsWith('{') && jsonStr.endsWith('}')) {
-          parsedJson = JSON.parse(jsonStr);
+        const jsonMatch = result.text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const { default: JSON5 } = await import('json5');
+          parsedJson = JSON5.parse(jsonMatch[0]);
         }
       } catch (e) {
         // Not valid JSON, process as regular text
