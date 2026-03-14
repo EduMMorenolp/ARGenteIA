@@ -266,28 +266,24 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
                         </div>
 
                         {/* Buscador de Plantillas */}
-                        <div className="relative mb-3">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={14} />
+                        <div className="template-search-wrapper icon-left">
+                            <Search size={14} />
                             <input 
                                 type="text" 
-                                className="input-field pl-9 py-2 text-sm w-full" 
+                                className="template-search-input" 
                                 placeholder="Buscar agente..."
                                 value={templateSearch}
                                 onChange={(e) => setTemplateSearch(e.target.value)}
-                                style={{ borderRadius: '8px', background: 'var(--bg-input)' }}
                             />
                         </div>
 
                         {/* Filtros de Categoría */}
-                        <div className="flex flex-wrap gap-1.5 mb-4">
+                        <div className="category-filters">
                             {categories.map(cat => (
                                 <button
                                     key={cat.id}
                                     onClick={() => setSelectedCategory(cat.id)}
-                                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] transition-all
-                                        ${selectedCategory === cat.id 
-                                            ? 'bg-accent text-white shadow-lg' 
-                                            : 'bg-surface hover:bg-surface-hover text-muted'}`}
+                                    className={`category-chip ${selectedCategory === cat.id ? 'active' : ''}`}
                                 >
                                     <cat.icon size={11} />
                                     {cat.label}
@@ -303,40 +299,21 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
                                 </div>
                             ) : (
                                 filteredTemplates.map(t => (
-                                    <div key={t.name} className="template-card relative group" style={{
-                                        background: 'var(--bg-secondary)',
-                                        border: '1px solid var(--border)',
-                                        borderRadius: '10px',
-                                        padding: '12px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    }}
-                                        onClick={() => handleTemplateChange(t.name)}
-                                        onMouseEnter={(e) => { 
-                                            e.currentTarget.style.borderColor = 'var(--accent)';
-                                            e.currentTarget.style.transform = 'translateY(-2px)';
-                                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-                                        }}
-                                        onMouseLeave={(e) => { 
-                                            e.currentTarget.style.borderColor = 'var(--border)';
-                                            e.currentTarget.style.transform = 'translateY(0)';
-                                            e.currentTarget.style.boxShadow = 'none';
-                                        }}
-                                    >
-                                        <div className="flex items-center justify-between mb-1.5">
-                                            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface text-[10px] text-accent uppercase font-bold tracking-wider">
+                                    <div key={t.name} className="template-card" onClick={() => handleTemplateChange(t.name)}>
+                                        <div className="template-card-header">
+                                            <span className="template-category-badge">
                                                 {getCategoryIcon(t.category)}
                                                 {t.category}
                                             </span>
                                         </div>
-                                        <h5 style={{ margin: '0 0 6px 0', fontSize: '13.5px', color: 'var(--text-main)', fontWeight: 600 }}>{t.name}</h5>
-                                        <p style={{ margin: '0 0 8px 0', fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>{t.description}</p>
+                                        <h5>{t.name}</h5>
+                                        <p>{t.description}</p>
                                         
                                         {/* Vista previa de botones sugeridos */}
                                         {t.telegram_buttons && t.telegram_buttons.length > 0 && (
-                                            <div className="flex flex-wrap gap-1 mt-2 pt-2 border-t border-white/[0.05]">
+                                            <div className="template-buttons-preview">
                                                 {t.telegram_buttons.map(btn => (
-                                                    <span key={btn.text} className="px-1.5 py-0.5 rounded-sm bg-accent/10 text-accent/80 text-[9px] font-medium border border-accent/20">
+                                                    <span key={btn.text} className="telegram-button-badge">
                                                         [{btn.text}]
                                                     </span>
                                                 ))}
