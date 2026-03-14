@@ -29,8 +29,12 @@ export function registerSchedulerTools(_config: Config): void {
       },
     },
     handler: async (args, context) => {
-      const taskStr = String(args['task'] ?? '');
-      const cronStr = String(args['cron'] ?? '');
+      const taskStr = String(args['task'] ?? '').trim();
+      const cronStr = String(args['cron'] ?? '').trim();
+
+      if (!taskStr || !cronStr) {
+        return `❌ Error: Debes proporcionar tanto la descripción ('task') como el horario cron ('cron').`;
+      }
 
       try {
         const taskId = saveTask(context.sessionId, taskStr, cronStr);
@@ -45,7 +49,8 @@ export function registerSchedulerTools(_config: Config): void {
 
         return `✅ Tarea programada (ID: ${taskId}). Se ejecutará: "${taskStr}" con el horario: "${cronStr}".`;
       } catch (err: unknown) {
-        return `❌ Error al programar la tarea: ${err instanceof Error ? err.message : String(err)}`;
+        const msg = err instanceof Error ? err.message : String(err);
+        return `❌ Error al programar la tarea: ${msg}`;
       }
     },
   });

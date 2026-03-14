@@ -26,17 +26,32 @@ export async function initScheduler(): Promise<void> {
 }
 
 /**
+ * Valida si una expresión cron es válida.
+ */
+export function isValidCron(expression: string): boolean {
+  try {
+    const parts = expression.split(' ');
+    // node-cron acepta 5 o 6 partes
+    if (parts.length < 5 || parts.length > 6) return false;
+    return cron.validate(parts.length === 5 ? `0 ${expression}` : expression);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Crea o actualiza un trabajo cron en memoria.
  */
 export function scheduleLocalTask(task: ScheduledTask): void {
-  // Si ya existe un job con ese ID (por ejemplo al re-programar), detenerlo primero
   if (activeJobs.has(task.id)) {
     activeJobs.get(task.id)?.stop();
   }
 
-  // node-cron usa: segundo (opcional), minuto, hora, día del mes, mes, día de la semana
-  // Si el usuario provee 5 campos, se asume que empiezan desde minuto.
   const cronExpression = task.cron.split(' ').length === 5 ? `0 ${task.cron}` : task.cron;
+
+  if (!cron.validate(cronExpression)) {
+    throw new Error(`Expresión cron inválida: "${task.cron}"`);
+  }
 
   try {
     const job = cron.schedule(
@@ -56,7 +71,7 @@ export function scheduleLocalTask(task: ScheduledTask): void {
             chatId: chatId,
             userText: `SISTEMA: Es momento de ejecutar la tarea programada: "${task.task}". Por favor, realiza la acción solicitada (como buscar info o dar un recordatorio) y responde directamente al usuario.`,
             onTyping: (isTyping) => {
-              if (isTelegram) {
+              if (isTelegram && task.userId) {
                 const tgChatId = task.userId.replace('telegram-', '');
                 const bot = getBot();
                 if (bot && isTyping) bot.sendChatAction(tgChatId, 'typing').catch(() => {});
@@ -66,7 +81,7 @@ export function scheduleLocalTask(task: ScheduledTask): void {
           });
 
           // Enviar el resultado al canal correspondiente
-          if (task.userId.startsWith('telegram-')) {
+          if (task.userId && task.userId.startsWith('telegram-')) {
             const chatId = task.userId.replace('telegram-', '');
             const bot = getBot();
             if (bot) {
@@ -97,10 +112,9 @@ export function scheduleLocalTask(task: ScheduledTask): void {
 
     activeJobs.set(task.id, job);
   } catch (err: unknown) {
-    console.error(
-      chalk.red(`   ❌ Error al programar cron "${task.cron}":`),
-      err instanceof Error ? err.message : err,
-    );
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(chalk.red(`   ❌ Error al programar cron "${task.cron}":`), msg);
+    throw new Error(`Error de programación: ${msg}`);
   }
 }
 
