@@ -259,10 +259,10 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
 
                 {/* Panel Derecho: Plantillas */}
                 <div className={`modal-side-panel right ${isRightSidebarOpen ? "open" : ""}`}>
-                    <div className="modal-side-inner" style={{ paddingTop: '56px' }}>
+                    <div className="modal-side-inner">
                         <div className="flex items-center gap-2 mb-3">
-                            <LayoutTemplate size={16} className="text-accent" />
-                            <h4 style={{ fontSize: "14px", color: "var(--text-main)", margin: 0 }}>Plantillas de Agentes</h4>
+                        
+                            <h4 style={{ fontSize: "14px", color: "var(--text-main)", lineHeight: "2.8" }}>Plantillas de Agentes</h4>
                         </div>
 
                         {/* Buscador de Plantillas */}
