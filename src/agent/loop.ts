@@ -179,6 +179,41 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
   }
 }
 
+/**
+ * Intenta extraer llamadas a herramientas de texto (para modelos que no usan el campo nativo).
+ * Soporta el formato TOOLCALL>[...]ALL> común en algunos fallbacks de OpenRouter/Ollama.
+ */
+function parseTextToolCalls(content: string): any[] | null {
+  const regex = /TOOLCALL>([\s\S]*?)ALL>/g;
+  const toolCalls: any[] = [];
+  let match;
+
+  while ((match = regex.exec(content)) !== null) {
+    try {
+      const jsonStr = match[1].trim();
+      const parsed = JSON.parse(jsonStr);
+      const calls = Array.isArray(parsed) ? parsed : [parsed];
+      
+      for (const call of calls) {
+        if (call.name) {
+          toolCalls.push({
+            id: `call_${Math.random().toString(36).slice(2, 11)}`,
+            type: 'function',
+            function: {
+              name: call.name,
+              arguments: typeof call.arguments === 'object' ? JSON.stringify(call.arguments) : (call.arguments || '{}')
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("⚠️ Error parseando TOOLCALL manual:", e);
+    }
+  }
+
+  return toolCalls.length > 0 ? toolCalls : null;
+}
+
 // ─── OpenAI / OpenRouter Logic ────────────────────────────────────────────────
 
 async function runOpenAI(
@@ -388,13 +423,20 @@ async function runOpenAI(
           loopMessages.push(msgToPush);
 
           if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
-            if (assistantMsg.content) {
-              return {
-                text: assistantMsg.content,
-                usage: (response as any).usage,
-              };
+            // FALLBACK: Ver si hay TOOLCALL manual en el contenido de texto
+            const manualCalls = assistantMsg.content ? parseTextToolCalls(assistantMsg.content) : null;
+            if (manualCalls) {
+              assistantMsg.tool_calls = manualCalls;
+              assistantMsg.content = assistantMsg.content!.replace(/TOOLCALL>[\s\S]*?ALL>/g, '').trim();
+            } else {
+              if (assistantMsg.content) {
+                return {
+                  text: assistantMsg.content,
+                  usage: (response as any).usage,
+                };
+              }
+              break;
             }
-            break;
           }
 
           const toolPromises = assistantMsg.tool_calls.map(async (toolCall) => {
