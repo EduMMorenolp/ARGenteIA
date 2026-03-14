@@ -111,6 +111,17 @@ export function getDb(): Database.Database {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS tools (
+      name TEXT PRIMARY KEY,
+      description TEXT,
+      parameters TEXT DEFAULT '{}',
+      is_dynamic INTEGER DEFAULT 0,
+      script TEXT,
+      enabled INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_user_facts_userId ON user_facts(userId);
     CREATE INDEX IF NOT EXISTS idx_tasks_userId ON scheduled_tasks(userId);
     CREATE INDEX IF NOT EXISTS idx_sub_agents_name ON sub_agents(name);
@@ -118,6 +129,7 @@ export function getDb(): Database.Database {
     CREATE INDEX IF NOT EXISTS idx_chats_userId ON chats(userId);
     CREATE INDEX IF NOT EXISTS idx_stats_log_userId ON stats_log(userId);
     CREATE INDEX IF NOT EXISTS idx_document_chunks_owner_id ON document_chunks(owner_id);
+    CREATE INDEX IF NOT EXISTS idx_tools_name ON tools(name);
   `);
 
   // Migración: Asegurar columna 'experts' en 'sub_agents'

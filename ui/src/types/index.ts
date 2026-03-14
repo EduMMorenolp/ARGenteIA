@@ -1,3 +1,5 @@
+export const TYPES_VERSION = 1;
+
 export interface Expert {
   name: string;
   model: string;
@@ -13,6 +15,17 @@ export interface ModelConfig {
   apiKey?: string;
   baseUrl?: string;
   created_at?: string;
+}
+
+export interface DetailedTool {
+  name: string;
+  description: string;
+  parameters: string;
+  is_dynamic: number;
+  script: string | null;
+  enabled: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ChatInfo {
@@ -84,7 +97,7 @@ export interface WsMessage {
     total_tokens: number;
   };
   latencyMs?: number;
-    history?: Array<{
+  history?: Array<{
     role: string;
     text: string;
     origin: "web" | "telegram";
@@ -95,7 +108,10 @@ export interface WsMessage {
   expertName?: string | null;
   oldName?: string;
   modelConfig?: ModelConfig;
+  tool?: DetailedTool;
   action?: string;
+  name?: string;
+  enabled?: boolean;
 }
 
 export interface DashboardStats {

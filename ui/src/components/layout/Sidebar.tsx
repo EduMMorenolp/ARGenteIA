@@ -1,5 +1,4 @@
 import {
-  Zap,
   Bot,
   Edit2,
   Trash2,
@@ -39,6 +38,7 @@ interface SidebarProps {
   onOpenCreator: () => void;
   onOpenFeatures: () => void;
   onOpenDashboard: () => void;
+  onOpenTools: () => void;
   sendMessage: (cmd: string) => void;
   isWaiting: boolean;
   availableModels: ModelConfig[];
@@ -52,7 +52,6 @@ export function Sidebar({
   quickCommands,
   experts,
   scheduledTasks,
-  userModel,
   isConnected,
   selectedExpert,
   onSelectExpert,
@@ -69,6 +68,7 @@ export function Sidebar({
   availableModels,
   onOpenModels,
   onOpenRag,
+  onOpenTools,
   isOpen,
   onToggleOpen,
 }: SidebarProps) {
@@ -114,6 +114,7 @@ export function Sidebar({
                       onClick={() => {
                         if (cmd.cmd === 'features') onOpenFeatures();
                         else if (cmd.cmd === 'dashboard') onOpenDashboard();
+                        else if (cmd.cmd === 'tools') onOpenTools();
                         else if (!isWaiting) sendMessage(cmd.cmd);
                       }}
                       disabled={isWaiting && cmd.cmd !== 'features' && cmd.cmd !== 'dashboard'}
@@ -256,6 +257,18 @@ export function Sidebar({
                   <span className="model-count">{availableModels.length} modelos configurados</span>
                 </div>
               )}
+            </div>
+
+            <div className="nav-section">
+              <div className="section-header" onClick={onOpenTools} style={{ cursor: 'pointer' }}>
+                <div className="section-title-wrap">
+                  <TerminalSquare size={14} className="text-muted" />
+                  <span className="section-title">Herramientas</span>
+                </div>
+                <button className="icon-btn-sm" onClick={(e) => { e.stopPropagation(); onOpenTools(); }}>
+                  <Plus size={14} />
+                </button>
+              </div>
             </div>
           </nav>
 

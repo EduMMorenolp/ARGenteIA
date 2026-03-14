@@ -9,6 +9,7 @@ import {
   Calendar,
   Shield,
   Cpu,
+  Settings2,
 } from "lucide-react";
 import { useAssistant } from "./hooks/useAssistant";
 
@@ -26,10 +27,12 @@ import { ModelManager } from "./components/modals/ModelManager";
 import { DashboardModal } from "./components/modals/DashboardModal";
 import { ChatSidebar } from "./components/layout/ChatSidebar";
 import { RagModal } from "./components/modals/RagModal";
+import { ToolManager } from "./components/modals/ToolManager";
 
 export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isModelsOpen, setIsModelsOpen] = useState(false);
+  const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isChatSidebarOpen, setIsChatSidebarOpen] = useState(true);
@@ -75,6 +78,11 @@ export default function App() {
     availableModels,
     upsertModel,
     deleteModel,
+    // Detailed Tools
+    detailedTools,
+    upsertTool,
+    deleteTool,
+    toggleTool,
     // Chat
     chats,
     channelChats,
@@ -98,7 +106,7 @@ export default function App() {
 
   const quickCommands = [
     { label: "Dashboard", cmd: "dashboard", icon: <BarChart3 size={14} /> },
-    { label: "Ayuda", cmd: "/ayuda", icon: <MessageSquare size={14} /> },
+    { label: "Herramientas", cmd: "tools", icon: <Settings2 size={14} /> },
     { label: "Limpiar", cmd: "/reset", icon: <Terminal size={14} /> },
     { label: "Funciones", cmd: "features", icon: <Info size={14} /> },
   ];
@@ -194,6 +202,7 @@ export default function App() {
         onOpenCreator={() => setIsCreatorOpen(true)}
         onOpenFeatures={() => setIsFeaturesOpen(true)}
         onOpenDashboard={() => setIsDashboardOpen(true)}
+        onOpenTools={() => setIsToolsOpen(true)}
         sendMessage={sendMessage}
         isWaiting={isWaiting}
         availableModels={availableModels}
@@ -313,6 +322,16 @@ export default function App() {
         <RagModal
           ownerId={ragOwnerId}
           onClose={() => setRagOwnerId(null)}
+        />
+      )}
+
+      {isToolsOpen && (
+        <ToolManager 
+          tools={detailedTools}
+          onClose={() => setIsToolsOpen(false)}
+          onSave={upsertTool}
+          onDelete={deleteTool}
+          onToggle={toggleTool}
         />
       )}
     </div>

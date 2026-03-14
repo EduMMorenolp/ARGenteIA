@@ -10,7 +10,8 @@ import type {
   ChatInfo,
   DashboardStats,
   ModelCapabilities,
-} from "../types";
+  type DetailedTool,
+} from "../types/index";
 import { useWebSocket } from "./useWebSocket";
 
 export function useAssistant() {
@@ -39,6 +40,7 @@ export function useAssistant() {
   const [editingTask, setEditingTask] = useState<ScheduledTask | null>(null);
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [modelCapabilities, setModelCapabilities] = useState<Record<string, ModelCapabilities>>({});
+  const [detailedTools, setDetailedTools] = useState<DetailedTool[]>([]);
 
   // File attachments
   const [attachments, setAttachments] = useState<Array<{ name: string; type: string; dataUrl: string; preview?: string }>>([]); 
@@ -237,6 +239,9 @@ export function useAssistant() {
         case "list_tasks":
           if (msg.tasks) setScheduledTasks(msg.tasks);
           break;
+        case "list_detailed_tools":
+          if ((msg as any).tools) setDetailedTools((msg as any).tools);
+          break;
         case "list_models":
           if (msg.models) setAvailableModels(msg.models);
           break;
@@ -355,6 +360,20 @@ export function useAssistant() {
 
   const deleteModel = (name: string) => {
     send({ type: "model_update", action: "delete", name });
+  };
+
+  const upsertTool = (tool: DetailedTool) => {
+    send({ type: "tool_manage", action: "upsert", tool } as any);
+  };
+
+  const deleteTool = (name: string) => {
+    if (confirm(`¿Estás seguro de eliminar la herramienta "${name}"?`)) {
+      send({ type: "tool_manage", action: "delete", name } as any);
+    }
+  };
+
+  const toggleTool = (name: string, enabled: boolean) => {
+    send({ type: "tool_manage", action: "toggle", name, enabled } as any);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -590,6 +609,11 @@ export function useAssistant() {
     availableModels,
     upsertModel,
     deleteModel,
+    // Detailed Tools
+    detailedTools,
+    upsertTool,
+    deleteTool,
+    toggleTool,
     // Chat
     chats,
     channelChats,

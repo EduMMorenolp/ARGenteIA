@@ -151,6 +151,9 @@ export function createGateway(): GatewayServer {
       const toolsResult = await getTools();
       const toolNames = toolsResult.map((t) => t.function.name);
       send(ws, { type: 'list_tools', tools: toolNames } as unknown as WsMessage);
+      
+      const { listDbTools } = await import('../memory/tool-db.ts');
+      send(ws, { type: 'list_detailed_tools', tools: listDbTools() } as unknown as WsMessage);
     });
 
     // Enviar lista de usuarios existentes
@@ -445,6 +448,29 @@ export function createGateway(): GatewayServer {
             capabilities,
           } as unknown as WsMessage);
         }
+      } else if (msg.type === 'tool_manage') {
+        const { listDbTools, upsertDbTool, deleteDbTool, toggleDbTool } = await import('../memory/tool-db.ts');
+        if (msg.action === 'upsert' && msg.tool) {
+          upsertDbTool(msg.tool);
+          console.log(chalk.green(`🔧 Herramienta guardada: ${msg.tool.name}`));
+        } else if (msg.action === 'delete' && msg.name) {
+          deleteDbTool(msg.name);
+          console.log(chalk.red(`🗑️ Herramienta eliminada: ${msg.name}`));
+        } else if (msg.action === 'toggle' && msg.name && msg.enabled !== undefined) {
+          toggleDbTool(msg.name, msg.enabled);
+          console.log(chalk.yellow(`🔧 Herramienta ${msg.name} -> ${msg.enabled ? 'ON' : 'OFF'}`));
+        }
+        
+        // Broadcast lista de herramientas detalladas a todos
+        const allDbTools = listDbTools();
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            send(client, { type: 'list_detailed_tools', tools: allDbTools } as unknown as WsMessage);
+          }
+        });
+
+        // Refrescar el caché en memoria re-inicializando tools
+        import('../tools/index.ts').then(({ initTools }) => initTools());
       }
     });
 
