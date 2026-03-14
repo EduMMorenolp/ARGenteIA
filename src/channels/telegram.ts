@@ -117,10 +117,35 @@ export async function startTelegram(): Promise<void> {
       const { getOrCreateChannelChat } = await import('../memory/chat-db.ts');
       const channelChat = getOrCreateChannelChat(effectiveUserId, 'telegram');
 
+      // Interceptar Tags (@AgentName) para invocar expertos en grupos o chat directo
+      let finalUserText = text;
+      const { listExperts } = await import('../memory/expert-db.ts');
+      const experts = listExperts();
+      
+      const tagMatch = text.match(/^@([a-zA-Z0-9_]+)\b/i);
+      if (tagMatch) {
+         const tagName = tagMatch[1].toLowerCase();
+         // Buscar si coincide con el "name" (simplificado) de un agente
+         const expert = experts.find(e => e.name.toLowerCase().replace(/[^a-z0-9]/g, '') === tagName);
+         
+         if (expert) {
+            console.log(chalk.blue(`🎯 Tag detectado para experto: ${expert.name}`));
+            // Removemos el tag del mensaje y forzamos el pedido
+            const cleanMessage = text.replace(tagMatch[0], '').trim();
+            finalUserText = `(OBLIGATORIO: ACTÚA COMO EL EXPERTO "${expert.name}". EL USUARIO TE HA INVOCADO DIRECTAMENTE. IGNORA TU ROL DE ORQUESTADOR POR AHORA Y RESPONDE ESTA CONSULTA CON ESE ROL) Consulta: ${cleanMessage}`;
+         }
+      } else {
+         // It's a normal message, we enforce the Orchestrator logic to show buttons automatically!
+         const orquestador = experts.find(e => e.name.includes('Orquestador'));
+         if (orquestador) {
+            finalUserText = `(OBLIGATORIO: ACTUARÁS COMO EL ORQUESTADOR ESTRICTAMENTE. IGNORA EL PERFIL BASE Y APLICA ESTAR REGLAS: ${orquestador.system_prompt})\nConsulta del usuario: ${text}`;
+         }
+      }
+
       const result = await runAgent({
         userId: effectiveUserId,
         chatId: channelChat.id,
-        userText: text,
+        userText: finalUserText,
         origin: 'telegram',
         telegramChatId: chatId,
         onAction: (text) => {
@@ -141,20 +166,66 @@ export async function startTelegram(): Promise<void> {
         return;
       }
 
-      // Telegram soporta Markdown básico
-      await bot!
-        .sendMessage(chatId, result.text, {
-          parse_mode: 'Markdown',
-        })
-        .catch(async () => {
-          // Si falla el markdown, intentar con HTML
-          try {
-            await bot!.sendMessage(chatId, result.text, { parse_mode: 'HTML' });
-          } catch (err) {
-            // Si falla el HTML (por tags mal cerrados), enviar como texto plano
-            await bot!.sendMessage(chatId, result.text);
+      // Check if the output is a JSON string (Hybrid UI response from Orquestador)
+      let parsedJson: any = null;
+      try {
+        // Look for json code blocks or pure json
+        let jsonStr = result.text.trim();
+        if (jsonStr.startsWith('```json')) {
+          jsonStr = jsonStr.replace(/```json\n?/, '').replace(/```\n?$/, '').trim();
+        } else if (jsonStr.startsWith('```')) {
+          jsonStr = jsonStr.replace(/```\n?/, '').replace(/```\n?$/, '').trim();
+        }
+        
+        if (jsonStr.startsWith('{') && jsonStr.endsWith('}')) {
+          parsedJson = JSON.parse(jsonStr);
+        }
+      } catch (e) {
+        // Not valid JSON, process as regular text
+      }
+
+      if (parsedJson && parsedJson.keyboard_type === 'inline' && parsedJson.botones) {
+        // Hybrid UI detected
+        console.log(chalk.cyan(`🔌 Renderizando Menú Híbrido Telegram: ${parsedJson.botones.length} botones`));
+        const textToSend = parsedJson.respuesta_texto || "He aquí algunas opciones:";
+        
+        // Convert the bot buttons array into Telegram's format (2 per row max)
+        const inlineKeyboard = [];
+        let currentRow = [];
+        for (const btn of parsedJson.botones) {
+          currentRow.push({ text: btn.text, callback_data: btn.callback_data });
+          if (currentRow.length === 2) {
+            inlineKeyboard.push(currentRow);
+            currentRow = [];
+          }
+        }
+        if (currentRow.length > 0) inlineKeyboard.push(currentRow);
+
+        await bot!.sendMessage(chatId, textToSend, {
+          reply_markup: {
+            inline_keyboard: inlineKeyboard
           }
         });
+        
+        // Override result text for WebChat so it sees the pure text, not the JSON string
+        result.text = textToSend + '\n' + parsedJson.botones.map((b: any) => `[${b.text}]`).join(' ');
+      } else {
+        // Standard Text response
+        // Telegram soporta Markdown básico
+        await bot!
+          .sendMessage(chatId, result.text, {
+            parse_mode: 'Markdown',
+          })
+          .catch(async () => {
+            // Si falla el markdown, intentar con HTML
+            try {
+              await bot!.sendMessage(chatId, result.text, { parse_mode: 'HTML' });
+            } catch (err) {
+              // Si falla el HTML (por tags mal cerrados), enviar como texto plano
+              await bot!.sendMessage(chatId, result.text);
+            }
+          });
+      }
 
       // Notificar a WebChat para actualizar preview en la barra lateral e historial de chat actual
       const { listChats, listChannelChats } = await import('../memory/chat-db.ts');
@@ -192,6 +263,82 @@ export async function startTelegram(): Promise<void> {
 
   bot.on('polling_error', (err) => {
     console.error(chalk.red('❌ Telegram polling error:'), err.message);
+  });
+
+  // Handle Inline Button clicks (Callback Queries)
+  bot.on('callback_query', async (query) => {
+    if (!query.message || !query.data) return;
+    
+    const chatId = query.message.chat.id;
+    const telegramUsername = query.from?.username ?? query.from?.first_name ?? 'Desconocido';
+    const callbackData = query.data;
+
+    console.log(chalk.cyan(`👉 Telegram Callback (@${telegramUsername}): ${callbackData}`));
+    
+    // Acknowledge the callback directly to remove loading state on the button
+    await bot!.answerCallbackQuery(query.id);
+
+    // Identify user
+    const { listAllUsers } = await import('../memory/user-db.ts');
+    const allUsers = listAllUsers();
+    const cleanUsername = telegramUsername.replace(/^@/, '').toLowerCase();
+    const dbUser = allUsers.find((u) => {
+      const dbTgUser = (u.telegram_user || '').replace(/^@/, '').toLowerCase();
+      return dbTgUser === cleanUsername && cleanUsername !== '';
+    });
+    const effectiveUserId = dbUser ? dbUser.userId : `telegram-${chatId}`;
+
+    // Simulate sending the callback_data as a user message
+    const simulatedText = `(Botón presionado: ${callbackData})`;
+    
+    await bot!.sendChatAction(chatId, 'typing');
+
+    try {
+      const { getOrCreateChannelChat } = await import('../memory/chat-db.ts');
+      const channelChat = getOrCreateChannelChat(effectiveUserId, 'telegram');
+
+      const result = await runAgent({
+        userId: effectiveUserId,
+        chatId: channelChat.id,
+        userText: simulatedText,
+        origin: 'telegram',
+        telegramChatId: chatId,
+        onAction: (text) => {
+          if (bot)
+            bot.sendMessage(chatId, `⏳ <i>${text}</i>`, { parse_mode: 'HTML' }).catch(() => {});
+        },
+        onTyping: (isTyping) => {
+          if (bot && isTyping) {
+            bot.sendChatAction(chatId, 'typing').catch(() => {});
+          }
+        },
+      });
+
+      if (result.text && result.text.trim() !== '') {
+        await bot!.sendMessage(chatId, result.text).catch(async () => {
+           // fallback
+           await bot!.sendMessage(chatId, result.text);
+        });
+        
+        // Notify WebChat
+        const { listChats, listChannelChats } = await import('../memory/chat-db.ts');
+        const { broadcastToUser } = await import('../gateway/server.ts');
+        
+        broadcastToUser(effectiveUserId, {
+          type: 'assistant_message',
+          text: result.text,
+          model: result.model,
+          usage: result.usage,
+          latencyMs: result.latencyMs,
+          sessionId: effectiveUserId,
+          chatId: channelChat.id,
+          origin: 'telegram',
+          timestamp: new Date().toISOString(),
+        } as any);
+      }
+    } catch (err: any) {
+      await bot!.sendMessage(chatId, `❌ Error en botón: ${err.message || String(err)}`);
+    }
   });
 
   console.log(chalk.magenta(`📱 Telegram bot activo`));

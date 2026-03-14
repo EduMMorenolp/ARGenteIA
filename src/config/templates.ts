@@ -159,23 +159,3 @@ export const TEMPLATES: Template[] = [
     ]
   }
 ];
-
-export const TOOL_LABELS: Record<string, string> = {
-  'web_search': '🔍 Búsqueda Web',
-  'bash': '💻 Terminal/Bash',
-  'read_file': '📁 Leer Archivo',
-  'write_file': '💾 Escribir Archivo',
-  'read_url': '🌐 Leer URL/Web',
-  'memorize_fact': '🧠 Memorizar Dato',
-  'recall_facts': '📚 Recordar Datos',
-  'forget_fact': '❌ Olvidar Dato',
-  'send_file_telegram': '✈️ Enviar a Telegram',
-  'schedule_task': '⏰ Programar Tarea',
-  'list_scheduled_tasks': '📋 Lista de Tareas',
-  'delete_scheduled_task': '🗑️ Eliminar Tarea',
-  'update_profile': '👤 Perfil Usuario',
-  'call_expert': '🤖 Llamar Experto',
-  'get_weather': '🌦️ Consultar Clima',
-  'capture_pc_screenshot': '📸 Captura de Pantalla',
-  'delegate_task': '🤝 Delegar Tarea'
-};

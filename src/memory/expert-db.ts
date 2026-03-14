@@ -1,4 +1,5 @@
 import { getDb } from './db.ts';
+import { TEMPLATES } from '../config/templates.ts';
 
 type DbRow = Record<string, unknown>;
 
@@ -29,7 +30,20 @@ export function getExpert(name: string): SubAgent | null {
         created_at?: string;
       }
     | undefined;
-  if (!row) return null;
+  if (!row) {
+    const template = TEMPLATES.find(t => t.name.toLowerCase() === name.toLowerCase());
+    if (template) {
+      return {
+        name: template.name,
+        model: '',
+        system_prompt: template.prompt,
+        tools: template.tools,
+        experts: [],
+        temperature: 0.7,
+      }
+    }
+    return null;
+  }
 
   return {
     ...row,
@@ -88,11 +102,24 @@ export function listExperts(): SubAgent[] {
     temperature: number;
     created_at?: string;
   }>;
-  return rows.map((row) => ({
+  const dbExperts = rows.map((row) => ({
     ...row,
     tools: JSON.parse(row.tools || '[]') as string[],
     experts: JSON.parse(row.experts || '[]') as string[],
   }));
+
+  const dbExpertNames = new Set(dbExperts.map(e => e.name.toLowerCase()));
+  
+  const templateExperts = TEMPLATES.filter(t => t.name !== 'Personalizado' && !dbExpertNames.has(t.name.toLowerCase())).map(t => ({
+      name: t.name,
+      model: '',
+      system_prompt: t.prompt,
+      tools: t.tools,
+      experts: [],
+      temperature: 0.7,
+  }));
+
+  return [...dbExperts, ...templateExperts];
 }
 
 /**
