@@ -195,7 +195,7 @@ export function RagModal({ onClose, ownerId }: ComponentProps) {
                             <FileText size={16} className="text-accent" />
                             <h4 style={{ fontSize: "14px", color: "var(--text-main)", margin: 0 }}>Almacenado</h4>
                         </div>
-                        <p className="text-muted text-sm mb-4" style={{ lineHeight: 1.4 }}>
+                        <p className="text-muted text-sm mb-4" style={{ lineHeight: 2.8 }}>
                             Documentos en memoria para <strong className="text-accent">{ownerId === '__general__' ? 'Asistente General' : ownerId}</strong>
                         </p>
                         
@@ -205,7 +205,7 @@ export function RagModal({ onClose, ownerId }: ComponentProps) {
                             <div className="empty-state">No hay documentos.</div>
                         ) : (
                             <div className="or-models-list scrollbar-hide" style={{ paddingRight: '4px', height: 'calc(100% - 120px)' }}>
-                                {chunks.map((chunk) => (
+                                {chunks.map((chunk: Chunk) => (
                                     <div key={chunk.id} className="or-model-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
                                         <div className="flex items-center justify-between" style={{ width: '100%' }}>
                                             <h4 style={{ fontSize: '13px', margin: 0, fontWeight: 600, color: 'var(--text-main)' }}>{chunk.source}</h4>
