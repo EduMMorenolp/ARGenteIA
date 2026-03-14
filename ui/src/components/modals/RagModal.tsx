@@ -1,6 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Database, Plus, Trash2, X, UploadCloud } from 'lucide-react';
-
+import { Database, Plus, Trash2, X, UploadCloud, FileText } from 'lucide-react';
 interface ComponentProps {
     onClose: () => void;
     ownerId: string;
@@ -20,6 +18,7 @@ export function RagModal({ onClose, ownerId }: ComponentProps) {
     const [newText, setNewText] = useState('');
     const [newSource, setNewSource] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
 
     useEffect(() => {
         fetchChunks();
@@ -96,90 +95,120 @@ export function RagModal({ onClose, ownerId }: ComponentProps) {
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content glass-panel" style={{ width: '600px', maxWidth: '90vw' }}>
-                <div className="modal-header">
-                    <div className="flex items-center gap-3">
-                        <div className="icon-box"><Database size={20} /></div>
-                        <h2>Memoria de Contexto (RAG)</h2>
+            <div className="modal-centered-wrapper">
+                <div className="modal-content glass-panel" style={{ width: '560px', maxWidth: '90vw' }}>
+                    <div className="modal-header">
+                        <div className="flex items-center gap-3">
+                            <div className="icon-box"><Database size={20} /></div>
+                            <h2>Memoria de Contexto (RAG)</h2>
+                        </div>
+                        <button className="icon-btn" onClick={onClose}><X size={16} /></button>
                     </div>
-                    <button className="icon-btn" onClick={onClose}><X size={16} /></button>
-                </div>
 
-                <p className="modal-subtitle mb-4">
-                    Gestionando contexto para: <strong className="text-accent">{ownerId === '__general__' ? 'Asistente General' : ownerId}</strong>
-                </p>
+                    <p className="modal-subtitle mb-4">
+                        Gestionando contexto para: <strong className="text-accent">{ownerId === '__general__' ? 'Asistente General' : ownerId}</strong>
+                    </p>
 
-                <div className="modal-body scrollbar-hide">
-                    <div className="rag-form mb-6 p-4 rounded-xl" style={{ background: 'var(--surface)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '14px', fontWeight: 600 }}>
-                                <UploadCloud size={14} /> Nuevo Documento
-                            </h3>
-                            <label className="btn-secondary btn-sm" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                    <div className="modal-body scrollbar-hide">
+                        <div className="rag-form mb-6 p-4 rounded-xl" style={{ background: 'var(--surface)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '14px', fontWeight: 600 }}>
+                                    <UploadCloud size={14} /> Nuevo Documento
+                                </h3>
+                                <label className="btn-secondary btn-sm" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                                    <input
+                                        type="file"
+                                        style={{ display: 'none' }}
+                                        accept=".txt,.md,.csv,.json,.ts,.js,.html,.css"
+                                        onChange={handleFileUpload}
+                                    />
+                                    <span>Subir Archivo</span>
+                                </label>
+                            </div>
+
+                            <div className="form-group" style={{ marginBottom: '1rem' }}>
                                 <input
-                                    type="file"
-                                    style={{ display: 'none' }}
-                                    accept=".txt,.md,.csv,.json,.ts,.js,.html,.css"
-                                    onChange={handleFileUpload}
+                                    type="text"
+                                    className="input-field"
+                                    style={{ width: '100%', fontSize: '14px' }}
+                                    placeholder="Fuente o Título (ej: Documentación API)"
+                                    value={newSource}
+                                    onChange={(e) => setNewSource(e.target.value)}
                                 />
-                                <span>Subir Archivo Local</span>
-                            </label>
-                        </div>
+                            </div>
 
-                        <div className="form-group" style={{ marginBottom: '1rem' }}>
-                            <input
-                                type="text"
-                                className="input-field"
-                                style={{ width: '100%', fontSize: '14px' }}
-                                placeholder="Fuente o Título (ej: Documentación API)"
-                                value={newSource}
-                                onChange={(e) => setNewSource(e.target.value)}
-                            />
-                        </div>
+                            <div className="form-group" style={{ marginBottom: '1rem' }}>
+                                <textarea
+                                    className="input-field"
+                                    style={{ width: '100%', minHeight: '180px', resize: 'vertical', fontSize: '14px' }}
+                                    placeholder="Pega el texto que quieres que el agente memorice y use como contexto..."
+                                    value={newText}
+                                    onChange={(e) => setNewText(e.target.value)}
+                                />
+                            </div>
 
-                        <div className="form-group" style={{ marginBottom: '1rem' }}>
-                            <textarea
-                                className="input-field"
-                                style={{ width: '100%', minHeight: '100px', resize: 'vertical', fontSize: '14px' }}
-                                placeholder="Pega el texto que quieres que el agente memorice y use como contexto..."
-                                value={newText}
-                                onChange={(e) => setNewText(e.target.value)}
-                            />
-                        </div>
-
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
-                            <button className="btn-primary btn-sm" onClick={handleAdd} disabled={isSubmitting || !newText.trim()}>
-                                {isSubmitting ? 'Guardando...' : <><Plus size={14} /> Incorporar Conocimiento</>}
-                            </button>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                                <button className="btn-primary btn-sm" onClick={handleAdd} disabled={isSubmitting || !newText.trim()}>
+                                    {isSubmitting ? 'Guardando...' : <><Plus size={14} /> Incorporar Conocimiento</>}
+                                </button>
+                            </div>
                         </div>
                     </div>
-
-                    <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '0.75rem' }}>Conocimiento Almacenado</h3>
-                    {loading ? (
-                        <p className="text-muted text-sm text-center py-4">Cargando...</p>
-                    ) : chunks.length === 0 ? (
-                        <p className="text-muted text-sm text-center py-4">No hay documentos en la memoria de este agente.</p>
-                    ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '350px', overflowY: 'auto', paddingRight: '0.5rem' }}>
-                            {chunks.map(chunk => (
-                                <div key={chunk.id} style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', display: 'flex', gap: '0.75rem', backgroundColor: 'var(--surface-hover)' }}>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                                            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent)' }}>{chunk.source}</span>
-                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{new Date(chunk.created_at).toLocaleDateString()}</span>
-                                        </div>
-                                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'pre-wrap' }}>
-                                            {chunk.text_content}
-                                        </p>
-                                    </div>
-                                    <button className="icon-btn focus:outline-none" style={{ alignSelf: 'flex-start', color: 'var(--error)' }} onClick={() => handleDelete(chunk.id)} title="Eliminar Documento">
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
                 </div>
+
+                {/* Right Side Tab to open/close stored knowledge */}
+                <button
+                    className={`modal-side-tab right ${isRightSidebarOpen ? 'open' : ''}`}
+                    onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                    title="Conocimiento Almacenado"
+                >
+                    <FileText size={16} />
+                </button>
+
+                {/* Right Panel: Stored Knowledge */}
+                {isRightSidebarOpen && (
+                    <div className="modal-side-panel right open glass-panel">
+                        <div className="panel-header">
+                            <div className="flex items-center gap-2">
+                                <FileText size={16} className="text-accent" />
+                                <h3 className="panel-title">Almacenado</h3>
+                            </div>
+                        </div>
+                        <div className="panel-body scrollbar-hide">
+                            <p className="panel-desc">Documentos en memoria para <strong className="text-accent">{ownerId === '__general__' ? 'Asistente General' : ownerId}</strong></p>
+                            
+                            {loading ? (
+                                <p className="text-muted text-sm text-center py-4">Cargando...</p>
+                            ) : chunks.length === 0 ? (
+                                <p className="text-empty text-center py-4">No hay documentos en memoria.</p>
+                            ) : (
+                                <div className="templates-grid list-view">
+                                    {chunks.map((chunk) => (
+                                        <div key={chunk.id} className="template-card" style={{ padding: '12px', border: '1px solid var(--border)', background: 'var(--bg-input)' }}>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h4 className="template-name" style={{ fontSize: '13px' }}>{chunk.source}</h4>
+                                            </div>
+                                            <p className="template-desc mb-2" style={{ WebkitLineClamp: 4 }}>
+                                                {chunk.text_content}
+                                            </p>
+                                            <div className="flex items-center justify-between mt-auto">
+                                                <span className="text-muted" style={{ fontSize: '10px' }}>{new Date(chunk.created_at).toLocaleDateString()}</span>
+                                                <button 
+                                                    className="icon-btn-sm" 
+                                                    style={{ color: 'var(--error)' }} 
+                                                    onClick={(e) => { e.stopPropagation(); handleDelete(chunk.id); }}
+                                                    title="Eliminar Documento"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

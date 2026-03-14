@@ -30,7 +30,10 @@ export function createGateway(): GatewayServer {
   // ─── Servir WebChat UI estática ────────────────────────────────────────────
   const uiPath = join(__dirname, '../../ui/dist');
   app.use(express.static(uiPath));
-  app.use(express.json());
+  
+  // Aumentar los límites de body-parser para grandes contextos de RAG
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
   // Health check
   app.get('/health', (_req, res) => {
@@ -38,7 +41,7 @@ export function createGateway(): GatewayServer {
   });
 
   // ─── API RAG (Memory Context) ──────────────────────────────────────────────
-  app.post('/api/rag', express.json(), async (req, res) => {
+  app.post('/api/rag', express.json({ limit: '50mb' }), async (req, res) => {
       try {
           const { owner_id, text_content, source } = req.body;
           if (!owner_id || !text_content) {
