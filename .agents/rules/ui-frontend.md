@@ -22,6 +22,7 @@ glob: "ui/**/*"
 - No agregar dependencias nuevas al frontend sin evaluar el impacto en el bundle.
 - Las variables CSS globales están centralizadas — usar variables en vez de valores hardcodeados.
 - Los iconos se implementan como SVG inline o componentes simples, no bibliotecas externas pesadas.
+- **Verificación Obligatoria:** Siempre que se modifique la UI (Vite en modo desarrollo), se debe utilizar el subagente de navegador web o pedir al usuario que verifique los cambios visualmente ingresando a `http://localhost:5173/`. Por defecto, el servidor backend corre en otros puertos, pero el frontend en desarrollo Vite usa el 5173.
 
 ## Comunicación con el Backend
 - El WebSocket se conecta a `ws://localhost:<PORT>`.
