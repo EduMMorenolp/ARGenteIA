@@ -330,7 +330,18 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
                                             </span>
                                         </div>
                                         <h5 style={{ margin: '0 0 6px 0', fontSize: '13.5px', color: 'var(--text-main)', fontWeight: 600 }}>{t.name}</h5>
-                                        <p style={{ margin: 0, fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>{t.description}</p>
+                                        <p style={{ margin: '0 0 8px 0', fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>{t.description}</p>
+                                        
+                                        {/* Vista previa de botones sugeridos */}
+                                        {t.telegram_buttons && t.telegram_buttons.length > 0 && (
+                                            <div className="flex flex-wrap gap-1 mt-2 pt-2 border-t border-white/[0.05]">
+                                                {t.telegram_buttons.map(btn => (
+                                                    <span key={btn.text} className="px-1.5 py-0.5 rounded-sm bg-accent/10 text-accent/80 text-[9px] font-medium border border-accent/20">
+                                                        [{btn.text}]
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 ))
                             )}
