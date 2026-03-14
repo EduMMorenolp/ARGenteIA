@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, LayoutTemplate, Settings2 } from 'lucide-react';
 import type { Expert, ModelConfig } from '../../types';
 import { TEMPLATES, TOOL_LABELS } from '../../constants';
 
@@ -40,6 +40,9 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
         };
     });
 
+    const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
+    const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+
     // Sincronizar modelo si el actual no está en la lista de disponibles
     // (Útil si se cargan los modelos después de abrir el modal)
     useEffect(() => {
@@ -51,8 +54,8 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
         }
     }, [availableModels, initialData, formData.model]);
 
-    const handleTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const template = TEMPLATES.find(t => t.name === e.target.value);
+    const handleTemplateChange = (templateName: string) => {
+        const template = TEMPLATES.find(t => t.name === templateName);
         if (template && template.name !== 'Personalizado') {
             setFormData({
                 ...formData,
@@ -60,6 +63,8 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
                 system_prompt: template.prompt,
                 tools: template.tools || []
             });
+            // Opcional: Cerrar el panel tras elegir una plantilla para ver el formulario relleno
+            setIsRightSidebarOpen(false);
         }
     };
 
@@ -94,26 +99,45 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
 
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h3>
-                        {formData.name === '__general__'
-                            ? 'Configurar Asistente General'
-                            : initialData ? 'Editar Experto' : 'Crear Nuevo Experto'}
-                    </h3>
-                    <button className="icon-btn" onClick={onClose}><X size={18} /></button>
-                </div>
-                <div className="modal-body max-h-600">
-                    {!initialData && (
-                        <div className="form-group">
-                            <label>Seleccionar Plantilla</label>
-                            <select className="template-select" onChange={handleTemplateChange}>
-                                {TEMPLATES.map(t => (
-                                    <option key={t.name} value={t.name}>{t.name} - {t.description}</option>
-                                ))}
-                            </select>
+            <div className="modal-centered-wrapper" onClick={e => e.stopPropagation()}>
+                
+                {/* Panel Izquierdo (Opciones Avanzadas / En Construcción) */}
+                <div className={`modal-side-panel left ${isLeftSidebarOpen ? "open" : ""}`}>
+                    <div className="modal-side-inner" style={{ paddingTop: '56px' }}>
+                        <h4 style={{ fontSize: "14px", color: "var(--text-main)", marginBottom: "12px" }}>Opciones Avanzadas</h4>
+                        <div className="empty-state">
+                            En construcción...
                         </div>
-                    )}
+                    </div>
+                </div>
+
+                {/* Main Modal */}
+                <div className="modal-content" style={{ position: 'relative', zIndex: 10, margin: 0 }}>
+                    <button
+                        className="modal-side-tab left"
+                        onClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)}
+                        title="Opciones Avanzadas"
+                    >
+                        <Settings2 size={16} />
+                    </button>
+
+                    <button
+                        className="modal-side-tab right"
+                        onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                        title="Plantillas de Expertos"
+                    >
+                        <LayoutTemplate size={16} />
+                    </button>
+
+                    <div className="modal-header">
+                        <h3>
+                            {formData.name === '__general__'
+                                ? 'Configurar Asistente General'
+                                : initialData ? 'Editar Experto' : 'Crear Nuevo Experto'}
+                        </h3>
+                        <button className="icon-btn" onClick={onClose}><X size={18} /></button>
+                    </div>
+                    <div className="modal-body max-h-600">
                     <div className="form-group">
                         <label>Nombre</label>
                         <input
@@ -193,11 +217,41 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
                         />
                     </div>
                 </div>
-                <div className="modal-footer">
-                    <button className="btn-secondary" onClick={onClose}>Cancelar</button>
-                    <button className="btn-primary" onClick={() => onSave(formData)}>
-                        {formData.name === '__general__' ? 'Guardar Cambios' : 'Guardar Experto'}
-                    </button>
+                    <div className="modal-footer">
+                        <button className="btn-secondary" onClick={onClose}>Cancelar</button>
+                        <button className="btn-primary" onClick={() => onSave(formData)}>
+                            {formData.name === '__general__' ? 'Guardar Cambios' : 'Guardar Experto'}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Panel Derecho: Plantillas */}
+                <div className={`modal-side-panel right ${isRightSidebarOpen ? "open" : ""}`}>
+                    <div className="modal-side-inner" style={{ paddingTop: '56px' }}>
+                        <h4 style={{ marginBottom: "12px", fontSize: "14px", color: "var(--text-main)" }}>Plantillas de Agentes</h4>
+                        <div className="templates-grid" style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
+                            {TEMPLATES.map(t => {
+                                if (t.name === 'Personalizado') return null;
+                                return (
+                                    <div key={t.name} className="template-card" style={{
+                                        background: 'var(--bg-secondary)',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: '8px',
+                                        padding: '12px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                    }}
+                                        onClick={() => handleTemplateChange(t.name)}
+                                        onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accents-5)'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+                                    >
+                                        <h5 style={{ margin: '0 0 4px 0', fontSize: '13px', color: 'var(--text-main)' }}>{t.name}</h5>
+                                        <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>{t.description}</p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

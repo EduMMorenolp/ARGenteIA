@@ -7,6 +7,11 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 ### Añadido
 - Establecida regla obligatoria para la IA: registrar todos los cambios en el `CHANGELOG.md`.
 - Archivo de reglas `.cursorrules` y `.agents/rules/changelog-rules.md` para automatizar este proceso.
+- **UI: Modal de Creación de Expertos renovado:**
+  - Implementación del nuevo layout con `modal-centered-wrapper` homologando el diseño con el modal de Gestión de Modelos.
+  - Añadidas **dos ventanas emergentes (paneles laterales)** con animación fluida en el `ExpertCreator`.
+  - El panel derecho ahora contiene una **sección visual de Plantillas** basada en tarjetas (cards) interactivas, reemplazando el antiguo menú desplegable.
+  - El panel izquierdo preparado para futuras "Opciones Avanzadas".
 
 ## [0.9.0] - 2026-03-04
 
