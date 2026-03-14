@@ -12,6 +12,10 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
   - Añadidas **dos ventanas emergentes (paneles laterales)** con animación fluida en el `ExpertCreator`.
   - El panel derecho ahora contiene una **sección visual de Plantillas** basada en tarjetas (cards) interactivas, reemplazando el antiguo menú desplegable.
   - El panel izquierdo preparado para futuras "Opciones Avanzadas".
+- **UI: Rediseño del Sidebar Principal:**
+  - Las secciones del sidebar (Comandos, Expertos, Tareas, Modelos) ahora son **colapsables / expansibles**, permitiendo optimizar el espacio vertical.
+  - Nuevos iconos estandarizados (`TerminalSquare`, `Network`, `CalendarClock`, `Cpu`) para los encabezados de cada sección.
+  - Mejora en el layout de los comandos y estados de hover de los items.
 
 ## [0.9.0] - 2026-03-04
 

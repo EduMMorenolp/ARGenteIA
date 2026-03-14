@@ -3,8 +3,8 @@
   background: var(--bg-sidebar);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  width: 720px;
-  max-height: 85vh;
+  width: 65vw;
+  max-height: 95vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
