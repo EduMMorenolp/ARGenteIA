@@ -556,3 +556,10 @@ export function broadcastToUser(userId: string, msg: WsMessage): void {
     });
   }
 }
+
+// Envía la lista de tareas actualizada a un usuario
+export async function broadcastTasksForUser(userId: string): Promise<void> {
+  const { getUserTasks } = await import('../memory/scheduler-db.ts');
+  const tasks = getUserTasks(userId);
+  broadcastToUser(userId, { type: 'list_tasks', tasks } as any);
+}

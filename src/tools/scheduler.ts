@@ -43,8 +43,12 @@ export function registerSchedulerTools(_config: Config): void {
           userId: context.sessionId,
           task: taskStr,
           cron: cronStr,
-          active: 1,
           created_at: new Date().toISOString(),
+        });
+
+        // Notificar al WebChat para actualizar el sidebar
+        import('../gateway/server.ts').then(({ broadcastTasksForUser }) => {
+          broadcastTasksForUser(context.sessionId);
         });
 
         return `✅ Tarea programada (ID: ${taskId}). Se ejecutará: "${taskStr}" con el horario: "${cronStr}".`;
@@ -103,6 +107,12 @@ export function registerSchedulerTools(_config: Config): void {
       const success = deleteTask(id, context.sessionId);
       if (success) {
         stopLocalTask(id);
+        
+        // Notificar al WebChat para actualizar el sidebar
+        import('../gateway/server.ts').then(({ broadcastTasksForUser }) => {
+          broadcastTasksForUser(context.sessionId);
+        });
+
         return `✅ Tarea con ID ${id} eliminada correctamente.`;
       }
       return `❌ No se encontró ninguna tarea con el ID ${id} para este usuario.`;
