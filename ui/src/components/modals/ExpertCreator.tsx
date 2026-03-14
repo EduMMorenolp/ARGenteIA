@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, LayoutTemplate, Settings2 } from 'lucide-react';
+import { X, LayoutTemplate, Settings2, Search, Home, Code, Palmtree, ShieldCheck, Sparkles } from 'lucide-react';
 import type { Expert, ModelConfig } from '../../types';
 import { TEMPLATES, TOOL_LABELS } from '../../constants';
 
@@ -42,6 +42,38 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
 
     const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
     const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+    
+    // Plantillas: Búsqueda y Filtros
+    const [templateSearch, setTemplateSearch] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState<string>('All');
+
+    const categories = [
+        { id: 'All', label: 'Todos', icon: Sparkles },
+        { id: 'Hogar', label: 'Hogar', icon: Home },
+        { id: 'Tech', label: 'Tech', icon: Code },
+        { id: 'Ocio', label: 'Ocio', icon: Palmtree },
+        { id: 'Soporte', label: 'Soporte', icon: ShieldCheck },
+    ];
+
+    const filteredTemplates = TEMPLATES.filter(t => {
+        if (t.name === 'Personalizado') return false;
+        
+        const matchesSearch = t.name.toLowerCase().includes(templateSearch.toLowerCase()) || 
+                             t.description.toLowerCase().includes(templateSearch.toLowerCase());
+        const matchesCategory = selectedCategory === 'All' || t.category === selectedCategory;
+        
+        return matchesSearch && matchesCategory;
+    });
+
+    const getCategoryIcon = (cat: string) => {
+        switch(cat) {
+            case 'Hogar': return <Home size={12} />;
+            case 'Tech': return <Code size={12} />;
+            case 'Ocio': return <Palmtree size={12} />;
+            case 'Soporte': return <ShieldCheck size={12} />;
+            default: return <Sparkles size={12} />;
+        }
+    };
 
     // Sincronizar modelo si el actual no está en la lista de disponibles
     // (Útil si se cargan los modelos después de abrir el modal)
@@ -228,28 +260,80 @@ export function ExpertCreator({ onClose, onSave, initialData, availableTools, al
                 {/* Panel Derecho: Plantillas */}
                 <div className={`modal-side-panel right ${isRightSidebarOpen ? "open" : ""}`}>
                     <div className="modal-side-inner" style={{ paddingTop: '56px' }}>
-                        <h4 style={{ marginBottom: "12px", fontSize: "14px", color: "var(--text-main)" }}>Plantillas de Agentes</h4>
-                        <div className="templates-grid" style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
-                            {TEMPLATES.map(t => {
-                                if (t.name === 'Personalizado') return null;
-                                return (
-                                    <div key={t.name} className="template-card" style={{
+                        <div className="flex items-center gap-2 mb-3">
+                            <LayoutTemplate size={16} className="text-accent" />
+                            <h4 style={{ fontSize: "14px", color: "var(--text-main)", margin: 0 }}>Plantillas de Agentes</h4>
+                        </div>
+
+                        {/* Buscador de Plantillas */}
+                        <div className="relative mb-3">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={14} />
+                            <input 
+                                type="text" 
+                                className="input-field pl-9 py-2 text-sm w-full" 
+                                placeholder="Buscar agente..."
+                                value={templateSearch}
+                                onChange={(e) => setTemplateSearch(e.target.value)}
+                                style={{ borderRadius: '8px', background: 'var(--bg-input)' }}
+                            />
+                        </div>
+
+                        {/* Filtros de Categoría */}
+                        <div className="flex flex-wrap gap-1.5 mb-4">
+                            {categories.map(cat => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => setSelectedCategory(cat.id)}
+                                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] transition-all
+                                        ${selectedCategory === cat.id 
+                                            ? 'bg-accent text-white shadow-lg' 
+                                            : 'bg-surface hover:bg-surface-hover text-muted'}`}
+                                >
+                                    <cat.icon size={11} />
+                                    {cat.label}
+                                </button>
+                            ))}
+                        </div>
+                        
+                        <div className="templates-grid scrollbar-hide" style={{ display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto', paddingRight: '4px' }}>
+                            {filteredTemplates.length === 0 ? (
+                                <div className="empty-state py-8">
+                                    <Search size={24} className="mb-2 opacity-20" />
+                                    <p>No se encontraron agentes</p>
+                                </div>
+                            ) : (
+                                filteredTemplates.map(t => (
+                                    <div key={t.name} className="template-card relative group" style={{
                                         background: 'var(--bg-secondary)',
                                         border: '1px solid var(--border)',
-                                        borderRadius: '8px',
+                                        borderRadius: '10px',
                                         padding: '12px',
                                         cursor: 'pointer',
-                                        transition: 'all 0.2s ease',
+                                        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                                     }}
                                         onClick={() => handleTemplateChange(t.name)}
-                                        onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accents-5)'; }}
-                                        onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+                                        onMouseEnter={(e) => { 
+                                            e.currentTarget.style.borderColor = 'var(--accent)';
+                                            e.currentTarget.style.transform = 'translateY(-2px)';
+                                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+                                        }}
+                                        onMouseLeave={(e) => { 
+                                            e.currentTarget.style.borderColor = 'var(--border)';
+                                            e.currentTarget.style.transform = 'translateY(0)';
+                                            e.currentTarget.style.boxShadow = 'none';
+                                        }}
                                     >
-                                        <h5 style={{ margin: '0 0 4px 0', fontSize: '13px', color: 'var(--text-main)' }}>{t.name}</h5>
-                                        <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>{t.description}</p>
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface text-[10px] text-accent uppercase font-bold tracking-wider">
+                                                {getCategoryIcon(t.category)}
+                                                {t.category}
+                                            </span>
+                                        </div>
+                                        <h5 style={{ margin: '0 0 6px 0', fontSize: '13.5px', color: 'var(--text-main)', fontWeight: 600 }}>{t.name}</h5>
+                                        <p style={{ margin: 0, fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>{t.description}</p>
                                     </div>
-                                );
-                            })}
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
