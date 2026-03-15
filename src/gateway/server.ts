@@ -486,72 +486,102 @@ export function createGateway(): GatewayServer {
         // Refrescar el caché en memoria re-inicializando tools
         import('../tools/index.ts').then(({ initTools }) => initTools());
       } else if (msg.type === 'request_memory_graph') {
-        const { getFacts } = await import('../memory/long-term.ts');
-        const { getDb } = await import('../memory/db.ts');
-        const { cosineSimilarity } = await import('../embeddings/provider.ts');
-
-        const limit = msg.limit || 100;
-        console.log(
-          chalk.cyan(`🧠 Generando grafo de memoria para ${sessionId} (limit: ${limit})`),
-        );
-
-        // 1. Obtener hechos (user_facts)
-        const allFacts = getFacts(sessionId);
-        const validFacts = allFacts
-          .filter((f) => f.embedding)
-          .slice(0, limit)
-          .map((f) => ({
-            id: `fact-${f.id}`,
-            label: f.fact,
-            group: 'fact' as const,
-            content: f.fact,
-            embedding: JSON.parse(f.embedding!),
-          }));
-
-        // 2. Obtener fragmentos RAG (opcionalmente)
-        const db = getDb();
-        const ragRows = db
-          .prepare(
-            'SELECT id, text_content, embedding FROM document_chunks WHERE owner_id = ? LIMIT ?',
-          )
-          .all(sessionId, limit) as any[];
-
-        const validRags = ragRows
-          .filter((r) => r.embedding)
-          .map((r) => ({
-            id: `rag-${r.id}`,
-            label: r.text_content.substring(0, 30) + '...',
-            group: 'rag' as const,
-            content: r.text_content,
-            embedding: JSON.parse(r.embedding),
-          }));
-
-        const nodes = [...validFacts, ...validRags];
-        const links: any[] = [];
-
-        // 3. Calcular similitudes (O(N^2) limitado por 'limit')
-        const SIMILARITY_THRESHOLD = 0.75;
-        for (let i = 0; i < nodes.length; i++) {
-          for (let j = i + 1; j < nodes.length; j++) {
-            const similarity = cosineSimilarity(nodes[i].embedding, nodes[j].embedding);
-            if (similarity > SIMILARITY_THRESHOLD) {
-              links.push({
-                source: nodes[i].id,
-                target: nodes[j].id,
-                weight: similarity,
-              });
+        try {
+          const { getFacts } = await import('../memory/long-term.ts');
+          const { getDb } = await import('../memory/db.ts');
+          const { cosineSimilarity } = await import('../embeddings/provider.ts');
+ 
+          const limit = msg.limit || 100;
+          console.log(
+            chalk.cyan(`🧠 Generando grafo de memoria para ${sessionId} (limit: ${limit})`),
+          );
+ 
+          // 1. Obtener hechos (user_facts)
+          const allFacts = getFacts(sessionId);
+          const validFacts = allFacts
+            .filter((f) => f.embedding && f.embedding !== '[]')
+            .slice(0, limit)
+            .map((f) => {
+              try {
+                return {
+                  id: `fact-${f.id}`,
+                  label: (f.fact || '').substring(0, 30) + (f.fact?.length > 30 ? '...' : ''),
+                  group: 'fact' as const,
+                  content: f.fact,
+                  embedding: JSON.parse(f.embedding!),
+                };
+              } catch (e) {
+                return null;
+              }
+            })
+            .filter((f) => f !== null && f.embedding && f.embedding.length > 0);
+ 
+          // 2. Obtener fragmentos RAG (opcionalmente)
+          const db = getDb();
+          const ragRows = db
+            .prepare(
+              'SELECT id, text_content, embedding FROM document_chunks WHERE owner_id = ? LIMIT ?',
+            )
+            .all(sessionId, limit) as any[];
+ 
+          const validRags = ragRows
+            .filter((r) => r.embedding && r.embedding !== '[]')
+            .map((r) => {
+              try {
+                return {
+                  id: `rag-${r.id}`,
+                  label:
+                    (r.text_content || '').substring(0, 30) +
+                    (r.text_content?.length > 30 ? '...' : ''),
+                  group: 'rag' as const,
+                  content: r.text_content,
+                  embedding: JSON.parse(r.embedding),
+                };
+              } catch (e) {
+                return null;
+              }
+            })
+            .filter((r) => r !== null && r.embedding && r.embedding.length > 0);
+ 
+          const nodes = [...validFacts, ...validRags] as any[];
+          const links: any[] = [];
+ 
+          // 3. Calcular similitudes (O(N^2) limitado por 'limit')
+          const SIMILARITY_THRESHOLD = 0.75;
+          for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+              if (nodes[i]!.embedding && nodes[j]!.embedding) {
+                const similarity = cosineSimilarity(nodes[i]!.embedding, nodes[j]!.embedding);
+                if (similarity > SIMILARITY_THRESHOLD) {
+                  links.push({
+                    source: nodes[i]!.id,
+                    target: nodes[j]!.id,
+                    weight: similarity,
+                  });
+                }
+              }
             }
           }
+          // Limpiar embeddings de la respuesta para ahorrar ancho de banda
+          const cleanNodes = nodes.map(({ embedding, ...rest }) => rest);
+
+          send(ws, {
+            type: 'memory_graph',
+            nodes: cleanNodes as any,
+            links,
+          });
+          console.log(
+            chalk.green(
+              `✅ Grafo generado: ${cleanNodes.length} nodos, ${links.length} conexiones.`,
+            ),
+          );
+        } catch (err) {
+          console.error(chalk.red('❌ Error al generar grafo de memoria:'), err);
+          send(ws, {
+            type: 'error',
+            message: 'Error al generar el mapa mental. Verifica que haya datos memorizados.',
+          });
         }
-
-        // Limpiar embeddings de la respuesta para ahorrar ancho de banda
-        const cleanNodes = nodes.map(({ embedding, ...rest }) => rest);
-
-        send(ws, {
-          type: 'memory_graph',
-          nodes: cleanNodes as any,
-          links,
-        });
       }
     });
 

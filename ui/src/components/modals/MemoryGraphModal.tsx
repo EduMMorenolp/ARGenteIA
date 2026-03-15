@@ -1,4 +1,4 @@
-import { Clock, MousePointer2, X, Zap } from 'lucide-react';
+import { Clock, Database, MousePointer2, X, Zap } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import type { MemoryGraphData } from '../../types';
@@ -79,6 +79,14 @@ export function MemoryGraphModal({ data, onClose, onRequestGraph }: MemoryGraphM
               </div>
               <p>Analizando conexiones semánticas...</p>
             </div>
+          ) : data.nodes.length === 0 ? (
+            <div className="graph-empty">
+              <Database size={48} style={{ opacity: 0.2, marginBottom: '16px' }} />
+              <p>No hay suficientes recuerdos o fragmentos para generar un mapa.</p>
+              <p className="subtitle">
+                Interactúa con el asistente o carga documentos para ver cómo se conectan.
+              </p>
+            </div>
           ) : (
             <ForceGraph2D
               graphData={data}
@@ -98,13 +106,23 @@ export function MemoryGraphModal({ data, onClose, onRequestGraph }: MemoryGraphM
 
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
                 ctx.beginPath();
-                ctx.roundRect(
-                  node.x - bckgDimensions[0] / 2,
-                  node.y - bckgDimensions[1] / 2,
-                  bckgDimensions[0],
-                  bckgDimensions[1],
-                  [2],
-                );
+                if (ctx.roundRect) {
+                  ctx.roundRect(
+                    node.x - bckgDimensions[0] / 2,
+                    node.y - bckgDimensions[1] / 2,
+                    bckgDimensions[0],
+                    bckgDimensions[1],
+                    [2],
+                  );
+                } else {
+                  // Fallback for older browsers
+                  ctx.rect(
+                    node.x - bckgDimensions[0] / 2,
+                    node.y - bckgDimensions[1] / 2,
+                    bckgDimensions[0],
+                    bckgDimensions[1],
+                  );
+                }
                 ctx.fill();
 
                 ctx.textAlign = 'center';
@@ -232,7 +250,7 @@ export function MemoryGraphModal({ data, onClose, onRequestGraph }: MemoryGraphM
           background: radial-gradient(circle at center, rgba(79, 70, 229, 0.05) 0%, transparent 70%);
         }
 
-        .graph-loading {
+        .graph-loading, .graph-empty {
           position: absolute;
           inset: 0;
           display: flex;
@@ -241,6 +259,21 @@ export function MemoryGraphModal({ data, onClose, onRequestGraph }: MemoryGraphM
           justify-content: center;
           gap: 16px;
           z-index: 10;
+          text-align: center;
+          padding: 20px;
+        }
+ 
+        .graph-empty p {
+          font-size: 1.1rem;
+          font-weight: 500;
+          opacity: 0.8;
+          margin: 0;
+        }
+ 
+        .graph-empty .subtitle {
+          font-size: 0.9rem;
+          opacity: 0.5;
+          max-width: 300px;
         }
 
         .graph-footer {
