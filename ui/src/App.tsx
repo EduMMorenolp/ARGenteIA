@@ -117,12 +117,11 @@ export default function App() {
   } = useAssistant();
 
   const quickCommands = [
+    { label: 'Funciones', cmd: 'features', icon: <Info size={14} /> },
     { label: 'Dashboard', cmd: 'dashboard', icon: <BarChart3 size={14} /> },
     { label: 'Mapa Mental', cmd: 'graph', icon: <Network size={14} /> },
     { label: 'Herramientas', cmd: 'tools', icon: <Settings2 size={14} /> },
     { label: 'Logs', cmd: 'logs', icon: <FileText size={14} /> },
-    { label: 'Limpiar', cmd: '/reset', icon: <Terminal size={14} /> },
-    { label: 'Funciones', cmd: 'features', icon: <Info size={14} /> },
   ];
 
   const features = [
