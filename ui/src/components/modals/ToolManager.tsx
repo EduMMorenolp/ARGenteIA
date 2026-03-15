@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { 
   Wrench, 
   X, 
@@ -10,7 +10,10 @@ import {
   Settings2,
   Cpu,
   Terminal,
-  FileJson
+  FileJson,
+  Search,
+  SlidersHorizontal,
+  ToggleLeft
 } from 'lucide-react';
 import { type DetailedTool } from '../../types/index';
 import '../../styles/tool-manager.css';
@@ -32,6 +35,9 @@ export function ToolManager({
 }: ToolManagerProps) {
   const [editingTool, setEditingTool] = useState<DetailedTool | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [query, setQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'dynamic' | 'system'>('all');
+  const [stateFilter, setStateFilter] = useState<'all' | 'enabled' | 'disabled'>('all');
 
   const emptyTool: DetailedTool = {
     name: '',
@@ -67,27 +73,105 @@ export function ToolManager({
     setIsCreating(false);
   };
 
+  const totalTools = tools.length;
+  const dynamicTools = tools.filter((tool) => tool.is_dynamic === 1).length;
+  const activeTools = tools.filter((tool) => tool.enabled === 1).length;
+
+  const filteredTools = useMemo(() => {
+    return tools.filter((tool) => {
+      const matchesQuery =
+        !query.trim() ||
+        tool.name.toLowerCase().includes(query.toLowerCase()) ||
+        (tool.description || '').toLowerCase().includes(query.toLowerCase());
+
+      const matchesType =
+        typeFilter === 'all' ||
+        (typeFilter === 'dynamic' && tool.is_dynamic === 1) ||
+        (typeFilter === 'system' && tool.is_dynamic !== 1);
+
+      const matchesState =
+        stateFilter === 'all' ||
+        (stateFilter === 'enabled' && tool.enabled === 1) ||
+        (stateFilter === 'disabled' && tool.enabled === 0);
+
+      return matchesQuery && matchesType && matchesState;
+    });
+  }, [tools, query, typeFilter, stateFilter]);
+
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container tool-manager-modal" onClick={e => e.stopPropagation()}>
+      <div className="modal-content tool-manager-modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="flex items-center gap-2">
+          <div className="tools-title-wrap">
             <Wrench className="text-accent" size={20} />
             <div>
               <h3>Gestor de Herramientas</h3>
-              <p className="text-muted text-xs">Administra las funciones nativas y crea nuevas con JS</p>
+              <p className="tools-subtitle">Administra las funciones nativas y crea nuevas con JS</p>
             </div>
           </div>
-          <button className="close-btn" onClick={onClose}><X size={20} /></button>
+          <button className="icon-btn" onClick={onClose}><X size={18} /></button>
         </div>
 
         <div className="modal-body">
           {(!editingTool && !isCreating) ? (
             <>
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-sm text-muted">{tools.length} herramientas cargadas</span>
+              <div className="tool-kpi-row">
+                <div className="tool-kpi-item">
+                  <span>Total</span>
+                  <strong>{totalTools}</strong>
+                </div>
+                <div className="tool-kpi-item">
+                  <span>Dinámicas</span>
+                  <strong>{dynamicTools}</strong>
+                </div>
+                <div className="tool-kpi-item">
+                  <span>Activas</span>
+                  <strong>{activeTools}</strong>
+                </div>
+              </div>
+
+              <div className="tools-toolbar">
+                <div className="tools-toolbar-left">
+                  <div className="tools-search-wrap">
+                    <Search size={13} />
+                    <input
+                      className="tools-search"
+                      type="text"
+                      placeholder="Buscar herramienta"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="tools-filter-wrap">
+                    <SlidersHorizontal size={13} />
+                    <select
+                      className="tools-filter-select"
+                      value={typeFilter}
+                      onChange={(e) => setTypeFilter(e.target.value as 'all' | 'dynamic' | 'system')}
+                    >
+                      <option value="all">Todos los tipos</option>
+                      <option value="dynamic">Dinámicas</option>
+                      <option value="system">Sistema</option>
+                    </select>
+                  </div>
+
+                  <div className="tools-filter-wrap">
+                    <ToggleLeft size={13} />
+                    <select
+                      className="tools-filter-select"
+                      value={stateFilter}
+                      onChange={(e) => setStateFilter(e.target.value as 'all' | 'enabled' | 'disabled')}
+                    >
+                      <option value="all">Todos los estados</option>
+                      <option value="enabled">Activas</option>
+                      <option value="disabled">Inactivas</option>
+                    </select>
+                  </div>
+                </div>
+
                 <button 
-                  className="btn btn-primary btn-sm flex items-center gap-2"
+                  className="btn-primary tool-new-btn"
                   onClick={() => {
                     setEditingTool(emptyTool);
                     setIsCreating(true);
@@ -97,8 +181,14 @@ export function ToolManager({
                 </button>
               </div>
 
-              <div className="tools-grid">
-                {tools.map(tool => (
+              {filteredTools.length === 0 ? (
+                <div className="tools-empty-state">
+                  <AlertCircle size={16} />
+                  <span>No hay herramientas para los filtros actuales.</span>
+                </div>
+              ) : (
+                <div className="tools-grid">
+                {filteredTools.map(tool => (
                   <div key={tool.name} className={`tool-card ${tool.enabled === 0 ? 'disabled' : ''}`}>
                     <div className="tool-card-header">
                       <div className="tool-info">
@@ -123,9 +213,14 @@ export function ToolManager({
                     
                     <p className="tool-desc">{tool.description || 'Sin descripción'}</p>
 
+                    <div className="tool-meta-row">
+                      <span className="tool-meta-pill">{tool.enabled === 1 ? 'Activa' : 'Inactiva'}</span>
+                      <span className="tool-meta-pill">Actualizada {new Date(tool.updated_at).toLocaleDateString()}</span>
+                    </div>
+
                     <div className="tool-card-footer">
-                      <span className="text-xs text-muted">
-                        Última act: {new Date(tool.updated_at).toLocaleDateString()}
+                      <span className="tool-card-footnote">
+                        {tool.is_dynamic === 1 ? 'Herramienta dinámica' : 'Herramienta del sistema'}
                       </span>
                       <div className="tool-actions">
                         <button 
@@ -148,7 +243,8 @@ export function ToolManager({
                     </div>
                   </div>
                 ))}
-              </div>
+                </div>
+              )}
             </>
           ) : (
             <div className="tool-editor">
@@ -167,7 +263,7 @@ export function ToolManager({
                   <label>Nombre de la función (slug)</label>
                   <input 
                     type="text" 
-                    className="modal-input"
+                    className="tool-input"
                     value={editingTool?.name}
                     disabled={!isCreating}
                     onChange={e => setEditingTool(prev => prev ? {...prev, name: e.target.value} : null)}
@@ -178,7 +274,7 @@ export function ToolManager({
                   <label>Descripción (lo que lee la IA)</label>
                   <input 
                     type="text" 
-                    className="modal-input"
+                    className="tool-input"
                     value={editingTool?.description}
                     onChange={e => setEditingTool(prev => prev ? {...prev, description: e.target.value} : null)}
                     placeholder="ej. Obtiene el clima detallado de una ciudad"
@@ -194,7 +290,7 @@ export function ToolManager({
                   value={editingTool?.parameters}
                   onChange={e => setEditingTool(prev => prev ? {...prev, parameters: e.target.value} : null)}
                 />
-                <div className="flex items-center gap-1 text-[10px] text-muted">
+                <div className="tool-hint-inline">
                   <FileJson size={10} />
                   <span>Define los campos que la IA debe completar para llamar a esta función</span>
                 </div>
@@ -209,22 +305,22 @@ export function ToolManager({
                     value={editingTool?.script || ''}
                     onChange={e => setEditingTool(prev => prev ? {...prev, script: e.target.value} : null)}
                   />
-                  <div className="flex items-center gap-2 mt-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded text-[11px] text-blue-300">
+                  <div className="tool-note">
                     <AlertCircle size={14} />
                     <span>Tienes acceso a <b>args</b> (parámetros) y <b>context</b> (sessionId, origin). Debes retornar un String o un Objeto JSON.</span>
                   </div>
                 </div>
               )}
 
-              <div className="flex justify-end gap-3 mt-4">
+              <div className="tool-editor-actions">
                 <button 
-                  className="btn btn-ghost"
+                  className="btn-ghost"
                   onClick={() => { setEditingTool(null); setIsCreating(false); }}
                 >
                   Cancelar
                 </button>
                 <button 
-                  className="btn btn-primary flex items-center gap-2"
+                  className="btn-primary tool-save-btn"
                   onClick={handleSave}
                 >
                   <Save size={16} /> Guardar Cambios

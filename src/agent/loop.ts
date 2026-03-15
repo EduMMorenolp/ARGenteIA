@@ -11,6 +11,7 @@ import { addMessage, getHistory } from '../memory/session.ts';
 import { saveMessage } from '../memory/message-db.ts';
 import { loadPrompt } from '../promptsSystem/index.ts';
 import chalk from 'chalk';
+import { logger } from '../utils/logger.ts';
 
 export const activeChats = new Set<string>();
 
@@ -159,6 +160,14 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
       role: 'assistant',
       content: responseText,
       origin: opts.origin || 'web',
+    });
+
+    // Registrar en el log de actividad
+    logger.agent(`Respuesta de IA para chat ${opts.chatId}`, {
+      userId: opts.userId,
+      chatId: opts.chatId,
+      latencyMs,
+      data: { model, usage: result.usage }
     });
 
     return {
@@ -457,11 +466,13 @@ async function runOpenAI(
               chalk.dim(argsStr.length > 100 ? argsStr.slice(0, 100) + '...' : argsStr),
             );
             opts.onAction?.(`Usando herramienta: ${fn.name}`);
+            const startTime = Date.now();
             const result = await executeTool(fn.name, args, {
               sessionId: opts.userId,
               origin: opts.origin,
               telegramChatId: opts.telegramChatId,
             });
+            const latencyMs = Date.now() - startTime;
 
             const resStr = String(result);
             console.log(
@@ -469,6 +480,13 @@ async function runOpenAI(
                 `   💡 Result: ${fn.name} -> ${resStr.length > 100 ? resStr.slice(0, 100) + '...' : resStr}`,
               ),
             );
+
+            // Log de la ejecución de la herramienta
+            logger.tool(fn.name, !resStr.startsWith('❌ Error'), args, result, {
+              userId: opts.userId,
+              chatId: opts.chatId,
+              latencyMs
+            });
 
             return {
               role: 'tool' as const,

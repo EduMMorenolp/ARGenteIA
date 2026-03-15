@@ -10,7 +10,9 @@ import type {
   ChatInfo,
   DashboardStats,
   ModelCapabilities,
-  type DetailedTool,
+  DetailedTool,
+  LogEntry,
+  LogStats,
 } from "../types/index";
 import { useWebSocket } from "./useWebSocket";
 
@@ -41,6 +43,8 @@ export function useAssistant() {
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [modelCapabilities, setModelCapabilities] = useState<Record<string, ModelCapabilities>>({});
   const [detailedTools, setDetailedTools] = useState<DetailedTool[]>([]);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [logStats, setLogStats] = useState<LogStats | null>(null);
 
   // File attachments
   const [attachments, setAttachments] = useState<Array<{ name: string; type: string; dataUrl: string; preview?: string }>>([]); 
@@ -240,7 +244,13 @@ export function useAssistant() {
           if (msg.tasks) setScheduledTasks(msg.tasks);
           break;
         case "list_detailed_tools":
-          if ((msg as any).tools) setDetailedTools((msg as any).tools);
+          setDetailedTools((msg as any).tools || []);
+          break;
+        case "list_logs":
+          setLogs(msg.logs || []);
+          break;
+        case "log_stats":
+          setLogStats(msg.stats || null);
           break;
         case "list_models":
           if (msg.models) setAvailableModels(msg.models);
@@ -374,6 +384,14 @@ export function useAssistant() {
 
   const toggleTool = (name: string, enabled: boolean) => {
     send({ type: "tool_manage", action: "toggle", name, enabled } as any);
+  };
+
+  const requestLogs = (limit = 50, filters?: any) => {
+    send({ type: 'request_logs', limit, filters });
+  };
+
+  const requestLogStats = () => {
+    send({ type: 'request_log_stats' });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -614,6 +632,11 @@ export function useAssistant() {
     upsertTool,
     deleteTool,
     toggleTool,
+    // Logs
+    logs,
+    logStats,
+    requestLogs,
+    requestLogStats,
     // Chat
     chats,
     channelChats,

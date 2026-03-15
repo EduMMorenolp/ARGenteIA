@@ -436,7 +436,7 @@ export function createGateway(): GatewayServer {
           const { fetchModelCapabilities } = await import('../agent/model-info.ts');
           const { getModel } = await import('../memory/model-db.ts');
           const dbModel = getModel(modelName);
-          const capabilities = await fetchModelCapabilities(
+          const caps = await fetchModelCapabilities(
             modelName,
             dbModel?.baseUrl,
             dbModel?.apiKey,
@@ -445,9 +445,17 @@ export function createGateway(): GatewayServer {
           send(ws, {
             type: 'model_info',
             modelName,
-            capabilities,
+            capabilities: caps,
           } as unknown as WsMessage);
         }
+      } else if (msg.type === 'request_logs') {
+        const { getRecentLogs } = await import('../memory/log-db.ts');
+        const logs = getRecentLogs(msg.limit || 50, msg.filters);
+        send(ws, { type: 'list_logs', logs } as unknown as WsMessage);
+      } else if (msg.type === 'request_log_stats') {
+        const { getLogStats } = await import('../memory/log-db.ts');
+        const stats = getLogStats();
+        send(ws, { type: 'log_stats', stats } as unknown as WsMessage);
       } else if (msg.type === 'tool_manage') {
         const { listDbTools, upsertDbTool, deleteDbTool, toggleDbTool } = await import('../memory/tool-db.ts');
         if (msg.action === 'upsert' && msg.tool) {

@@ -65,7 +65,13 @@ export type WsMessageType =
   | 'dashboard_stats' // servidor → cliente: estadísticas del dashboard
   | 'request_dashboard' // cliente → servidor: solicitar stats del dashboard
   | 'model_info' // servidor → cliente: info de capacidades de un modelo
-  | 'request_model_info'; // cliente → servidor: solicitar info de un modelo
+  | 'request_model_info' // cliente → servidor: solicitar info de un modelo
+  | 'list_logs' // servidor → cliente: lista de logs de actividad
+  | 'request_logs' // cliente → servidor: solicitar logs con filtros
+  | 'log_stats' // servidor → cliente: estadísticas agregadas de logs
+  | 'request_log_stats' // cliente → servidor: solicitar estadísticas de logs
+  | 'tool_manage' // cliente → servidor: CRUD de herramientas
+  | 'list_detailed_tools'; // servidor → cliente: lista completa de herramientas con script
 
 export interface WsActionLogMessage {
   type: 'action_log';
@@ -239,7 +245,46 @@ export type WsMessage =
   | WsDashboardStatsMessage
   | WsRequestDashboardMessage
   | WsModelInfoMessage
-  | WsRequestModelInfoMessage;
+  | WsRequestModelInfoMessage
+  | WsListLogsMessage
+  | WsRequestLogsMessage
+  | WsLogStatsMessage
+  | WsRequestLogStatsMessage
+  | WsToolManageMessage
+  | WsListDetailedToolsMessage;
+
+export interface WsToolManageMessage {
+  type: 'tool_manage';
+  action: 'upsert' | 'delete' | 'toggle';
+  tool?: any;
+  name?: string;
+  enabled?: boolean;
+}
+
+export interface WsListDetailedToolsMessage {
+  type: 'list_detailed_tools';
+  tools: any[];
+}
+
+export interface WsListLogsMessage {
+  type: 'list_logs';
+  logs: any[];
+}
+
+export interface WsRequestLogsMessage {
+  type: 'request_logs';
+  limit?: number;
+  filters?: { userId?: string, category?: string, level?: string };
+}
+
+export interface WsLogStatsMessage {
+  type: 'log_stats';
+  stats: any;
+}
+
+export interface WsRequestLogStatsMessage {
+  type: 'request_log_stats';
+}
 
 export interface WsListChatsMessage {
   type: 'list_chats';

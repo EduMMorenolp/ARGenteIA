@@ -3,15 +3,20 @@ import {
   Edit2,
   Trash2,
   Plus,
-  CalendarClock,
   Cpu,
-  Server,
   ChevronLeft,
   ChevronRight,
   Database,
   TerminalSquare,
   Network,
-  ChevronDown
+  ChevronDown,
+  CalendarClock,
+  Server,
+  Settings2,
+  FileText,
+  BarChart3,
+  Wrench,
+  Calendar,
 } from 'lucide-react';
 import { useState } from 'react';
 import type { Expert, ModelConfig, ScheduledTask } from '../../types';
@@ -39,6 +44,7 @@ interface SidebarProps {
   onOpenFeatures: () => void;
   onOpenDashboard: () => void;
   onOpenTools: () => void;
+  onOpenLogs: () => void;
   sendMessage: (cmd: string) => void;
   isWaiting: boolean;
   availableModels: ModelConfig[];
@@ -69,6 +75,8 @@ export function Sidebar({
   onOpenModels,
   onOpenRag,
   onOpenTools,
+  onOpenLogs,
+  onOpenTaskCreator,
   isOpen,
   onToggleOpen,
 }: SidebarProps) {
@@ -115,6 +123,7 @@ export function Sidebar({
                         if (cmd.cmd === 'features') onOpenFeatures();
                         else if (cmd.cmd === 'dashboard') onOpenDashboard();
                         else if (cmd.cmd === 'tools') onOpenTools();
+                        else if (cmd.cmd === 'logs') onOpenLogs();
                         else if (!isWaiting) sendMessage(cmd.cmd);
                       }}
                       disabled={isWaiting && cmd.cmd !== 'features' && cmd.cmd !== 'dashboard'}
@@ -219,6 +228,9 @@ export function Sidebar({
                   <CalendarClock size={14} className="text-muted" />
                   <span className="section-title">Tareas Programadas</span>
                 </div>
+                <button className="icon-btn-sm" onClick={(e) => { e.stopPropagation(); onOpenTaskCreator(); }} title="Programar nueva tarea">
+                  <Plus size={14} />
+                </button>
               </div>
               {!collapsedSections['tasks'] && (
                 <div className="tasks-list">
@@ -266,6 +278,18 @@ export function Sidebar({
                   <span className="section-title">Herramientas</span>
                 </div>
                 <button className="icon-btn-sm" onClick={(e) => { e.stopPropagation(); onOpenTools(); }}>
+                  <Plus size={14} />
+                </button>
+              </div>
+            </div>
+
+            <div className="nav-section">
+              <div className="section-header" onClick={onOpenLogs} style={{ cursor: 'pointer' }}>
+                <div className="section-title-wrap">
+                  <FileText size={14} className="text-muted" />
+                  <span className="section-title">Logs e Informes</span>
+                </div>
+                <button className="icon-btn-sm" onClick={(e) => { e.stopPropagation(); onOpenLogs(); }}>
                   <Plus size={14} />
                 </button>
               </div>

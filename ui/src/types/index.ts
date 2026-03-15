@@ -112,6 +112,10 @@ export interface WsMessage {
   action?: string;
   name?: string;
   enabled?: boolean;
+  logs?: LogEntry[];
+  stats?: LogStats;
+  filters?: { userId?: string, category?: string, level?: string };
+  limit?: number;
 }
 
 export interface DashboardStats {
@@ -142,4 +146,22 @@ export interface ModelCapabilities {
   inputModalities: string[];
   outputModalities: string[];
   pricing?: { prompt: string; completion: string };
+}
+
+export interface LogEntry {
+  id: number;
+  timestamp: string;
+  level: 'INFO' | 'WARNING' | 'ERROR' | 'ACTION';
+  category: 'tool' | 'agent' | 'system' | 'security';
+  userId?: string;
+  chatId?: string;
+  message: string;
+  data?: any;
+  latencyMs?: number;
+}
+
+export interface LogStats {
+  totalByLevel: Array<{ level: string; count: number }>;
+  totalByCategory: Array<{ category: string; count: number }>;
+  toolUsage: Array<{ tool: string; count: number }>;
 }

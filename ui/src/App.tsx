@@ -1,7 +1,6 @@
 import { useState, type KeyboardEvent, type FormEvent } from "react";
 import {
   BarChart3,
-  MessageSquare,
   Terminal,
   Info,
   Globe,
@@ -10,6 +9,7 @@ import {
   Shield,
   Cpu,
   Settings2,
+  FileText,
 } from "lucide-react";
 import { useAssistant } from "./hooks/useAssistant";
 
@@ -28,11 +28,13 @@ import { DashboardModal } from "./components/modals/DashboardModal";
 import { ChatSidebar } from "./components/layout/ChatSidebar";
 import { RagModal } from "./components/modals/RagModal";
 import { ToolManager } from "./components/modals/ToolManager";
+import { LogsModal } from "./components/modals/LogsModal";
 
 export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isModelsOpen, setIsModelsOpen] = useState(false);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
+  const [isLogsOpen, setIsLogsOpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isChatSidebarOpen, setIsChatSidebarOpen] = useState(true);
@@ -102,11 +104,17 @@ export default function App() {
     attachments,
     addAttachment,
     removeAttachment,
+    // Logs
+    logs,
+    logStats,
+    requestLogs,
+    requestLogStats,
   } = useAssistant();
 
   const quickCommands = [
     { label: "Dashboard", cmd: "dashboard", icon: <BarChart3 size={14} /> },
     { label: "Herramientas", cmd: "tools", icon: <Settings2 size={14} /> },
+    { label: "Logs", cmd: "logs", icon: <FileText size={14} /> },
     { label: "Limpiar", cmd: "/reset", icon: <Terminal size={14} /> },
     { label: "Funciones", cmd: "features", icon: <Info size={14} /> },
   ];
@@ -203,6 +211,8 @@ export default function App() {
         onOpenFeatures={() => setIsFeaturesOpen(true)}
         onOpenDashboard={() => setIsDashboardOpen(true)}
         onOpenTools={() => setIsToolsOpen(true)}
+        onOpenLogs={() => setIsLogsOpen(true)}
+        onOpenTaskCreator={() => setEditingTask({ id: 0, userId: "", task: "", cron: "" })}
         sendMessage={sendMessage}
         isWaiting={isWaiting}
         availableModels={availableModels}
@@ -332,6 +342,16 @@ export default function App() {
           onSave={upsertTool}
           onDelete={deleteTool}
           onToggle={toggleTool}
+        />
+      )}
+
+      {isLogsOpen && (
+        <LogsModal
+          logs={logs}
+          stats={logStats}
+          onClose={() => setIsLogsOpen(false)}
+          onRequestLogs={requestLogs}
+          onRequestStats={requestLogStats}
         />
       )}
     </div>
