@@ -164,6 +164,7 @@ export async function startTelegram(): Promise<void> {
         userText: finalUserText,
         origin: 'telegram',
         telegramChatId: chatId,
+        skipPersistUserMsg: true,
         onAction: (text) => {
           if (bot)
             bot.sendMessage(chatId, `⏳ <i>${text}</i>`, { parse_mode: 'HTML' }).catch(() => {});

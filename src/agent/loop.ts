@@ -82,6 +82,7 @@ export interface AgentOptions {
   origin?: 'web' | 'telegram'; // Origen del mensaje
   telegramChatId?: number; // ID de chat si viene de Telegram
   attachments?: Array<{ name: string; type: string; data: string }>; // Archivos adjuntos (base64 data URLs)
+  skipPersistUserMsg?: boolean; // Si es true, no guarda el mensaje del usuario en la DB (ya lo hizo el canal)
 }
 
 export interface AgentResponse {
@@ -107,14 +108,16 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
   // Añadir mensaje del usuario al historial en memoria (aislado por chatId)
   addMessage(opts.chatId, { role: 'user', content: userContent }, config.agent.maxContextMessages);
 
-  // Persistir en base de datos
-  saveMessage({
-    userId: opts.userId,
-    chatId: opts.chatId,
-    role: 'user',
-    content: opts.userText,
-    origin: opts.origin || 'web',
-  });
+  // Persistir en base de datos si no se indica saltarlo
+  if (!opts.skipPersistUserMsg) {
+    saveMessage({
+      userId: opts.userId,
+      chatId: opts.chatId,
+      role: 'user',
+      content: opts.userText,
+      origin: opts.origin || 'web',
+    });
+  }
 
   const messages = getHistory(opts.chatId);
 
@@ -154,12 +157,27 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
       config.agent.maxContextMessages,
     );
 
+    // Preparar texto para persistir (limpiar si es JSON del orquestador)
+    let textToPersist = responseText;
+    if (responseText.trim().startsWith('{') && responseText.includes('respuesta_texto')) {
+      try {
+        // Intentar parsear si parece JSON. A veces viene con bloques ```json
+        const jsonContent = responseText.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(jsonContent);
+        if (parsed.respuesta_texto) {
+          textToPersist = parsed.respuesta_texto;
+        }
+      } catch (e) {
+        // No es JSON válido o no tiene el campo, guardar original
+      }
+    }
+
     // Persistir respuesta en base de datos
     saveMessage({
       userId: opts.userId,
       chatId: opts.chatId,
       role: 'assistant',
-      content: responseText,
+      content: textToPersist,
       origin: opts.origin || 'web',
     });
 
