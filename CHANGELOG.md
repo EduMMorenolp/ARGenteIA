@@ -6,6 +6,8 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ### Añadido
 - **Mantenimiento**: Migración completa de ESLint/Prettier a **Biome** para optimización de linting y formateo.
+- **Mantenimiento**: Sistema de configuración mejorado: el archivo `config.json` ahora es opcional. El sistema arranca con valores por defecto si no existe.
+- **Mantenimiento**: Actualización de `config.example.opcional.json` con todos los parámetros disponibles (Tools, Telegram, Memory, etc.).
 - **Mantenimiento**: Consolidación de todas las reglas de proyecto (Overview, TypeScript, UI) en un único archivo `.cursorrules` en la raíz para garantizar su aplicación global.
 - **Mantenimiento**: Actualización integral de las habilidades del agente (`.agents/skills`) y creación de nuevas habilidades internas (`/skills`) para Logs, Herramientas Dinámicas y Clima.
 - **Mantenimiento**: Implementación del primer sistema de **Workflows** para estandarizar el debugging de la UI.

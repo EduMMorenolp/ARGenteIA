@@ -1,0 +1,46 @@
+{
+  "//": "Consulte la documentación en .cursorrules para más detalles sobre el esquema.",
+  "agent": {
+    "model": "openai/gpt-4o-mini",
+    "systemPrompt": "Eres ARGenteIA, un asistente personal inteligente y proactivo.",
+    "maxTokens": 4096,
+    "maxContextMessages": 40
+  },
+  "models": {
+    "openai/gpt-4o-mini": {
+      "apiKey": "tu_api_key_aquí",
+      "baseUrl": "https://api.openai.com/v1"
+    },
+    "anthropic/claude-3-5-sonnet-latest": {
+      "apiKey": "tu_api_key_aquí"
+    },
+    "local/llama3": {
+      "baseUrl": "http://localhost:11434/v1"
+    }
+  },
+  "gateway": {
+    "port": 18000
+  },
+  "channels": {
+    "telegram": {
+      "botToken": "tu_token_de_telegram_aquí",
+      "allowFrom": ["tu_user_id_o_username"]
+    }
+  },
+  "tools": {
+    "bash": {
+      "enabled": true,
+      "allowlist": ["ls", "pwd", "date"],
+      "os": "windows"
+    },
+    "webSearch": { "enabled": true },
+    "readFile": { "enabled": true },
+    "writeFile": { "enabled": true },
+    "readUrl": { "enabled": true }
+  },
+  "memory": {
+    "dbPath": "./assistant.db",
+    "maxContextMessages": 50,
+    "compactAt": 100
+  }
+}

@@ -23,7 +23,7 @@ const GatewayConfigSchema = z.object({
 });
 
 const TelegramConfigSchema = z.object({
-  botToken: z.string(),
+  botToken: z.string().optional(),
   allowFrom: z.array(z.string()).default([]),
 });
 
@@ -92,11 +92,14 @@ export function loadConfig(configPath?: string): Config {
   const path = configPath ?? resolve(process.cwd(), 'config.json');
 
   if (!existsSync(path)) {
-    console.error(chalk.red(`❌ No se encontró config.json en: ${path}`));
-    console.error(
-      chalk.yellow(`   Copiá config.example.json → config.json y completá tus credenciales.`),
+    console.warn(chalk.yellow(`⚠️  Aviso: No se encontró config.json en: ${path}`));
+    console.warn(chalk.dim(`   Se usarán los valores por defecto del sistema.`));
+    console.warn(
+      chalk.dim(`   Para personalizar, creá un config.json basado en config.example.opcional.json.`),
     );
-    process.exit(1);
+    // Retornamos un objeto vacío que Zod parseará con todos los defaults
+    _config = ConfigSchema.parse({});
+    return _config;
   }
 
   const content = readFileSync(path, 'utf-8').trim();
