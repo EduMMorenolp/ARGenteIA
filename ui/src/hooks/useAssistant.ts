@@ -7,6 +7,7 @@ import type {
   Expert,
   LogEntry,
   LogStats,
+  MemoryGraphData,
   Message,
   ModelCapabilities,
   ModelConfig,
@@ -45,6 +46,7 @@ export function useAssistant() {
   const [detailedTools, setDetailedTools] = useState<DetailedTool[]>([]);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [logStats, setLogStats] = useState<LogStats | null>(null);
+  const [memoryGraphData, setMemoryGraphData] = useState<MemoryGraphData | null>(null);
 
   // File attachments
   const [attachments, setAttachments] = useState<
@@ -284,6 +286,11 @@ export function useAssistant() {
               ...prev,
               [(msg as any).modelName]: (msg as any).capabilities,
             }));
+          }
+          break;
+        case 'memory_graph':
+          if (msg.nodes && msg.links) {
+            setMemoryGraphData({ nodes: msg.nodes, links: msg.links });
           }
           break;
       }
@@ -677,5 +684,8 @@ export function useAssistant() {
     attachments,
     addAttachment,
     removeAttachment,
+    // Memory Graph
+    memoryGraphData,
+    requestMemoryGraph: (limit: number) => send({ type: 'request_memory_graph', limit } as any),
   };
 }

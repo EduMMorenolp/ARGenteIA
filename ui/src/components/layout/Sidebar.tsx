@@ -1,7 +1,5 @@
 import {
-  BarChart3,
   Bot,
-  Calendar,
   CalendarClock,
   ChevronDown,
   ChevronLeft,
@@ -13,10 +11,9 @@ import {
   Network,
   Plus,
   Server,
-  Settings2,
   TerminalSquare,
   Trash2,
-  Wrench,
+  Zap,
 } from 'lucide-react';
 import { useState } from 'react';
 import type { Expert, ModelConfig, ScheduledTask } from '../../types';
@@ -50,6 +47,8 @@ interface SidebarProps {
   availableModels: ModelConfig[];
   onOpenModels: () => void;
   onOpenRag: (agentName: string) => void;
+  onOpenMemoryGraph: () => void;
+  onOpenTaskCreator: () => void;
   isOpen: boolean;
   onToggleOpen: () => void;
 }
@@ -77,6 +76,7 @@ export function Sidebar({
   onOpenTools,
   onOpenLogs,
   onOpenTaskCreator,
+  onOpenMemoryGraph,
   isOpen,
   onToggleOpen,
 }: SidebarProps) {
@@ -132,6 +132,7 @@ export function Sidebar({
                         else if (cmd.cmd === 'dashboard') onOpenDashboard();
                         else if (cmd.cmd === 'tools') onOpenTools();
                         else if (cmd.cmd === 'logs') onOpenLogs();
+                        else if (cmd.cmd === 'graph') onOpenMemoryGraph();
                         else if (!isWaiting) sendMessage(cmd.cmd);
                       }}
                       disabled={isWaiting && cmd.cmd !== 'features' && cmd.cmd !== 'dashboard'}
@@ -203,6 +204,39 @@ export function Sidebar({
                       </button>
                     </div>
                   </div>
+                  <div className={`expert-item-wrap ${selectedExpert === null ? 'active' : ''}`}>
+                    <button className="expert-item-main" onClick={() => onSelectExpert(null)}>
+                      <div className="expert-avatar general">
+                        <Bot size={14} />
+                      </div>
+                      <div className="expert-info">
+                        <span className="expert-name">Asistente General</span>
+                      </div>
+                    </button>
+                    <div className="expert-actions">
+                      <button onClick={() => onEditGeneral()} title="Configurar Asistente General">
+                        <Edit2 size={12} />
+                      </button>
+                      <button
+                        onClick={() => onOpenRag('__general__')}
+                        title="Memoria de Contexto (RAG)"
+                      >
+                        <Database size={12} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (
+                            confirm('¿Restablecer configuración original del Asistente General?')
+                          ) {
+                            onDeleteExpert('__general__');
+                          }
+                        }}
+                        title="Restablecer original"
+                      >
+                        <Plus size={12} style={{ transform: 'rotate(45deg)' }} />
+                      </button>
+                    </div>
+                  </div>
                   {experts.map((exp) => (
                     <div
                       key={exp.name}
@@ -239,7 +273,6 @@ export function Sidebar({
                 </div>
               )}
             </div>
-
             <div className="nav-section">
               <div className="section-header">
                 <div className="section-title-wrap">
@@ -252,6 +285,29 @@ export function Sidebar({
                   title="Gestionar Conocimiento Base"
                 >
                   <Database size={12} />
+                </button>
+              </div>
+            </div>
+
+            <div className="nav-section">
+              <div
+                className="section-header"
+                onClick={onOpenMemoryGraph}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className="section-title-wrap">
+                  <Network size={14} className="text-muted" />
+                  <span className="section-title">Mapa Mental</span>
+                </div>
+                <button
+                  className="icon-btn-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenMemoryGraph();
+                  }}
+                  title="Visualizar Memoria Semántica"
+                >
+                  <Zap size={12} />
                 </button>
               </div>
             </div>

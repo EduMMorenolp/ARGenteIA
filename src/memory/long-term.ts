@@ -4,16 +4,20 @@ export interface Fact {
   id: number;
   userId: string;
   fact: string;
+  embedding?: string; // stored as JSON
   created_at: string;
 }
 
 /**
- * Guarda un dato relevante sobre el usuario.
+ * Guarda un dato relevante sobre el usuario, incluyendo su representación vectorial.
  */
-export function saveFact(userId: string, fact: string): void {
+export async function saveFact(userId: string, fact: string): Promise<void> {
+  const { generateEmbedding } = await import('../embeddings/provider.ts');
+  const embedding = await generateEmbedding(fact);
+
   const db = getDb();
-  const stmt = db.prepare('INSERT INTO user_facts (userId, fact) VALUES (?, ?)');
-  stmt.run(userId, fact);
+  const stmt = db.prepare('INSERT INTO user_facts (userId, fact, embedding) VALUES (?, ?, ?)');
+  stmt.run(userId, fact, JSON.stringify(embedding));
 }
 
 /**

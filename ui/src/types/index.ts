@@ -115,6 +115,8 @@ export interface WsMessage {
   logs?: LogEntry[];
   stats?: LogStats;
   filters?: { userId?: string; category?: string; level?: string };
+  nodes?: MemoryGraphNode[];
+  links?: MemoryGraphLink[];
   limit?: number;
 }
 
@@ -164,4 +166,22 @@ export interface LogStats {
   totalByLevel: Array<{ level: string; count: number }>;
   totalByCategory: Array<{ category: string; count: number }>;
   toolUsage: Array<{ tool: string; count: number }>;
+}
+
+export interface MemoryGraphNode {
+  id: string;
+  label: string;
+  group: 'fact' | 'rag';
+  content: string;
+}
+
+export interface MemoryGraphLink {
+  source: string;
+  target: string;
+  weight: number;
+}
+
+export interface MemoryGraphData {
+  nodes: MemoryGraphNode[];
+  links: MemoryGraphLink[];
 }

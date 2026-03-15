@@ -71,7 +71,9 @@ export type WsMessageType =
   | 'log_stats' // servidor → cliente: estadísticas agregadas de logs
   | 'request_log_stats' // cliente → servidor: solicitar estadísticas de logs
   | 'tool_manage' // cliente → servidor: CRUD de herramientas
-  | 'list_detailed_tools'; // servidor → cliente: lista completa de herramientas con script
+  | 'list_detailed_tools' // servidor → cliente: lista completa de herramientas con script
+  | 'request_memory_graph' // cliente → servidor: solicitar grafo de memoria semántica
+  | 'memory_graph'; // servidor → cliente: datos para visualización del grafo
 
 export interface WsActionLogMessage {
   type: 'action_log';
@@ -251,7 +253,9 @@ export type WsMessage =
   | WsLogStatsMessage
   | WsRequestLogStatsMessage
   | WsToolManageMessage
-  | WsListDetailedToolsMessage;
+  | WsListDetailedToolsMessage
+  | WsRequestMemoryGraphMessage
+  | WsMemoryGraphMessage;
 
 export interface WsToolManageMessage {
   type: 'tool_manage';
@@ -344,4 +348,15 @@ export interface WsModelInfoMessage {
 export interface WsRequestModelInfoMessage {
   type: 'request_model_info';
   modelName: string;
+}
+
+export interface WsRequestMemoryGraphMessage {
+  type: 'request_memory_graph';
+  limit?: number;
+}
+
+export interface WsMemoryGraphMessage {
+  type: 'memory_graph';
+  nodes: Array<{ id: string; label: string; group: 'fact' | 'rag'; content: string }>;
+  links: Array<{ source: string; target: string; weight: number }>;
 }

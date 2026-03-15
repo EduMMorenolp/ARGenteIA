@@ -28,7 +28,7 @@ export function registerMemoryTools(): void {
       const fact = String(args['fact'] ?? '');
       if (!fact) return 'Error: el dato está vacío.';
 
-      saveFact(context.sessionId, fact);
+      await saveFact(context.sessionId, fact);
       return `He memorizado: "${fact}"`;
     },
   });

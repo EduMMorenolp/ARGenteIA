@@ -95,7 +95,9 @@ export function loadConfig(configPath?: string): Config {
     console.warn(chalk.yellow(`⚠️  Aviso: No se encontró config.json en: ${path}`));
     console.warn(chalk.dim(`   Se usarán los valores por defecto del sistema.`));
     console.warn(
-      chalk.dim(`   Para personalizar, creá un config.json basado en config.example.opcional.json.`),
+      chalk.dim(
+        `   Para personalizar, creá un config.json basado en config.example.opcional.json.`,
+      ),
     );
     // Retornamos un objeto vacío que Zod parseará con todos los defaults
     _config = ConfigSchema.parse({});

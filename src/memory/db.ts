@@ -146,6 +146,13 @@ export function getDb(): Database.Database {
     CREATE INDEX IF NOT EXISTS idx_activity_log_category ON activity_log(category);
   `);
 
+  // Migraciones de esquema
+  try {
+    _db.exec('ALTER TABLE user_facts ADD COLUMN embedding TEXT');
+  } catch (e) {
+    // Ya existe o error ignorado
+  }
+
   // Migración: Asegurar columna 'experts' en 'sub_agents'
   try {
     _db.exec("ALTER TABLE sub_agents ADD COLUMN experts TEXT DEFAULT '[]'");

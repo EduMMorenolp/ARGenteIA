@@ -6,6 +6,7 @@ import {
   FileText,
   Globe,
   Info,
+  Network,
   Settings2,
   Shield,
   Terminal,
@@ -22,6 +23,7 @@ import { DashboardModal } from './components/modals/DashboardModal';
 import { ExpertCreator } from './components/modals/ExpertCreator';
 import { FeaturesOverlay } from './components/modals/FeaturesOverlay';
 import { LogsModal } from './components/modals/LogsModal';
+import { MemoryGraphModal } from './components/modals/MemoryGraphModal';
 import { ModelManager } from './components/modals/ModelManager';
 import { ProfileModal } from './components/modals/ProfileModal';
 import { RagModal } from './components/modals/RagModal';
@@ -35,6 +37,7 @@ export default function App() {
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isLogsOpen, setIsLogsOpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [isGraphOpen, setIsGraphOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isChatSidebarOpen, setIsChatSidebarOpen] = useState(true);
   const [ragOwnerId, setRagOwnerId] = useState<string | null>(null);
@@ -108,10 +111,14 @@ export default function App() {
     logStats,
     requestLogs,
     requestLogStats,
+    // Memory Graph
+    memoryGraphData,
+    requestMemoryGraph,
   } = useAssistant();
 
   const quickCommands = [
     { label: 'Dashboard', cmd: 'dashboard', icon: <BarChart3 size={14} /> },
+    { label: 'Mapa Mental', cmd: 'graph', icon: <Network size={14} /> },
     { label: 'Herramientas', cmd: 'tools', icon: <Settings2 size={14} /> },
     { label: 'Logs', cmd: 'logs', icon: <FileText size={14} /> },
     { label: 'Limpiar', cmd: '/reset', icon: <Terminal size={14} /> },
@@ -219,6 +226,7 @@ export default function App() {
         availableModels={availableModels}
         onOpenModels={() => setIsModelsOpen(true)}
         onOpenRag={setRagOwnerId}
+        onOpenMemoryGraph={() => setIsGraphOpen(true)}
         isOpen={isSidebarOpen}
         onToggleOpen={() => setIsSidebarOpen(!isSidebarOpen)}
       />
@@ -319,6 +327,14 @@ export default function App() {
           stats={dashboardStats}
           onClose={() => setIsDashboardOpen(false)}
           onRequestStats={requestStats}
+        />
+      )}
+
+      {isGraphOpen && (
+        <MemoryGraphModal
+          data={memoryGraphData}
+          onClose={() => setIsGraphOpen(false)}
+          onRequestGraph={requestMemoryGraph}
         />
       )}
 

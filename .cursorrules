@@ -37,9 +37,10 @@ Cualquier cambio que se realice en el código DEBE ser documentado en el archivo
 - **Variables**: Usar variables CSS del sistema en lugar de valores hardcodeados.
 - **Verificación**: Siempre verificar cambios visuales en `http://localhost:5173/` usando el subagente de navegador si es posible.
 
-## 🛠️ Herramientas y Biome
 - **Linter/Formatter**: Usamos **Biome**. Comandos: `pnpm run format`, `pnpm run lint`, `pnpm run lint:fix`.
 - **Configuración**: El archivo raíz `biome.json` gobierna todo el proyecto.
+- **Verificación MANDATORIA**: Después de cada cambio significativo, SIEMPRE ejecuta los comandos de build (`pnpm run build` en raíz o subcarpetas) y Biome para asegurar que no hay errores de sintaxis o lógica.
+
 
 ---
 **REGLA DE ORO**: Si rompes algo, arréglalo antes de reportar. Si añades una funcionalidad, asegúrate de que sea "wow" visualmente.

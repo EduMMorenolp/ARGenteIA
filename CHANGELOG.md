@@ -13,6 +13,8 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 - **Mantenimiento**: Actualización integral de las habilidades del agente (`.agents/skills`) y creación de nuevas habilidades internas (`/skills`) para Logs, Herramientas Dinámicas y Clima.
 - **Mantenimiento**: Implementación del primer sistema de **Workflows** para estandarizar el debugging de la UI.
 - **Mantenimiento**: Limpieza de la carpeta `.agents/rules` tras la unificación de estándares.
+- **Mapa Mental**: Nueva visualización de grafo de memoria semántica usando embeddings locales.
+- **Memoria de Hechos Mejorada**: Ahora los hechos memorizados incluyen representación vectorial.
 - **UI: Modal de Gestión de Herramientas y Logs e Informes renovado:**
 - **Nuevas Plantillas de Agentes**: Se han añadido 4 perfiles expertos a la librería (Redactor Creativo, Analista Cripto, Community Manager y Personal Trainer & Nutrición).
   - Implementación de una barra de herramientas superior (toolbar) con buscador integrado en tiempo real para filtrar contenido en ambos modales (`ToolManager.tsx` y `LogsModal.tsx`).
