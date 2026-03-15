@@ -1,6 +1,6 @@
-import Database from 'better-sqlite3';
-import { resolve, dirname } from 'node:path';
 import { existsSync, mkdirSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import Database from 'better-sqlite3';
 import { getConfig } from '../config/index.ts';
 
 let _db: Database.Database | null = null;

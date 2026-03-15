@@ -1,6 +1,6 @@
-import { registerTool } from './index.ts';
-import { upsertUser } from '../memory/user-db.ts';
 import type { Config } from '../config/index.ts';
+import { upsertUser } from '../memory/user-db.ts';
+import { registerTool } from './index.ts';
 
 export function registerUserTools(_config: Config): void {
   // 1. Crear o actualizar perfil

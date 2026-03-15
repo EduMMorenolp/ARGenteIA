@@ -1,38 +1,37 @@
 import { Bot, Cpu } from 'lucide-react';
 
 interface ChatHeaderProps {
-    selectedExpert: string | null;
-    chatTitle?: string;
-    isTyping: boolean;
-    isConnected: boolean;
+  selectedExpert: string | null;
+  chatTitle?: string;
+  isTyping: boolean;
+  isConnected: boolean;
 }
 
-export function ChatHeader({
-    selectedExpert,
-    chatTitle,
-    isTyping,
-    isConnected,
-}: ChatHeaderProps) {
-    return (
-        <header className="chat-header">
-            <div className="active-agent">
-                <div className={`agent-icon ${selectedExpert ? 'expert' : 'general'}`}>
-                    {selectedExpert ? <Cpu size={18} /> : <Bot size={18} />}
-                </div>
-                <div className="agent-details">
-                    <h2>{chatTitle || selectedExpert || 'Asistente General'}</h2>
-                    <div className="typing-status">
-                        {isTyping ? (
-                            <div className="typing-loader">
-                                <span></span><span></span><span></span>
-                                <small>Procesando...</small>
-                            </div>
-                        ) : (
-                            <span className="status-idle">{isConnected ? 'Listo para ayudar' : 'Reconectando...'}</span>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </header>
-    );
+export function ChatHeader({ selectedExpert, chatTitle, isTyping, isConnected }: ChatHeaderProps) {
+  return (
+    <header className="chat-header">
+      <div className="active-agent">
+        <div className={`agent-icon ${selectedExpert ? 'expert' : 'general'}`}>
+          {selectedExpert ? <Cpu size={18} /> : <Bot size={18} />}
+        </div>
+        <div className="agent-details">
+          <h2>{chatTitle || selectedExpert || 'Asistente General'}</h2>
+          <div className="typing-status">
+            {isTyping ? (
+              <div className="typing-loader">
+                <span></span>
+                <span></span>
+                <span></span>
+                <small>Procesando...</small>
+              </div>
+            ) : (
+              <span className="status-idle">
+                {isConnected ? 'Listo para ayudar' : 'Reconectando...'}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+  );
 }

@@ -1,6 +1,6 @@
 import os from 'node:os';
-import { getConfig } from '../config/index.ts';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import { getConfig } from '../config/index.ts';
 import { loadPrompt } from '../promptsSystem/index.ts';
 
 /**

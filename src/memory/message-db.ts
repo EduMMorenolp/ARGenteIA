@@ -1,5 +1,5 @@
-import { getDb } from './db.ts';
 import { touchChat } from './chat-db.ts';
+import { getDb } from './db.ts';
 
 export interface StoredMessage {
   id?: number;

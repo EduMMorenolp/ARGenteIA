@@ -1,34 +1,33 @@
-import { useState, type KeyboardEvent, type FormEvent } from "react";
 import {
   BarChart3,
-  Terminal,
-  Info,
-  Globe,
-  Database,
   Calendar,
-  Shield,
   Cpu,
-  Settings2,
+  Database,
   FileText,
-} from "lucide-react";
-import { useAssistant } from "./hooks/useAssistant";
-
+  Globe,
+  Info,
+  Settings2,
+  Shield,
+  Terminal,
+} from 'lucide-react';
+import { type FormEvent, type KeyboardEvent, useState } from 'react';
+import { ChatHeader } from './components/chat/ChatHeader';
+import { ChatInput } from './components/chat/ChatInput';
+import { MessageList } from './components/chat/MessageList';
 // Components
-import { LoginScreen } from "./components/LoginScreen";
-import { Sidebar } from "./components/layout/Sidebar";
-import { ChatHeader } from "./components/chat/ChatHeader";
-import { MessageList } from "./components/chat/MessageList";
-import { ChatInput } from "./components/chat/ChatInput";
-import { ExpertCreator } from "./components/modals/ExpertCreator";
-import { FeaturesOverlay } from "./components/modals/FeaturesOverlay";
-import { TaskEditor } from "./components/modals/TaskEditor";
-import { ProfileModal } from "./components/modals/ProfileModal";
-import { ModelManager } from "./components/modals/ModelManager";
-import { DashboardModal } from "./components/modals/DashboardModal";
-import { ChatSidebar } from "./components/layout/ChatSidebar";
-import { RagModal } from "./components/modals/RagModal";
-import { ToolManager } from "./components/modals/ToolManager";
-import { LogsModal } from "./components/modals/LogsModal";
+import { LoginScreen } from './components/LoginScreen';
+import { ChatSidebar } from './components/layout/ChatSidebar';
+import { Sidebar } from './components/layout/Sidebar';
+import { DashboardModal } from './components/modals/DashboardModal';
+import { ExpertCreator } from './components/modals/ExpertCreator';
+import { FeaturesOverlay } from './components/modals/FeaturesOverlay';
+import { LogsModal } from './components/modals/LogsModal';
+import { ModelManager } from './components/modals/ModelManager';
+import { ProfileModal } from './components/modals/ProfileModal';
+import { RagModal } from './components/modals/RagModal';
+import { TaskEditor } from './components/modals/TaskEditor';
+import { ToolManager } from './components/modals/ToolManager';
+import { useAssistant } from './hooks/useAssistant';
 
 export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -112,49 +111,48 @@ export default function App() {
   } = useAssistant();
 
   const quickCommands = [
-    { label: "Dashboard", cmd: "dashboard", icon: <BarChart3 size={14} /> },
-    { label: "Herramientas", cmd: "tools", icon: <Settings2 size={14} /> },
-    { label: "Logs", cmd: "logs", icon: <FileText size={14} /> },
-    { label: "Limpiar", cmd: "/reset", icon: <Terminal size={14} /> },
-    { label: "Funciones", cmd: "features", icon: <Info size={14} /> },
+    { label: 'Dashboard', cmd: 'dashboard', icon: <BarChart3 size={14} /> },
+    { label: 'Herramientas', cmd: 'tools', icon: <Settings2 size={14} /> },
+    { label: 'Logs', cmd: 'logs', icon: <FileText size={14} /> },
+    { label: 'Limpiar', cmd: '/reset', icon: <Terminal size={14} /> },
+    { label: 'Funciones', cmd: 'features', icon: <Info size={14} /> },
   ];
 
   const features = [
     {
-      name: "Navegación Web",
+      name: 'Navegación Web',
       icon: <Globe size={20} />,
-      description:
-        "Busca en internet, analiza contenido de URLs y extrae datos en tiempo real.",
+      description: 'Busca en internet, analiza contenido de URLs y extrae datos en tiempo real.',
     },
     {
-      name: "Terminal Bash",
+      name: 'Terminal Bash',
       icon: <Terminal size={20} />,
       description:
-        "Ejecuta comandos Bash y scripts nativos para resolver tareas técnicas complejas.",
+        'Ejecuta comandos Bash y scripts nativos para resolver tareas técnicas complejas.',
     },
     {
-      name: "Gestión de Archivos",
+      name: 'Gestión de Archivos',
       icon: <Database size={20} />,
       description:
-        "Lee, escribe, edita y organiza archivos en tu sistema local con total seguridad.",
+        'Lee, escribe, edita y organiza archivos en tu sistema local con total seguridad.',
     },
     {
-      name: "Planificación Cron",
+      name: 'Planificación Cron',
       icon: <Calendar size={20} />,
       description:
-        "Agenda tareas recurrentes con formato cron que se ejecutan incluso si no estás conectado.",
+        'Agenda tareas recurrentes con formato cron que se ejecutan incluso si no estás conectado.',
     },
     {
-      name: "Privacidad Local",
+      name: 'Privacidad Local',
       icon: <Shield size={20} />,
       description:
-        "Tus datos se procesan localmente. El asistente solo usa la nube para la inteligencia del modelo.",
+        'Tus datos se procesan localmente. El asistente solo usa la nube para la inteligencia del modelo.',
     },
     {
-      name: "Expertos Multi-Agente",
+      name: 'Expertos Multi-Agente',
       icon: <Cpu size={20} />,
       description:
-        "Crea y delega tareas a expertos especializados en código, redacción, clima y mucho más.",
+        'Crea y delega tareas a expertos especializados en código, redacción, clima y mucho más.',
     },
   ];
 
@@ -165,7 +163,7 @@ export default function App() {
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
     }
@@ -182,10 +180,13 @@ export default function App() {
     );
   }
 
-  const activeChat = chats.find(c => c.id === activeChatId) || channelChats.find(c => c.id === activeChatId);
+  const activeChat =
+    chats.find((c) => c.id === activeChatId) || channelChats.find((c) => c.id === activeChatId);
 
   return (
-    <div className={`app-container ${!isSidebarOpen ? "sidebar-closed" : ""} ${!isChatSidebarOpen ? "chats-closed" : ""}`}>
+    <div
+      className={`app-container ${!isSidebarOpen ? 'sidebar-closed' : ''} ${!isChatSidebarOpen ? 'chats-closed' : ''}`}
+    >
       <Sidebar
         quickCommands={quickCommands}
         experts={experts}
@@ -200,7 +201,7 @@ export default function App() {
         }}
         onEditGeneral={() => {
           if (generalConfig) {
-            setEditingExpert({ ...generalConfig, name: "__general__" }); // Usar nombre interno
+            setEditingExpert({ ...generalConfig, name: '__general__' }); // Usar nombre interno
             setIsCreatorOpen(true);
           }
         }}
@@ -212,7 +213,7 @@ export default function App() {
         onOpenDashboard={() => setIsDashboardOpen(true)}
         onOpenTools={() => setIsToolsOpen(true)}
         onOpenLogs={() => setIsLogsOpen(true)}
-        onOpenTaskCreator={() => setEditingTask({ id: 0, userId: "", task: "", cron: "" })}
+        onOpenTaskCreator={() => setEditingTask({ id: 0, userId: '', task: '', cron: '' })}
         sendMessage={sendMessage}
         isWaiting={isWaiting}
         availableModels={availableModels}
@@ -286,18 +287,11 @@ export default function App() {
       )}
 
       {isFeaturesOpen && (
-        <FeaturesOverlay
-          features={features}
-          onClose={() => setIsFeaturesOpen(false)}
-        />
+        <FeaturesOverlay features={features} onClose={() => setIsFeaturesOpen(false)} />
       )}
 
       {editingTask && (
-        <TaskEditor
-          task={editingTask}
-          onClose={() => setEditingTask(null)}
-          onSave={updateTask}
-        />
+        <TaskEditor task={editingTask} onClose={() => setEditingTask(null)} onSave={updateTask} />
       )}
 
       {isProfileOpen && currentUser && (
@@ -328,15 +322,10 @@ export default function App() {
         />
       )}
 
-      {ragOwnerId && (
-        <RagModal
-          ownerId={ragOwnerId}
-          onClose={() => setRagOwnerId(null)}
-        />
-      )}
+      {ragOwnerId && <RagModal ownerId={ragOwnerId} onClose={() => setRagOwnerId(null)} />}
 
       {isToolsOpen && (
-        <ToolManager 
+        <ToolManager
           tools={detailedTools}
           onClose={() => setIsToolsOpen(false)}
           onSave={upsertTool}

@@ -1,17 +1,17 @@
-import { useState } from "react";
 import {
-  X,
-  User,
-  Globe,
-  MessageSquare,
-  Zap,
-  Lock,
-  Trash2,
   AlertTriangle,
   Eye,
   EyeOff,
-} from "lucide-react";
-import type { UserProfile } from "../../types";
+  Globe,
+  Lock,
+  MessageSquare,
+  Trash2,
+  User,
+  X,
+  Zap,
+} from 'lucide-react';
+import { useState } from 'react';
+import type { UserProfile } from '../../types';
 
 interface ProfileModalProps {
   user: UserProfile;
@@ -26,19 +26,12 @@ interface ProfileModalProps {
   onDelete: () => void;
 }
 
-export function ProfileModal({
-  user,
-  onClose,
-  onSave,
-  onDelete,
-}: ProfileModalProps) {
-  const [name, setName] = useState(user.name || "");
-  const [timezone, setTimezone] = useState(
-    user.timezone || "America/Argentina/Buenos_Aires",
-  );
-  const [telegramUser, setTelegramUser] = useState(user.telegram_user || "");
-  const [telegramToken, setTelegramToken] = useState(user.telegram_token || "");
-  const [loginPin, setLoginPin] = useState(user.login_pin || "0000");
+export function ProfileModal({ user, onClose, onSave, onDelete }: ProfileModalProps) {
+  const [name, setName] = useState(user.name || '');
+  const [timezone, setTimezone] = useState(user.timezone || 'America/Argentina/Buenos_Aires');
+  const [telegramUser, setTelegramUser] = useState(user.telegram_user || '');
+  const [telegramToken, setTelegramToken] = useState(user.telegram_token || '');
+  const [loginPin, setLoginPin] = useState(user.login_pin || '0000');
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [showTelegramToken, setShowTelegramToken] = useState(false);
 
@@ -60,10 +53,7 @@ export function ProfileModal({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="modal-content profile-modal"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="modal-content profile-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Mi Perfil</h3>
           <button className="icon-btn" onClick={onClose} title="Cerrar">
@@ -76,16 +66,14 @@ export function ProfileModal({
               <AlertTriangle size={48} color="#ff4d4d" />
               <h4>¿Estás absolutamente seguro?</h4>
               <p>
-                Esta acción eliminará permanentemente tu perfil, historial de
-                mensajes y expertos vinculados a tu ID (<b>{user.userId}</b>).
+                Esta acción eliminará permanentemente tu perfil, historial de mensajes y expertos
+                vinculados a tu ID (<b>{user.userId}</b>).
               </p>
               <p>Esta acción no se puede deshacer.</p>
             </div>
           ) : (
             <>
-              <p className="section-desc">
-                Configura tu identidad y conexiones externas.
-              </p>
+              <p className="section-desc">Configura tu identidad y conexiones externas.</p>
 
               <div className="form-group">
                 <label>
@@ -109,9 +97,7 @@ export function ProfileModal({
                   onChange={(e) => setTimezone(e.target.value)}
                   placeholder="America/Argentina/Buenos_Aires"
                 />
-                <span className="field-hint">
-                  Usada para tus tareas programadas.
-                </span>
+                <span className="field-hint">Usada para tus tareas programadas.</span>
               </div>
 
               <div className="form-group">
@@ -124,9 +110,7 @@ export function ProfileModal({
                   onChange={(e) => setTelegramUser(e.target.value)}
                   placeholder="@tu_usuario"
                 />
-                <span className="field-hint">
-                  Vincula tu cuenta con el bot de Telegram.
-                </span>
+                <span className="field-hint">Vincula tu cuenta con el bot de Telegram.</span>
               </div>
 
               <div className="form-group">
@@ -135,7 +119,7 @@ export function ProfileModal({
                 </label>
                 <div className="input-with-toggle">
                   <input
-                    type={showTelegramToken ? "text" : "password"}
+                    type={showTelegramToken ? 'text' : 'password'}
                     value={telegramToken}
                     onChange={(e) => setTelegramToken(e.target.value)}
                     placeholder="123456789:ABCDEF..."
@@ -144,7 +128,7 @@ export function ProfileModal({
                     type="button"
                     className="toggle-visibility"
                     onClick={() => setShowTelegramToken(!showTelegramToken)}
-                    title={showTelegramToken ? "Ocultar" : "Mostrar"}
+                    title={showTelegramToken ? 'Ocultar' : 'Mostrar'}
                   >
                     {showTelegramToken ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -163,14 +147,12 @@ export function ProfileModal({
                   maxLength={4}
                   value={loginPin}
                   onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 4);
                     setLoginPin(val);
                   }}
                   placeholder="0000"
                 />
-                <span className="field-hint">
-                  Se te pedirá este PIN para ingresar a la web.
-                </span>
+                <span className="field-hint">Se te pedirá este PIN para ingresar a la web.</span>
               </div>
 
               <div className="info-box">
@@ -183,10 +165,7 @@ export function ProfileModal({
         <div className="modal-footer">
           {isConfirmingDelete ? (
             <>
-              <button
-                className="btn-secondary"
-                onClick={() => setIsConfirmingDelete(false)}
-              >
+              <button className="btn-secondary" onClick={() => setIsConfirmingDelete(false)}>
                 Cancelar
               </button>
               <button className="btn-danger" onClick={handleDelete}>

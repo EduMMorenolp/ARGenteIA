@@ -1,11 +1,11 @@
+import { existsSync, mkdirSync, statSync, unlinkSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { unlinkSync, existsSync, mkdirSync, statSync } from 'node:fs';
-import type { Config } from '../config/index.ts';
-import { registerTool } from './index.ts';
-import { getBot } from '../channels/telegram.ts';
+import chalk from 'chalk';
 // @ts-expect-error screenshot-desktop has no type declarations
 import screenshot from 'screenshot-desktop';
-import chalk from 'chalk';
+import { getBot } from '../channels/telegram.ts';
+import type { Config } from '../config/index.ts';
+import { registerTool } from './index.ts';
 
 export function registerScreenshotTool(_config: Config): void {
   registerTool({

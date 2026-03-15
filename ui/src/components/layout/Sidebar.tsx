@@ -1,22 +1,22 @@
 import {
+  BarChart3,
   Bot,
-  Edit2,
-  Trash2,
-  Plus,
-  Cpu,
+  Calendar,
+  CalendarClock,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Cpu,
   Database,
-  TerminalSquare,
+  Edit2,
+  FileText,
   Network,
-  ChevronDown,
-  CalendarClock,
+  Plus,
   Server,
   Settings2,
-  FileText,
-  BarChart3,
+  TerminalSquare,
+  Trash2,
   Wrench,
-  Calendar,
 } from 'lucide-react';
 import { useState } from 'react';
 import type { Expert, ModelConfig, ScheduledTask } from '../../types';
@@ -88,7 +88,7 @@ export function Sidebar({
   });
 
   const toggleSection = (sec: string) => {
-    setCollapsedSections(prev => ({ ...prev, [sec]: !prev[sec] }));
+    setCollapsedSections((prev) => ({ ...prev, [sec]: !prev[sec] }));
   };
 
   return (
@@ -106,9 +106,17 @@ export function Sidebar({
 
           <nav className="sidebar-nav scrollbar-hide">
             <div className="nav-section">
-              <div className="section-header" onClick={() => toggleSection('commands')} style={{ cursor: 'pointer' }}>
+              <div
+                className="section-header"
+                onClick={() => toggleSection('commands')}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="section-title-wrap">
-                  {collapsedSections['commands'] ? <ChevronRight size={14} className="text-muted" /> : <ChevronDown size={14} className="text-muted" />}
+                  {collapsedSections['commands'] ? (
+                    <ChevronRight size={14} className="text-muted" />
+                  ) : (
+                    <ChevronDown size={14} className="text-muted" />
+                  )}
                   <TerminalSquare size={14} className="text-muted" />
                   <span className="section-title">Comandos</span>
                 </div>
@@ -136,13 +144,27 @@ export function Sidebar({
             </div>
 
             <div className="nav-section">
-              <div className="section-header" onClick={() => toggleSection('experts')} style={{ cursor: 'pointer' }}>
+              <div
+                className="section-header"
+                onClick={() => toggleSection('experts')}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="section-title-wrap">
-                  {collapsedSections['experts'] ? <ChevronRight size={14} className="text-muted" /> : <ChevronDown size={14} className="text-muted" />}
+                  {collapsedSections['experts'] ? (
+                    <ChevronRight size={14} className="text-muted" />
+                  ) : (
+                    <ChevronDown size={14} className="text-muted" />
+                  )}
                   <Network size={14} className="text-muted" />
                   <span className="section-title">Expertos</span>
                 </div>
-                <button className="icon-btn-sm" onClick={(e) => { e.stopPropagation(); onOpenCreator(); }}>
+                <button
+                  className="icon-btn-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenCreator();
+                  }}
+                >
                   <Plus size={14} />
                 </button>
               </div>
@@ -161,12 +183,17 @@ export function Sidebar({
                       <button onClick={() => onEditGeneral()} title="Configurar Asistente General">
                         <Edit2 size={12} />
                       </button>
-                      <button onClick={() => onOpenRag('__general__')} title="Memoria de Contexto (RAG)">
+                      <button
+                        onClick={() => onOpenRag('__general__')}
+                        title="Memoria de Contexto (RAG)"
+                      >
                         <Database size={12} />
                       </button>
                       <button
                         onClick={() => {
-                          if (confirm('¿Restablecer configuración original del Asistente General?')) {
+                          if (
+                            confirm('¿Restablecer configuración original del Asistente General?')
+                          ) {
                             onDeleteExpert('__general__');
                           }
                         }}
@@ -188,7 +215,8 @@ export function Sidebar({
                         <div className="expert-info">
                           <span className="expert-name">{exp.name}</span>
                           <span className="expert-model">
-                            {availableModels.find(m => m.name === exp.model)?.displayName || exp.model.split('/').pop()}
+                            {availableModels.find((m) => m.name === exp.model)?.displayName ||
+                              exp.model.split('/').pop()}
                           </span>
                         </div>
                       </button>
@@ -196,7 +224,10 @@ export function Sidebar({
                         <button onClick={() => onEditExpert(exp)} title="Editar Experto">
                           <Edit2 size={12} />
                         </button>
-                        <button onClick={() => onOpenRag(exp.name)} title="Memoria de Contexto (RAG)">
+                        <button
+                          onClick={() => onOpenRag(exp.name)}
+                          title="Memoria de Contexto (RAG)"
+                        >
                           <Database size={12} />
                         </button>
                         <button onClick={() => onDeleteExpert(exp.name)} title="Eliminar Experto">
@@ -215,20 +246,39 @@ export function Sidebar({
                   <Database size={14} className="text-muted" />
                   <span className="section-title">Memoria Global (RAG)</span>
                 </div>
-                <button className="icon-btn-sm" onClick={() => onOpenRag('global')} title="Gestionar Conocimiento Base">
+                <button
+                  className="icon-btn-sm"
+                  onClick={() => onOpenRag('global')}
+                  title="Gestionar Conocimiento Base"
+                >
                   <Database size={12} />
                 </button>
               </div>
             </div>
 
             <div className="nav-section">
-              <div className="section-header" onClick={() => toggleSection('tasks')} style={{ cursor: 'pointer' }}>
+              <div
+                className="section-header"
+                onClick={() => toggleSection('tasks')}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="section-title-wrap">
-                  {collapsedSections['tasks'] ? <ChevronRight size={14} className="text-muted" /> : <ChevronDown size={14} className="text-muted" />}
+                  {collapsedSections['tasks'] ? (
+                    <ChevronRight size={14} className="text-muted" />
+                  ) : (
+                    <ChevronDown size={14} className="text-muted" />
+                  )}
                   <CalendarClock size={14} className="text-muted" />
                   <span className="section-title">Tareas Programadas</span>
                 </div>
-                <button className="icon-btn-sm" onClick={(e) => { e.stopPropagation(); onOpenTaskCreator(); }} title="Programar nueva tarea">
+                <button
+                  className="icon-btn-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenTaskCreator();
+                  }}
+                  title="Programar nueva tarea"
+                >
                   <Plus size={14} />
                 </button>
               </div>
@@ -254,18 +304,36 @@ export function Sidebar({
             </div>
 
             <div className="nav-section">
-              <div className="section-header" onClick={() => toggleSection('models')} style={{ cursor: 'pointer' }}>
+              <div
+                className="section-header"
+                onClick={() => toggleSection('models')}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="section-title-wrap">
-                  {collapsedSections['models'] ? <ChevronRight size={14} className="text-muted" /> : <ChevronDown size={14} className="text-muted" />}
+                  {collapsedSections['models'] ? (
+                    <ChevronRight size={14} className="text-muted" />
+                  ) : (
+                    <ChevronDown size={14} className="text-muted" />
+                  )}
                   <Cpu size={14} className="text-muted" />
                   <span className="section-title">Modelos</span>
                 </div>
-                <button className="icon-btn-sm" onClick={(e) => { e.stopPropagation(); onOpenModels(); }}>
+                <button
+                  className="icon-btn-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenModels();
+                  }}
+                >
                   <Server size={14} />
                 </button>
               </div>
               {!collapsedSections['models'] && (
-                <div className="models-summary" onClick={onOpenModels} style={{ cursor: 'pointer' }}>
+                <div
+                  className="models-summary"
+                  onClick={onOpenModels}
+                  style={{ cursor: 'pointer' }}
+                >
                   <span className="model-count">{availableModels.length} modelos configurados</span>
                 </div>
               )}
@@ -277,7 +345,13 @@ export function Sidebar({
                   <TerminalSquare size={14} className="text-muted" />
                   <span className="section-title">Herramientas</span>
                 </div>
-                <button className="icon-btn-sm" onClick={(e) => { e.stopPropagation(); onOpenTools(); }}>
+                <button
+                  className="icon-btn-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenTools();
+                  }}
+                >
                   <Plus size={14} />
                 </button>
               </div>
@@ -289,7 +363,13 @@ export function Sidebar({
                   <FileText size={14} className="text-muted" />
                   <span className="section-title">Logs e Informes</span>
                 </div>
-                <button className="icon-btn-sm" onClick={(e) => { e.stopPropagation(); onOpenLogs(); }}>
+                <button
+                  className="icon-btn-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenLogs();
+                  }}
+                >
                   <Plus size={14} />
                 </button>
               </div>

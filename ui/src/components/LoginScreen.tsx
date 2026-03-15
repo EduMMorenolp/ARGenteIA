@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Eye, EyeOff, ArrowLeft } from "lucide-react";
-import type { UserProfile } from "../types";
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
+import type { UserProfile } from '../types';
 
 interface LoginScreenProps {
   users: UserProfile[];
@@ -15,24 +15,19 @@ interface LoginScreenProps {
   ) => void;
 }
 
-export function LoginScreen({
-  users,
-  onSelect,
-  onGuest,
-  onRegister,
-}: LoginScreenProps) {
+export function LoginScreen({ users, onSelect, onGuest, onRegister }: LoginScreenProps) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [enteredPin, setEnteredPin] = useState("");
+  const [enteredPin, setEnteredPin] = useState('');
   const [pinError, setPinError] = useState(false);
   const [showTelegramToken, setShowTelegramToken] = useState(false);
 
   const [formData, setFormData] = useState({
-    userId: "",
-    name: "",
-    timezone: "America/Argentina/Buenos_Aires",
-    telegramUser: "",
-    telegramToken: "",
+    userId: '',
+    name: '',
+    timezone: 'America/Argentina/Buenos_Aires',
+    telegramUser: '',
+    telegramToken: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -53,7 +48,7 @@ export function LoginScreen({
       onSelect(selectedUser);
     } else {
       setPinError(true);
-      setEnteredPin("");
+      setEnteredPin('');
     }
   };
 
@@ -65,9 +60,7 @@ export function LoginScreen({
             <div className="logo-box">📝</div>
             <h1>Registro de Usuario</h1>
             <p>Por favor, completa los siguientes datos:</p>
-            <p style={{ color: "red", fontWeight: "bold" }}>
-              Tu PIN inicial será 0000.
-            </p>
+            <p style={{ color: 'red', fontWeight: 'bold' }}>Tu PIN inicial será 0000.</p>
           </div>
 
           <form className="register-form" onSubmit={handleSubmit}>
@@ -77,9 +70,7 @@ export function LoginScreen({
                 type="text"
                 required
                 value={formData.userId}
-                onChange={(e) =>
-                  setFormData({ ...formData, userId: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
                 placeholder="Identificador único"
               />
             </div>
@@ -89,9 +80,7 @@ export function LoginScreen({
                 type="text"
                 required
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Tu nombre"
               />
             </div>
@@ -101,9 +90,7 @@ export function LoginScreen({
               <input
                 type="text"
                 value={formData.timezone}
-                onChange={(e) =>
-                  setFormData({ ...formData, timezone: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
                 placeholder="America/Argentina/Buenos_Aires"
               />
             </div>
@@ -112,9 +99,7 @@ export function LoginScreen({
               <input
                 type="text"
                 value={formData.telegramUser}
-                onChange={(e) =>
-                  setFormData({ ...formData, telegramUser: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, telegramUser: e.target.value })}
                 placeholder="@tu_usuario"
               />
             </div>
@@ -122,18 +107,16 @@ export function LoginScreen({
               <label>Token del Bot de Telegram (opcional)</label>
               <div className="input-with-toggle">
                 <input
-                  type={showTelegramToken ? "text" : "password"}
+                  type={showTelegramToken ? 'text' : 'password'}
                   value={formData.telegramToken}
-                  onChange={(e) =>
-                    setFormData({ ...formData, telegramToken: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, telegramToken: e.target.value })}
                   placeholder="123456:ABC..."
                 />
                 <button
                   type="button"
                   className="toggle-visibility"
                   onClick={() => setShowTelegramToken(!showTelegramToken)}
-                  title={showTelegramToken ? "Ocultar" : "Mostrar"}
+                  title={showTelegramToken ? 'Ocultar' : 'Mostrar'}
                 >
                   {showTelegramToken ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -144,11 +127,7 @@ export function LoginScreen({
               <button type="submit" className="btn-primary">
                 Crear Perfil
               </button>
-              <button
-                type="button"
-                className="btn-ghost"
-                onClick={() => setIsRegistering(false)}
-              >
+              <button type="button" className="btn-ghost" onClick={() => setIsRegistering(false)}>
                 <ArrowLeft size={16} />
                 Volver
               </button>
@@ -165,9 +144,7 @@ export function LoginScreen({
         <div className="login-card pin-card">
           <div className="login-header">
             <div className="user-avatar big">
-              {selectedUser.name
-                ? selectedUser.name.charAt(0).toUpperCase()
-                : "?"}
+              {selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : '?'}
             </div>
             <h1>Ingresar PIN</h1>
             <p>Hola, {selectedUser.name}. Introduce tu PIN de 4 dígitos.</p>
@@ -182,22 +159,18 @@ export function LoginScreen({
                 autoFocus
                 value={enteredPin}
                 onChange={(e) => {
-                  const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 4);
                   setEnteredPin(val);
                   setPinError(false);
                 }}
                 placeholder="••••"
-                className={pinError ? "error" : ""}
+                className={pinError ? 'error' : ''}
               />
               {pinError && <span className="error-msg">PIN incorrecto</span>}
             </div>
 
             <div className="form-actions">
-              <button
-                type="submit"
-                className="btn-primary"
-                disabled={enteredPin.length < 4}
-              >
+              <button type="submit" className="btn-primary" disabled={enteredPin.length < 4}>
                 Entrar
               </button>
               <button
@@ -205,7 +178,7 @@ export function LoginScreen({
                 className="btn-ghost"
                 onClick={() => {
                   setSelectedUser(null);
-                  setEnteredPin("");
+                  setEnteredPin('');
                   setPinError(false);
                 }}
               >
@@ -230,27 +203,18 @@ export function LoginScreen({
 
         <div className="user-grid">
           {users.map((user) => (
-            <button
-              key={user.userId}
-              className="user-card"
-              onClick={() => setSelectedUser(user)}
-            >
+            <button key={user.userId} className="user-card" onClick={() => setSelectedUser(user)}>
               <div className="user-avatar">
-                {user.name ? user.name.charAt(0).toUpperCase() : "?"}
+                {user.name ? user.name.charAt(0).toUpperCase() : '?'}
               </div>
               <div className="user-details">
-                <span className="user-name">
-                  {user.name || "Usuario sin nombre"}
-                </span>
+                <span className="user-name">{user.name || 'Usuario sin nombre'}</span>
                 <span className="user-id">ID: {user.userId}</span>
               </div>
             </button>
           ))}
 
-          <button
-            className="user-card register"
-            onClick={() => setIsRegistering(true)}
-          >
+          <button className="user-card register" onClick={() => setIsRegistering(true)}>
             <div className="user-avatar">+</div>
             <div className="user-details">
               <span className="user-name">Registrar Nuevo Perfil</span>
@@ -268,10 +232,7 @@ export function LoginScreen({
         </div>
 
         <div className="login-footer">
-          <p>
-            Tus datos se sincronizarán con tu perfil de Telegram si lo
-            configuras.
-          </p>
+          <p>Tus datos se sincronizarán con tu perfil de Telegram si lo configuras.</p>
         </div>
       </div>
     </div>

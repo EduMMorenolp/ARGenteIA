@@ -1,8 +1,8 @@
-import { readFileSync, existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { z } from 'zod';
-import JSON5 from 'json5';
 import chalk from 'chalk';
+import JSON5 from 'json5';
+import { z } from 'zod';
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 

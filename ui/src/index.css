@@ -1,12 +1,12 @@
 /* ─── CSS Modules ──────────────────────────────────────────────────────── */
-@import './styles/base.css';
-@import './styles/chat-sidebar.css';
-@import './styles/sidebar.css';
-@import './styles/chat-area.css';
-@import './styles/messages.css';
-@import './styles/chat-input.css';
-@import './styles/modals.css';
-@import './styles/responsive.css';
-@import './styles/login.css';
-@import './styles/model-manager.css';
-@import './styles/dashboard.css';
+@import "./styles/base.css";
+@import "./styles/chat-sidebar.css";
+@import "./styles/sidebar.css";
+@import "./styles/chat-area.css";
+@import "./styles/messages.css";
+@import "./styles/chat-input.css";
+@import "./styles/modals.css";
+@import "./styles/responsive.css";
+@import "./styles/login.css";
+@import "./styles/model-manager.css";
+@import "./styles/dashboard.css";

@@ -15,9 +15,21 @@ const capabilitiesCache = new Map<string, ModelCapabilities>();
 
 // Modelos conocidos con vision (heurística por nombre)
 const VISION_PATTERNS = [
-  'vision', 'vl', '4o', 'gpt-4o', 'llava', 'pixtral', 'gemini',
-  'claude-3', 'claude-3.5', 'qwen-vl', 'qwen2-vl', 'qwen3-vl',
-  'internvl', 'minicpm-v', 'bakllava',
+  'vision',
+  'vl',
+  '4o',
+  'gpt-4o',
+  'llava',
+  'pixtral',
+  'gemini',
+  'claude-3',
+  'claude-3.5',
+  'qwen-vl',
+  'qwen2-vl',
+  'qwen3-vl',
+  'internvl',
+  'minicpm-v',
+  'bakllava',
 ];
 
 const AUDIO_PATTERNS = ['whisper', 'audio', 'realtime'];
@@ -31,7 +43,11 @@ function detectCapabilitiesByName(modelName: string): ModelCapabilities {
     supportsVision,
     supportsAudio,
     contextLength: 4096,
-    inputModalities: ['text', ...(supportsVision ? ['image'] : []), ...(supportsAudio ? ['audio'] : [])],
+    inputModalities: [
+      'text',
+      ...(supportsVision ? ['image'] : []),
+      ...(supportsAudio ? ['audio'] : []),
+    ],
     outputModalities: ['text'],
   };
 }
@@ -93,12 +109,12 @@ async function fetchOpenRouterInfo(modelKey: string, apiKey?: string): Promise<M
       }>;
     };
 
-    const model = data.data.find(
-      (m) => m.id === modelId || m.id === modelKey,
-    );
+    const model = data.data.find((m) => m.id === modelId || m.id === modelKey);
 
     if (!model) {
-      console.log(chalk.yellow(`⚠️ Modelo ${modelId} no encontrado en OpenRouter, usando heurísticas`));
+      console.log(
+        chalk.yellow(`⚠️ Modelo ${modelId} no encontrado en OpenRouter, usando heurísticas`),
+      );
       return detectCapabilitiesByName(modelKey);
     }
 

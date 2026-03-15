@@ -274,7 +274,7 @@ export interface WsListLogsMessage {
 export interface WsRequestLogsMessage {
   type: 'request_logs';
   limit?: number;
-  filters?: { userId?: string, category?: string, level?: string };
+  filters?: { userId?: string; category?: string; level?: string };
 }
 
 export interface WsLogStatsMessage {

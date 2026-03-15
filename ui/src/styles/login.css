@@ -4,11 +4,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(
-    circle at center,
-    #1a1d2e 0%,
-    var(--bg-dark) 100%
-  );
+  background: radial-gradient(circle at center, #1a1d2e 0%, var(--bg-dark) 100%);
   padding: 20px;
 }
 
@@ -246,4 +242,3 @@
 .delete-confirmation b {
   color: var(--text-color);
 }
-

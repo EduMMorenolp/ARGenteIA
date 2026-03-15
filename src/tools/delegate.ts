@@ -1,5 +1,5 @@
-import { runExpert } from '../agent/expert-runner.ts';
 import { z } from 'zod';
+import { runExpert } from '../agent/expert-runner.ts';
 
 export const callExperttool = {
   name: 'call_expert',
@@ -16,9 +16,9 @@ export const callExperttool = {
       // Manejar alucinaciones comunes del LLM
       const expertName = args.expertName || args.expert || args.name || args.experto;
       const task = args.task || args.prompt || args.query;
-      
-      if (!expertName) return "Error: Falta especificar el nombre del experto (expertName).";
-      
+
+      if (!expertName) return 'Error: Falta especificar el nombre del experto (expertName).';
+
       const result = await runExpert({ ...args, expertName, task });
       return result;
     } catch (err: unknown) {
@@ -27,8 +27,8 @@ export const callExperttool = {
   },
 };
 
-import { registerTool } from './index.ts';
 import { zodToJsonSchema } from 'zod-to-json-schema';
+import { registerTool } from './index.ts';
 
 export function registerDelegateTool(): void {
   registerTool({

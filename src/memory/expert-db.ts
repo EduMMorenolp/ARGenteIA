@@ -1,5 +1,5 @@
-import { getDb } from './db.ts';
 import { TEMPLATES } from '../config/templates.ts';
+import { getDb } from './db.ts';
 
 type DbRow = Record<string, unknown>;
 
@@ -33,7 +33,7 @@ export function getExpert(name: string, includeTemplates = false): SubAgent | nu
     | undefined;
   if (!row) {
     if (includeTemplates) {
-      const template = TEMPLATES.find(t => t.name.toLowerCase() === name.toLowerCase());
+      const template = TEMPLATES.find((t) => t.name.toLowerCase() === name.toLowerCase());
       if (template) {
         return {
           name: template.name,
@@ -42,7 +42,7 @@ export function getExpert(name: string, includeTemplates = false): SubAgent | nu
           tools: template.tools,
           experts: [],
           temperature: 0.7,
-        }
+        };
       }
     }
     return null;
@@ -115,15 +115,17 @@ export function listExperts(includeTemplates = false): SubAgent[] {
     return dbExperts;
   }
 
-  const dbExpertNames = new Set(dbExperts.map(e => e.name.toLowerCase()));
-  
-  const templateExperts = TEMPLATES.filter(t => t.name !== 'Personalizado' && !dbExpertNames.has(t.name.toLowerCase())).map(t => ({
-      name: t.name,
-      model: '',
-      system_prompt: t.prompt,
-      tools: t.tools,
-      experts: [],
-      temperature: 0.7,
+  const dbExpertNames = new Set(dbExperts.map((e) => e.name.toLowerCase()));
+
+  const templateExperts = TEMPLATES.filter(
+    (t) => t.name !== 'Personalizado' && !dbExpertNames.has(t.name.toLowerCase()),
+  ).map((t) => ({
+    name: t.name,
+    model: '',
+    system_prompt: t.prompt,
+    tools: t.tools,
+    experts: [],
+    temperature: 0.7,
   }));
 
   return [...dbExperts, ...templateExperts];

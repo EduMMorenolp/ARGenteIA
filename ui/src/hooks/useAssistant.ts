@@ -1,26 +1,26 @@
-import { useState, useRef, useCallback, useEffect } from "react";
-import { marked } from "marked";
+import { marked } from 'marked';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
-  Message,
-  Expert,
-  ModelConfig,
-  UserProfile,
-  WsMessage,
-  ScheduledTask,
   ChatInfo,
   DashboardStats,
-  ModelCapabilities,
   DetailedTool,
+  Expert,
   LogEntry,
   LogStats,
-} from "../types/index";
-import { useWebSocket } from "./useWebSocket";
+  Message,
+  ModelCapabilities,
+  ModelConfig,
+  ScheduledTask,
+  UserProfile,
+  WsMessage,
+} from '../types/index';
+import { useWebSocket } from './useWebSocket';
 
 export function useAssistant() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputText, setInputText] = useState("");
+  const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [userModel, setUserModel] = useState("–");
+  const [userModel, setUserModel] = useState('–');
   const [generalConfig, setGeneralConfig] = useState<Expert | null>(null);
   const [isWaiting, setIsWaiting] = useState(false);
 
@@ -47,21 +47,23 @@ export function useAssistant() {
   const [logStats, setLogStats] = useState<LogStats | null>(null);
 
   // File attachments
-  const [attachments, setAttachments] = useState<Array<{ name: string; type: string; dataUrl: string; preview?: string }>>([]); 
+  const [attachments, setAttachments] = useState<
+    Array<{ name: string; type: string; dataUrl: string; preview?: string }>
+  >([]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const addMessage = useCallback(
     (
-      role: "user" | "assistant",
+      role: 'user' | 'assistant',
       text: string,
       model?: string,
-      type: "message" | "command" | "error" | "action_log" = "message",
-      origin?: "web" | "telegram",
+      type: 'message' | 'command' | 'error' | 'action_log' = 'message',
+      origin?: 'web' | 'telegram',
       usage?: any,
       latencyMs?: number,
       id?: string,
-      timestamp?: string
+      timestamp?: string,
     ) => {
       setMessages((prev) => [
         ...prev,
@@ -74,7 +76,7 @@ export function useAssistant() {
           origin,
           usage,
           latencyMs,
-          timestamp: timestamp || new Date().toISOString()
+          timestamp: timestamp || new Date().toISOString(),
         },
       ]);
     },
@@ -84,28 +86,28 @@ export function useAssistant() {
   const handleServerMessage = useCallback(
     (msg: WsMessage) => {
       switch (msg.type) {
-        case "status":
-          setUserModel(msg.model || "–");
+        case 'status':
+          setUserModel(msg.model || '–');
           if (msg.generalConfig) setGeneralConfig(msg.generalConfig);
           break;
-        case "typing":
+        case 'typing':
           setIsTyping(!!msg.isTyping);
           break;
-        case "action_log":
+        case 'action_log':
           // Añadimos el log como un mensaje especial del asistente
-          addMessage("assistant", msg.text || "", undefined, "action_log");
+          addMessage('assistant', msg.text || '', undefined, 'action_log');
           break;
-        case "list_chats":
+        case 'list_chats':
           if (msg.chats) setChats(msg.chats);
           if (msg.channelChats) setChannelChats(msg.channelChats);
           break;
-        case "assistant_chunk":
+        case 'assistant_chunk':
           setIsTyping(false);
           setIsWaiting(false);
           setMessages((prev) => {
             const last = prev[prev.length - 1];
             const msgText = msg.text || '';
-            if (last && last.role === "assistant" && last.type === "message") {
+            if (last && last.role === 'assistant' && last.type === 'message') {
               const newMessages = [...prev];
               newMessages[newMessages.length - 1] = {
                 ...last,
@@ -117,15 +119,15 @@ export function useAssistant() {
               ...prev,
               {
                 id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                role: "assistant",
+                role: 'assistant',
                 text: msgText,
-                type: "message",
+                type: 'message',
                 timestamp: new Date().toISOString(),
               },
             ];
           });
           break;
-        case "assistant_message":
+        case 'assistant_message':
           setIsTyping(false);
           setIsWaiting(false);
 
@@ -136,129 +138,147 @@ export function useAssistant() {
 
           if (msg.history) {
             const historicalMessages = msg.history.map((m) => ({
-              id: "hist-" + Math.random().toString(36).substr(2, 9),
-              role: (m.role === "user" ? "user" : "assistant") as
-                | "user"
-                | "assistant",
+              id: 'hist-' + Math.random().toString(36).substr(2, 9),
+              role: (m.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
               text: m.text,
               origin: m.origin,
-              timestamp: (m as any).timestamp
+              timestamp: (m as any).timestamp,
             }));
             setMessages(historicalMessages);
             setIsWaiting(false);
             if (msg.expertName !== undefined) {
               setSelectedExpert(msg.expertName);
             }
-          } else if (msg.text === "Cargando historial..." && msg.chatId) {
+          } else if (msg.text === 'Cargando historial...' && msg.chatId) {
             setActiveChatId(msg.chatId);
             setMessages([]);
-            send({ type: "switch_chat", chatId: msg.chatId });
-          } else if (msg.text && msg.text !== "Cargando historial...") {
-              // Si ya se estaban recibiendo chunks, actualizar información final del mensaje
-              setMessages((prev) => {
-                const last = prev[prev.length - 1];
-                const msgText = msg.text || '';
-                if (last && last.role === "assistant" && last.type === "message" && msgText === last.text) {
-                  const newMessages = [...prev];
-                  newMessages[newMessages.length - 1] = {
-                    ...last,
-                    model: msg.model,
-                    origin: msg.origin,
-                    usage: msg.usage,
-                    latencyMs: msg.latencyMs,
-                  };
-                  return newMessages;
-                } else if (last && last.role === "assistant" && last.type === "message" && msgText.startsWith(last.text)) {
-                  const newMessages = [...prev];
-                  newMessages[newMessages.length - 1] = {
-                    ...last,
-                    text: msgText,
-                    model: msg.model,
-                    origin: msg.origin,
-                    usage: msg.usage,
-                    latencyMs: msg.latencyMs,
-                  };
-                  return newMessages;
-                } else if (last && last.role === "assistant" && last.type === "message" && !msgText.startsWith(last.text)) {
-                  const newMessages = [...prev];
-                  newMessages[newMessages.length - 1] = {
-                    ...last,
-                    text: msgText,
-                    model: msg.model,
-                    origin: msg.origin,
-                    usage: msg.usage,
-                    latencyMs: msg.latencyMs,
-                  };
-                  return newMessages;
-                }
-                
-                // Si no hay mensaje previo (no hubo chunks), agregarlo entero
-                return [
-                  ...prev,
-                  {
-                    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                    role: "assistant",
-                    text: msgText,
-                    model: msg.model,
-                    type: "message",
-                    origin: msg.origin,
-                    usage: msg.usage,
-                    latencyMs: msg.latencyMs,
-                    timestamp: (msg as any).timestamp || new Date().toISOString()
-                  }
-                ];
-              });
+            send({ type: 'switch_chat', chatId: msg.chatId });
+          } else if (msg.text && msg.text !== 'Cargando historial...') {
+            // Si ya se estaban recibiendo chunks, actualizar información final del mensaje
+            setMessages((prev) => {
+              const last = prev[prev.length - 1];
+              const msgText = msg.text || '';
+              if (
+                last &&
+                last.role === 'assistant' &&
+                last.type === 'message' &&
+                msgText === last.text
+              ) {
+                const newMessages = [...prev];
+                newMessages[newMessages.length - 1] = {
+                  ...last,
+                  model: msg.model,
+                  origin: msg.origin,
+                  usage: msg.usage,
+                  latencyMs: msg.latencyMs,
+                };
+                return newMessages;
+              } else if (
+                last &&
+                last.role === 'assistant' &&
+                last.type === 'message' &&
+                msgText.startsWith(last.text)
+              ) {
+                const newMessages = [...prev];
+                newMessages[newMessages.length - 1] = {
+                  ...last,
+                  text: msgText,
+                  model: msg.model,
+                  origin: msg.origin,
+                  usage: msg.usage,
+                  latencyMs: msg.latencyMs,
+                };
+                return newMessages;
+              } else if (
+                last &&
+                last.role === 'assistant' &&
+                last.type === 'message' &&
+                !msgText.startsWith(last.text)
+              ) {
+                const newMessages = [...prev];
+                newMessages[newMessages.length - 1] = {
+                  ...last,
+                  text: msgText,
+                  model: msg.model,
+                  origin: msg.origin,
+                  usage: msg.usage,
+                  latencyMs: msg.latencyMs,
+                };
+                return newMessages;
+              }
+
+              // Si no hay mensaje previo (no hubo chunks), agregarlo entero
+              return [
+                ...prev,
+                {
+                  id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                  role: 'assistant',
+                  text: msgText,
+                  model: msg.model,
+                  type: 'message',
+                  origin: msg.origin,
+                  usage: msg.usage,
+                  latencyMs: msg.latencyMs,
+                  timestamp: (msg as any).timestamp || new Date().toISOString(),
+                },
+              ];
+            });
           }
           break;
-        case "user_message":
+        case 'user_message':
           if (msg.chatId && msg.chatId !== activeChatId) {
           } else if (msg.text) {
-             addMessage("user", msg.text, undefined, "message", msg.origin, undefined, undefined, undefined, (msg as any).timestamp);
+            addMessage(
+              'user',
+              msg.text,
+              undefined,
+              'message',
+              msg.origin,
+              undefined,
+              undefined,
+              undefined,
+              (msg as any).timestamp,
+            );
           }
           break;
-        case "command_result":
+        case 'command_result':
           setIsTyping(false);
           setIsWaiting(false);
-          addMessage("assistant", msg.result || "", undefined, "command");
+          addMessage('assistant', msg.result || '', undefined, 'command');
           break;
-        case "error":
+        case 'error':
           setIsTyping(false);
           setIsWaiting(false);
-          addMessage(
-            "assistant",
-            msg.message || "Error desconocido",
-            undefined,
-            "error",
-          );
+          addMessage('assistant', msg.message || 'Error desconocido', undefined, 'error');
           break;
-        case "list_experts":
+        case 'list_experts':
           if (msg.experts) setExperts(msg.experts);
           break;
-        case "list_tools":
+        case 'list_tools':
           if (msg.tools) setAvailableTools(msg.tools);
           break;
-        case "list_users":
+        case 'list_users':
           if (msg.users) setAvailableUsers(msg.users);
           break;
-        case "list_tasks":
+        case 'list_tasks':
           if (msg.tasks) setScheduledTasks(msg.tasks);
           break;
-        case "list_detailed_tools":
+        case 'list_detailed_tools':
           setDetailedTools((msg as any).tools || []);
           break;
-        case "list_logs":
+        case 'list_logs':
           setLogs(msg.logs || []);
           break;
-        case "log_stats":
+        case 'log_stats':
           setLogStats(msg.stats || null);
           break;
-        case "list_models":
+        case 'list_models':
           if (msg.models) setAvailableModels(msg.models);
           break;
-        case "dashboard_stats":
+        case 'dashboard_stats':
           if ((msg as any).stats) setDashboardStats((msg as any).stats);
           break;
-        case "model_info":
+        case 'model_info':
           if ((msg as any).modelName && (msg as any).capabilities) {
             setModelCapabilities((prev) => ({
               ...prev,
@@ -278,21 +298,21 @@ export function useAssistant() {
     setChats([]);
     setChannelChats([]);
     setActiveChatId(null);
-    send({ type: "identify", userId: user.userId });
+    send({ type: 'identify', userId: user.userId });
     setCurrentUser(user);
   };
 
   const continueAsGuest = () => {
     setMessages([]);
     const guestId = `guest-${Math.random().toString(36).substr(2, 9)}`;
-    send({ type: "identify", userId: guestId });
+    send({ type: 'identify', userId: guestId });
     setCurrentUser({
       userId: guestId,
-      name: "Invitado",
-      timezone: "America/Argentina/Buenos_Aires",
+      name: 'Invitado',
+      timezone: 'America/Argentina/Buenos_Aires',
       telegram_user: null,
       telegram_token: null,
-      login_pin: "0000",
+      login_pin: '0000',
       created_at: new Date().toISOString(),
     });
   };
@@ -321,69 +341,70 @@ export function useAssistant() {
       // Build display text with file info
       const fileNames = attachments.map((a) => `📎 ${a.name}`).join(', ');
       const displayText = fileNames ? `${text}\n${fileNames}` : text;
-      addMessage("user", displayText);
+      addMessage('user', displayText);
 
       send({
-        type: "user_message",
+        type: 'user_message',
         text,
         expertName: selectedExpert || undefined,
         chatId: activeChatId || undefined,
-        attachments: attachments.length > 0
-          ? attachments.map((a) => ({ name: a.name, type: a.type, data: a.dataUrl }))
-          : undefined,
+        attachments:
+          attachments.length > 0
+            ? attachments.map((a) => ({ name: a.name, type: a.type, data: a.dataUrl }))
+            : undefined,
       });
 
       setIsWaiting(true);
       setIsTyping(true);
-      setInputText("");
+      setInputText('');
       setAttachments([]);
-      if (textareaRef.current) textareaRef.current.style.height = "auto";
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
     },
     [addMessage, send, selectedExpert, activeChatId, attachments],
   );
 
   const upsertExpert = (expert: Expert) => {
-    send({ type: "expert_update", action: "upsert", expert });
+    send({ type: 'expert_update', action: 'upsert', expert });
     setIsCreatorOpen(false);
     setEditingExpert(null);
   };
 
   const deleteExpert = (name: string) => {
     if (confirm(`¿Estás seguro de eliminar al experto "${name}"?`)) {
-      send({ type: "expert_update", action: "delete", name });
+      send({ type: 'expert_update', action: 'delete', name });
       if (selectedExpert === name) setSelectedExpert(null);
     }
   };
 
   const deleteTask = (id: number) => {
-    send({ type: "delete_task", id });
+    send({ type: 'delete_task', id });
   };
 
   const updateTask = (id: number, task: string, cron: string) => {
-    send({ type: "update_task", id, task, cron });
+    send({ type: 'update_task', id, task, cron });
     setEditingTask(null);
   };
 
   const upsertModel = (model: ModelConfig, oldName?: string) => {
-    send({ type: "model_update", action: "upsert", modelConfig: model, oldName });
+    send({ type: 'model_update', action: 'upsert', modelConfig: model, oldName });
   };
 
   const deleteModel = (name: string) => {
-    send({ type: "model_update", action: "delete", name });
+    send({ type: 'model_update', action: 'delete', name });
   };
 
   const upsertTool = (tool: DetailedTool) => {
-    send({ type: "tool_manage", action: "upsert", tool } as any);
+    send({ type: 'tool_manage', action: 'upsert', tool } as any);
   };
 
   const deleteTool = (name: string) => {
     if (confirm(`¿Estás seguro de eliminar la herramienta "${name}"?`)) {
-      send({ type: "tool_manage", action: "delete", name } as any);
+      send({ type: 'tool_manage', action: 'delete', name } as any);
     }
   };
 
   const toggleTool = (name: string, enabled: boolean) => {
-    send({ type: "tool_manage", action: "toggle", name, enabled } as any);
+    send({ type: 'tool_manage', action: 'toggle', name, enabled } as any);
   };
 
   const requestLogs = (limit = 50, filters?: any) => {
@@ -396,8 +417,8 @@ export function useAssistant() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputText(e.target.value);
-    e.target.style.height = "auto";
-    e.target.style.height = Math.min(e.target.scrollHeight, 200) + "px";
+    e.target.style.height = 'auto';
+    e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
   };
 
   const renderContent = (text: string) => {
@@ -414,7 +435,7 @@ export function useAssistant() {
         </div>
       `;
     };
-    
+
     // We parse synchronously
     const html = marked.parse(text, { renderer }) as string;
     return { __html: html };
@@ -432,9 +453,9 @@ export function useAssistant() {
 
   const createChat = (expertNameOverride?: string | null, title?: string) => {
     send({
-      type: "chat_update",
-      action: "create",
-      expertName: expertNameOverride !== undefined ? expertNameOverride : (selectedExpert || null),
+      type: 'chat_update',
+      action: 'create',
+      expertName: expertNameOverride !== undefined ? expertNameOverride : selectedExpert || null,
       title,
     });
   };
@@ -445,8 +466,8 @@ export function useAssistant() {
       setMessages([]);
     }
     send({
-      type: "chat_update",
-      action: "delete",
+      type: 'chat_update',
+      action: 'delete',
       chatId,
       expertName: selectedExpert || null,
     });
@@ -454,8 +475,8 @@ export function useAssistant() {
 
   const renameChat = (chatId: string, title: string) => {
     send({
-      type: "chat_update",
-      action: "rename",
+      type: 'chat_update',
+      action: 'rename',
       chatId,
       title,
       expertName: selectedExpert || null,
@@ -464,8 +485,8 @@ export function useAssistant() {
 
   const togglePinChat = (chatId: string) => {
     send({
-      type: "chat_update",
-      action: "pin",
+      type: 'chat_update',
+      action: 'pin',
       chatId,
       expertName: selectedExpert || null,
     });
@@ -474,9 +495,9 @@ export function useAssistant() {
   const switchChat = (chatId: string) => {
     setActiveChatId(chatId);
     setMessages([]); // Limpiar para cargar historia
-    
+
     // Sincronizar experto
-    const chat = chats.find(c => c.id === chatId) || channelChats.find(c => c.id === chatId);
+    const chat = chats.find((c) => c.id === chatId) || channelChats.find((c) => c.id === chatId);
     if (chat) {
       setSelectedExpert(chat.expertName || null);
     }
@@ -484,7 +505,7 @@ export function useAssistant() {
     if (currentUser) {
       localStorage.setItem(`lastChatId_${currentUser.userId}`, chatId);
     }
-    send({ type: "switch_chat", chatId });
+    send({ type: 'switch_chat', chatId });
   };
 
   // Persistir activeChatId cuando cambie (por ejemplo, al recibir assistant_message)
@@ -504,8 +525,8 @@ export function useAssistant() {
 
     // Pedir lista
     send({
-      type: "chat_update",
-      action: "list",
+      type: 'chat_update',
+      action: 'list',
       expertName: selectedExpert || null,
     });
   }, [selectedExpert, currentUser, send]);
@@ -514,7 +535,7 @@ export function useAssistant() {
   useEffect(() => {
     if (chats.length > 0 && !activeChatId && currentUser && !didInitialLoad) {
       const savedChatId = localStorage.getItem(`lastChatId_${currentUser.userId}`);
-      if (savedChatId && chats.some(c => c.id === savedChatId)) {
+      if (savedChatId && chats.some((c) => c.id === savedChatId)) {
         switchChat(savedChatId);
       }
       setDidInitialLoad(true);
@@ -534,7 +555,7 @@ export function useAssistant() {
     login_pin?: string,
   ) => {
     send({
-      type: "user_register",
+      type: 'user_register',
       userId,
       name,
       timezone,
@@ -548,7 +569,7 @@ export function useAssistant() {
       timezone,
       telegram_user: telegram_user || null,
       telegram_token: telegram_token || null,
-      login_pin: login_pin || "0000",
+      login_pin: login_pin || '0000',
       created_at: new Date().toISOString(),
     });
   };
@@ -562,7 +583,7 @@ export function useAssistant() {
   ) => {
     if (!currentUser) return;
     send({
-      type: "user_update",
+      type: 'user_update',
       userId: currentUser.userId,
       name,
       timezone,
@@ -582,7 +603,7 @@ export function useAssistant() {
 
   const deleteAccount = () => {
     if (!currentUser) return;
-    send({ type: "user_delete", userId: currentUser.userId });
+    send({ type: 'user_delete', userId: currentUser.userId });
     logout();
   };
 
@@ -648,11 +669,10 @@ export function useAssistant() {
     switchChat,
     // Dashboard
     dashboardStats,
-    requestStats: () => send({ type: "request_dashboard" } as any),
+    requestStats: () => send({ type: 'request_dashboard' } as any),
     // Model Info
     modelCapabilities,
-    requestModelInfo: (modelName: string) =>
-      send({ type: "request_model_info", modelName } as any),
+    requestModelInfo: (modelName: string) => send({ type: 'request_model_info', modelName } as any),
     // Attachments
     attachments,
     addAttachment,

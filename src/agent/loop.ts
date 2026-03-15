@@ -1,17 +1,17 @@
-import { getConfig } from '../config/index.ts';
-import { createClient, modelName, detectProvider } from './models.ts';
+import chalk from 'chalk';
 import type OpenAI from 'openai';
 import type {
   ChatCompletionMessageParam,
   ChatCompletionTool,
 } from 'openai/resources/chat/completions';
 import type { CompletionUsage } from 'openai/resources/completions';
-import { getTools, executeTool, type ToolSpec } from '../tools/index.ts';
-import { addMessage, getHistory } from '../memory/session.ts';
+import { getConfig } from '../config/index.ts';
 import { saveMessage } from '../memory/message-db.ts';
+import { addMessage, getHistory } from '../memory/session.ts';
 import { loadPrompt } from '../promptsSystem/index.ts';
-import chalk from 'chalk';
+import { executeTool, getTools, type ToolSpec } from '../tools/index.ts';
 import { logger } from '../utils/logger.ts';
+import { createClient, detectProvider, modelName } from './models.ts';
 
 export const activeChats = new Set<string>();
 
@@ -48,7 +48,9 @@ function buildUserContent(
         const base64Content = att.data.split(',')[1] || '';
         const decoded = Buffer.from(base64Content, 'base64').toString('utf-8');
         extraText += `\n\n--- Archivo: ${att.name} ---\n${decoded}\n--- Fin archivo ---`;
-        console.log(chalk.magenta(`   📎 Archivo texto adjunto: ${att.name} (${decoded.length} chars)`));
+        console.log(
+          chalk.magenta(`   📎 Archivo texto adjunto: ${att.name} (${decoded.length} chars)`),
+        );
       } catch {
         extraText += `\n\n[Error al leer archivo: ${att.name}]`;
       }
@@ -103,11 +105,7 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
   const userContent = buildUserContent(opts.userText, opts.attachments);
 
   // Añadir mensaje del usuario al historial en memoria (aislado por chatId)
-  addMessage(
-    opts.chatId,
-    { role: 'user', content: userContent },
-    config.agent.maxContextMessages,
-  );
+  addMessage(opts.chatId, { role: 'user', content: userContent }, config.agent.maxContextMessages);
 
   // Persistir en base de datos
   saveMessage({
@@ -167,7 +165,7 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
       userId: opts.userId,
       chatId: opts.chatId,
       latencyMs,
-      data: { model, usage: result.usage }
+      data: { model, usage: result.usage },
     });
 
     return {
@@ -202,7 +200,7 @@ function parseTextToolCalls(content: string): any[] | null {
       const jsonStr = match[1].trim();
       const parsed = JSON.parse(jsonStr);
       const calls = Array.isArray(parsed) ? parsed : [parsed];
-      
+
       for (const call of calls) {
         if (call.name) {
           toolCalls.push({
@@ -210,13 +208,16 @@ function parseTextToolCalls(content: string): any[] | null {
             type: 'function',
             function: {
               name: call.name,
-              arguments: typeof call.arguments === 'object' ? JSON.stringify(call.arguments) : (call.arguments || '{}')
-            }
+              arguments:
+                typeof call.arguments === 'object'
+                  ? JSON.stringify(call.arguments)
+                  : call.arguments || '{}',
+            },
           });
         }
       }
     } catch (e) {
-      console.warn("⚠️ Error parseando TOOLCALL manual:", e);
+      console.warn('⚠️ Error parseando TOOLCALL manual:', e);
     }
   }
 
@@ -249,8 +250,9 @@ async function runOpenAI(
       const name = modelName(currentModel);
 
       // Extraer el último mensaje del usuario para RAG
-      const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
-      const userQuery = lastUserMsg && typeof lastUserMsg.content === 'string' ? lastUserMsg.content : undefined;
+      const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
+      const userQuery =
+        lastUserMsg && typeof lastUserMsg.content === 'string' ? lastUserMsg.content : undefined;
 
       // 1. Obtener override/perfil/herramientas (filtrado por Tool RAG)
       const { getExpert } = await import('../memory/expert-db.ts');
@@ -278,24 +280,26 @@ async function runOpenAI(
       if (basePrompt && basePrompt.length > 0) {
         systemPrompt += `\n\n# REGLAS DEL SISTEMA:\n${basePrompt}`;
       }
-      
+
       if (skills.length > 0) {
         systemPrompt += `\n\n# COMPETENCIAS Y HABILIDADES ADICIONALES:\n${skills.join('\n\n')}`;
       }
 
       // 3. RAG Context Placeholder & Retrieval
       if (userQuery) {
-          try {
-              const { searchSimilarChunks } = await import('../memory/rag-db.ts');
-              // Buscar fragmentos globales y específicos del agente '__general__'
-              const chunks = await searchSimilarChunks(userQuery, ['global', '__general__'], 3);
-              if (chunks.length > 0) {
-                  const ragText = chunks.map((c, i) => `[Documento ${i+1}]:\n${c.text_content}`).join('\n\n');
-                  systemPrompt += `\n\n# CONTEXTO RECUPERADO (MEMORIA):\n${ragText}`;
-              }
-          } catch(err) {
-              console.error(chalk.yellow("⚠️ Error en búsqueda RAG:"), err);
+        try {
+          const { searchSimilarChunks } = await import('../memory/rag-db.ts');
+          // Buscar fragmentos globales y específicos del agente '__general__'
+          const chunks = await searchSimilarChunks(userQuery, ['global', '__general__'], 3);
+          if (chunks.length > 0) {
+            const ragText = chunks
+              .map((c, i) => `[Documento ${i + 1}]:\n${c.text_content}`)
+              .join('\n\n');
+            systemPrompt += `\n\n# CONTEXTO RECUPERADO (MEMORIA):\n${ragText}`;
           }
+        } catch (err) {
+          console.error(chalk.yellow('⚠️ Error en búsqueda RAG:'), err);
+        }
       }
 
       // 4. Expert Delegation
@@ -345,13 +349,15 @@ async function runOpenAI(
                 tool_choice: useTools && tools ? 'auto' : undefined,
                 stream: true,
               };
-             // console.log(chalk.blue(`   [API Request] Payload:`), JSON.stringify(callPayload, null, 2));
+              // console.log(chalk.blue(`   [API Request] Payload:`), JSON.stringify(callPayload, null, 2));
 
-              const stream = await client.chat.completions.create(callPayload as OpenAI.Chat.ChatCompletionCreateParamsStreaming);
+              const stream = await client.chat.completions.create(
+                callPayload as OpenAI.Chat.ChatCompletionCreateParamsStreaming,
+              );
 
               let fullContent = '';
               let toolCalls: any[] = [];
-              let currentUsage: any = undefined;
+              let currentUsage: any;
 
               for await (const chunk of stream) {
                 const delta = chunk.choices[0]?.delta;
@@ -433,10 +439,14 @@ async function runOpenAI(
 
           if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
             // FALLBACK: Ver si hay TOOLCALL manual en el contenido de texto
-            const manualCalls = assistantMsg.content ? parseTextToolCalls(assistantMsg.content) : null;
+            const manualCalls = assistantMsg.content
+              ? parseTextToolCalls(assistantMsg.content)
+              : null;
             if (manualCalls) {
               assistantMsg.tool_calls = manualCalls;
-              assistantMsg.content = assistantMsg.content!.replace(/TOOLCALL>[\s\S]*?ALL>/g, '').trim();
+              assistantMsg.content = assistantMsg
+                .content!.replace(/TOOLCALL>[\s\S]*?ALL>/g, '')
+                .trim();
             } else {
               if (assistantMsg.content) {
                 return {
@@ -485,7 +495,7 @@ async function runOpenAI(
             logger.tool(fn.name, !resStr.startsWith('❌ Error'), args, result, {
               userId: opts.userId,
               chatId: opts.chatId,
-              latencyMs
+              latencyMs,
             });
 
             return {

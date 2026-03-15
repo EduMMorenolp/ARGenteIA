@@ -31,7 +31,7 @@ export interface DetailedTool {
 export interface ChatInfo {
   id: string;
   title: string;
-  origin: "web" | "telegram";
+  origin: 'web' | 'telegram';
   expertName: string | null;
   pinned: boolean;
   updated_at: string;
@@ -50,11 +50,11 @@ export interface UserProfile {
 
 export interface Message {
   id: string;
-  role: "user" | "assistant";
+  role: 'user' | 'assistant';
   text: string;
   model?: string;
-  type?: "message" | "command" | "error" | "action_log";
-  origin?: "web" | "telegram";
+  type?: 'message' | 'command' | 'error' | 'action_log';
+  origin?: 'web' | 'telegram';
   timestamp?: string;
   usage?: {
     prompt_tokens: number;
@@ -90,7 +90,7 @@ export interface WsMessage {
   users?: UserProfile[];
   tasks?: ScheduledTask[];
   models?: ModelConfig[];
-  origin?: "web" | "telegram";
+  origin?: 'web' | 'telegram';
   usage?: {
     prompt_tokens: number;
     completion_tokens: number;
@@ -100,7 +100,7 @@ export interface WsMessage {
   history?: Array<{
     role: string;
     text: string;
-    origin: "web" | "telegram";
+    origin: 'web' | 'telegram';
   }>;
   chats?: ChatInfo[];
   channelChats?: ChatInfo[];
@@ -114,7 +114,7 @@ export interface WsMessage {
   enabled?: boolean;
   logs?: LogEntry[];
   stats?: LogStats;
-  filters?: { userId?: string, category?: string, level?: string };
+  filters?: { userId?: string; category?: string; level?: string };
   limit?: number;
 }
 

@@ -1,11 +1,11 @@
-import { getConfig } from '../config/index.ts';
-import { createClient, modelName } from './models.ts';
+import chalk from 'chalk';
 import type OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import type { CompletionUsage } from 'openai/resources/completions';
+import { getConfig } from '../config/index.ts';
 import { getExpert } from '../memory/expert-db.ts';
 import { saveMessage } from '../memory/message-db.ts';
-import chalk from 'chalk';
+import { createClient, modelName } from './models.ts';
 
 type ContentPart =
   | { type: 'text'; text: string }
@@ -56,11 +56,11 @@ export async function runExpert(
   // Tratamos de buscar herramientas válidas, manejando undefined silenciosamente
   const tools =
     expert.tools && Array.isArray(expert.tools) && expert.tools.length > 0
-      ? allTools.filter((t) => 
+      ? allTools.filter((t) =>
           expert.tools
             .filter((e) => typeof e === 'string')
             .map((e) => e.toLowerCase())
-            .includes(t.function.name.toLowerCase())
+            .includes(t.function.name.toLowerCase()),
         )
       : [];
 
@@ -81,17 +81,17 @@ export async function runExpert(
   const prunedUserContent = Array.isArray(userContent) ? userContent : userContent;
 
   let finalSystemPrompt = expert.system_prompt;
-  
+
   // 2. RAG Context Retrieval (Global + Expert Specific)
   try {
-      const { searchSimilarChunks } = await import('../memory/rag-db.ts');
-      const chunks = await searchSimilarChunks(req.task, ['global', expert.name], 3);
-      if (chunks.length > 0) {
-          const ragText = chunks.map((c, i) => `[Documento ${i+1}]:\n${c.text_content}`).join('\n\n');
-          finalSystemPrompt += `\n\n# CONTEXTO RECUPERADO (MEMORIA):\n${ragText}`;
-      }
-  } catch(err) {
-      console.log(chalk.yellow(`   ⚠️ [Expert ${expert.name}] Error en RAG:`), err);
+    const { searchSimilarChunks } = await import('../memory/rag-db.ts');
+    const chunks = await searchSimilarChunks(req.task, ['global', expert.name], 3);
+    if (chunks.length > 0) {
+      const ragText = chunks.map((c, i) => `[Documento ${i + 1}]:\n${c.text_content}`).join('\n\n');
+      finalSystemPrompt += `\n\n# CONTEXTO RECUPERADO (MEMORIA):\n${ragText}`;
+    }
+  } catch (err) {
+    console.log(chalk.yellow(`   ⚠️ [Expert ${expert.name}] Error en RAG:`), err);
   }
 
   const messages: ChatCompletionMessageParam[] = [

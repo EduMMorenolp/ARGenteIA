@@ -64,7 +64,7 @@
   font-weight: 700;
   border-radius: 999px;
   padding: 1px 6px;
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--text-main);
 }
 
@@ -203,7 +203,7 @@
 }
 
 .logs-table th {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   text-align: left;
   padding: 0.75rem;
   border-bottom: 2px solid var(--border);
@@ -218,7 +218,7 @@
 }
 
 .log-row:hover {
-  background: rgba(255,255,255,0.02);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .log-level-badge {
@@ -228,10 +228,22 @@
   font-weight: 700;
 }
 
-.level-INFO { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-.level-WARNING { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-.level-ERROR { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-.level-ACTION { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+.level-INFO {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+.level-WARNING {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+.level-ERROR {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+.level-ACTION {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+}
 
 .log-category {
   color: var(--text-muted);
@@ -246,7 +258,7 @@
 }
 
 .report-card {
-  background: rgba(255,255,255,0.03);
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.1rem;
@@ -274,7 +286,7 @@
 .stat-bar-bg {
   flex: 1;
   height: 8px;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   margin: 0 1rem;
   border-radius: 4px;
   overflow: hidden;

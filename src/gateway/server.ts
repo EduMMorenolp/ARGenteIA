@@ -1,11 +1,11 @@
 import http from 'node:http';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { join, dirname } from 'node:path';
-import express from 'express';
-import { WebSocketServer, WebSocket } from 'ws';
 import chalk from 'chalk';
-import { getConfig } from '../config/index.ts';
+import express from 'express';
+import { WebSocket, WebSocketServer } from 'ws';
 import { handleWebChatMessage } from '../channels/webchat.ts';
+import { getConfig } from '../config/index.ts';
 import type { WsMessage } from './protocol.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -30,7 +30,7 @@ export function createGateway(): GatewayServer {
   // ─── Servir WebChat UI estática ────────────────────────────────────────────
   const uiPath = join(__dirname, '../../ui/dist');
   app.use(express.static(uiPath));
-  
+
   // Aumentar los límites de body-parser para grandes contextos de RAG
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -42,39 +42,43 @@ export function createGateway(): GatewayServer {
 
   // ─── API RAG (Memory Context) ──────────────────────────────────────────────
   app.post('/api/rag', express.json({ limit: '50mb' }), async (req, res) => {
-      try {
-          const { owner_id, text_content, source } = req.body;
-          if (!owner_id || !text_content) {
-              return res.status(400).json({ error: 'owner_id and text_content are required' });
-          }
-          const { addDocumentChunk } = await import('../memory/rag-db.ts');
-          const id = await addDocumentChunk(owner_id, text_content, source || 'manual_upload');
-          res.json({ success: true, id });
-      } catch(err: any) {
-          console.error('[API RAG Error]', err);
-          res.status(500).json({ error: err.message });
+    try {
+      const { owner_id, text_content, source } = req.body;
+      if (!owner_id || !text_content) {
+        return res.status(400).json({ error: 'owner_id and text_content are required' });
       }
+      const { addDocumentChunk } = await import('../memory/rag-db.ts');
+      const id = await addDocumentChunk(owner_id, text_content, source || 'manual_upload');
+      res.json({ success: true, id });
+    } catch (err: any) {
+      console.error('[API RAG Error]', err);
+      res.status(500).json({ error: err.message });
+    }
   });
 
   app.get('/api/rag/:owner_id', async (req, res) => {
-      try {
-          const { getDb } = await import('../memory/db.ts');
-          const owner_id = req.params.owner_id;
-          const rows = getDb().prepare('SELECT id, owner_id, text_content, source, created_at FROM document_chunks WHERE owner_id = ?').all(owner_id);
-          res.json({ chunks: rows });
-      } catch(err: any) {
-          res.status(500).json({ error: err.message });
-      }
+    try {
+      const { getDb } = await import('../memory/db.ts');
+      const owner_id = req.params.owner_id;
+      const rows = getDb()
+        .prepare(
+          'SELECT id, owner_id, text_content, source, created_at FROM document_chunks WHERE owner_id = ?',
+        )
+        .all(owner_id);
+      res.json({ chunks: rows });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
   });
 
   app.delete('/api/rag/:owner_id/:id', async (req, res) => {
-      try {
-          const { deleteChunk } = await import('../memory/rag-db.ts');
-          const success = deleteChunk(Number(req.params.id), req.params.owner_id);
-          res.json({ success });
-      } catch(err: any) {
-          res.status(500).json({ error: err.message });
-      }
+    try {
+      const { deleteChunk } = await import('../memory/rag-db.ts');
+      const success = deleteChunk(Number(req.params.id), req.params.owner_id);
+      res.json({ success });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
   });
 
   // ─── WebSocket ─────────────────────────────────────────────────────────────
@@ -151,7 +155,7 @@ export function createGateway(): GatewayServer {
       const toolsResult = await getTools();
       const toolNames = toolsResult.map((t) => t.function.name);
       send(ws, { type: 'list_tools', tools: toolNames } as unknown as WsMessage);
-      
+
       const { listDbTools } = await import('../memory/tool-db.ts');
       send(ws, { type: 'list_detailed_tools', tools: listDbTools() } as unknown as WsMessage);
     });
@@ -436,11 +440,7 @@ export function createGateway(): GatewayServer {
           const { fetchModelCapabilities } = await import('../agent/model-info.ts');
           const { getModel } = await import('../memory/model-db.ts');
           const dbModel = getModel(modelName);
-          const caps = await fetchModelCapabilities(
-            modelName,
-            dbModel?.baseUrl,
-            dbModel?.apiKey,
-          );
+          const caps = await fetchModelCapabilities(modelName, dbModel?.baseUrl, dbModel?.apiKey);
           console.log(chalk.cyan(`🔍 Model info solicitado: ${modelName}`));
           send(ws, {
             type: 'model_info',
@@ -457,7 +457,9 @@ export function createGateway(): GatewayServer {
         const stats = getLogStats();
         send(ws, { type: 'log_stats', stats } as unknown as WsMessage);
       } else if (msg.type === 'tool_manage') {
-        const { listDbTools, upsertDbTool, deleteDbTool, toggleDbTool } = await import('../memory/tool-db.ts');
+        const { listDbTools, upsertDbTool, deleteDbTool, toggleDbTool } = await import(
+          '../memory/tool-db.ts'
+        );
         if (msg.action === 'upsert' && msg.tool) {
           upsertDbTool(msg.tool);
           console.log(chalk.green(`🔧 Herramienta guardada: ${msg.tool.name}`));
@@ -468,12 +470,15 @@ export function createGateway(): GatewayServer {
           toggleDbTool(msg.name, msg.enabled);
           console.log(chalk.yellow(`🔧 Herramienta ${msg.name} -> ${msg.enabled ? 'ON' : 'OFF'}`));
         }
-        
+
         // Broadcast lista de herramientas detalladas a todos
         const allDbTools = listDbTools();
         wss.clients.forEach((client) => {
           if (client.readyState === WebSocket.OPEN) {
-            send(client, { type: 'list_detailed_tools', tools: allDbTools } as unknown as WsMessage);
+            send(client, {
+              type: 'list_detailed_tools',
+              tools: allDbTools,
+            } as unknown as WsMessage);
           }
         });
 
@@ -496,7 +501,9 @@ export function createGateway(): GatewayServer {
     new Promise((resolve, reject) => {
       httpServer.on('error', async (err: NodeJS.ErrnoException) => {
         if (err.code === 'EADDRINUSE') {
-          console.log(chalk.yellow(`\n⚠️  Puerto ${config.gateway.port} en uso. Intentando liberar...`));
+          console.log(
+            chalk.yellow(`\n⚠️  Puerto ${config.gateway.port} en uso. Intentando liberar...`),
+          );
           try {
             // Intentar conectar para forzar cierre del proceso anterior
             const net = await import('node:net');
@@ -505,11 +512,15 @@ export function createGateway(): GatewayServer {
             });
             probe.on('error', () => {});
             // Esperar un momento y reintentar
-            await new Promise(r => setTimeout(r, 1500));
+            await new Promise((r) => setTimeout(r, 1500));
             httpServer.listen(config.gateway.port);
           } catch {
             console.error(chalk.red(`❌ No se pudo liberar el puerto ${config.gateway.port}.`));
-            console.error(chalk.yellow(`   Cierra manualmente el proceso que usa ese puerto o cambia el puerto en config.json`));
+            console.error(
+              chalk.yellow(
+                `   Cierra manualmente el proceso que usa ese puerto o cambia el puerto en config.json`,
+              ),
+            );
             reject(err);
           }
         } else {

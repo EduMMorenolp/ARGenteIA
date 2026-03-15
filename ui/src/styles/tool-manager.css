@@ -178,8 +178,14 @@
   font-weight: bold;
 }
 
-.badge-system { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-.badge-dynamic { background: rgba(79, 140, 255, 0.2); color: #9dc0ff; }
+.badge-system {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+.badge-dynamic {
+  background: rgba(79, 140, 255, 0.2);
+  color: #9dc0ff;
+}
 
 .tool-desc {
   font-size: 13px;
@@ -269,7 +275,7 @@
   border-radius: 6px;
   color: var(--text-main);
   padding: 10px;
-  font-family: 'Fira Code', monospace;
+  font-family: "Fira Code", monospace;
   font-size: 13px;
   resize: vertical;
   min-height: 100px;

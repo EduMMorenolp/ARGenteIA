@@ -1,5 +1,5 @@
-import { getDb } from './db.ts';
 import { getConfig } from '../config/index.ts';
+import { getDb } from './db.ts';
 
 export interface ModelEntry {
   name: string;

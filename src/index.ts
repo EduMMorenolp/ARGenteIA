@@ -1,10 +1,10 @@
+import chalk from 'chalk';
+import { initScheduler } from './agent/scheduler-manager.ts';
+import { startTelegram, stopTelegram } from './channels/telegram.ts';
 import { loadConfig } from './config/index.ts';
 import { createGateway } from './gateway/server.ts';
-import { startTelegram, stopTelegram } from './channels/telegram.ts';
-import { initTools } from './tools/index.ts';
-import { initScheduler } from './agent/scheduler-manager.ts';
 import { getDb } from './memory/db.ts';
-import chalk from 'chalk';
+import { initTools } from './tools/index.ts';
 
 // ─── Captura global de errores no manejados ─────────────────────────────────
 process.on('uncaughtException', (err) => {
@@ -16,7 +16,9 @@ process.on('uncaughtException', (err) => {
 
 process.on('unhandledRejection', (reason) => {
   console.error(chalk.red('❌ Promesa rechazada no manejada:'));
-  console.error(chalk.red(reason instanceof Error ? (reason.stack || reason.message) : String(reason)));
+  console.error(
+    chalk.red(reason instanceof Error ? reason.stack || reason.message : String(reason)),
+  );
   console.error(chalk.yellow('El servidor se detendrá.'));
   process.exit(1);
 });

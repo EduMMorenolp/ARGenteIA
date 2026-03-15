@@ -1,4 +1,4 @@
-import { spawn, execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import chalk from 'chalk';
 import type { Config } from '../config/index.ts';
 import { registerTool } from './index.ts';
@@ -47,9 +47,10 @@ export function registerBash(config: Config): void {
       type: 'function',
       function: {
         name: 'bash',
-        description: (config.tools.bash.os === 'windows' || process.platform === 'win32')
-          ? `Ejecuta comandos en PowerShell (Windows). Comandos: ${config.tools.bash.allowlist.join(', ')}. Usa comillas dobles para rutas con espacios ("ruta\\archivo.txt").`
-          : `Ejecuta comandos en bash (Linux/macOS). Comandos: ${config.tools.bash.allowlist.join(', ')}.`,
+        description:
+          config.tools.bash.os === 'windows' || process.platform === 'win32'
+            ? `Ejecuta comandos en PowerShell (Windows). Comandos: ${config.tools.bash.allowlist.join(', ')}. Usa comillas dobles para rutas con espacios ("ruta\\archivo.txt").`
+            : `Ejecuta comandos en bash (Linux/macOS). Comandos: ${config.tools.bash.allowlist.join(', ')}.`,
         parameters: {
           type: 'object',
           properties: {
@@ -84,14 +85,25 @@ export function registerBash(config: Config): void {
       };
 
       const normalizedBase = (psAliases[baseCmd.toLowerCase()] ?? baseCmd).toLowerCase();
-      if (allowed.length > 0 && !allowed.includes(normalizedBase) && !allowed.includes(baseCmd.toLowerCase())) {
-        console.warn(chalk.yellow(`   [bash] Warning: Comando "${baseCmd}" no está en el allowlist, ejecutando con full permisos ("sino full permisos").`));
+      if (
+        allowed.length > 0 &&
+        !allowed.includes(normalizedBase) &&
+        !allowed.includes(baseCmd.toLowerCase())
+      ) {
+        console.warn(
+          chalk.yellow(
+            `   [bash] Warning: Comando "${baseCmd}" no está en el allowlist, ejecutando con full permisos ("sino full permisos").`,
+          ),
+        );
         // Bypass return de error para cumplir la petición del usuario de dar full permisos
       }
 
       return new Promise((resolve) => {
         let proc: ReturnType<typeof spawn>;
-        const isWindowsNow = config.tools.bash.os === 'windows' || process.platform === 'win32' || process.env.OS === 'Windows_NT';
+        const isWindowsNow =
+          config.tools.bash.os === 'windows' ||
+          process.platform === 'win32' ||
+          process.env.OS === 'Windows_NT';
 
         if (isWindowsNow) {
           const exe = _psExe ?? detectPowerShell(config.tools.bash.psExe) ?? 'powershell';

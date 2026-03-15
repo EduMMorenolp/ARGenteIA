@@ -1,5 +1,5 @@
-import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import type { Config } from '../config/index.ts';
 import { getModel } from '../memory/model-db.ts';
 

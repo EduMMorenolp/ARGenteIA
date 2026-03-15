@@ -1,10 +1,10 @@
-import TelegramBot from 'node-telegram-bot-api';
 import chalk from 'chalk';
-import { getConfig } from '../config/index.ts';
+import TelegramBot from 'node-telegram-bot-api';
 import { runAgent } from '../agent/loop.ts';
+import { getConfig } from '../config/index.ts';
 import { resetSession } from '../memory/session.ts';
-import { getTools } from '../tools/index.ts';
 import { loadSkills } from '../skills/loader.ts';
+import { getTools } from '../tools/index.ts';
 
 let bot: TelegramBot | null = null;
 let activeToken: string | null = null;
@@ -89,9 +89,7 @@ export async function startTelegram(): Promise<void> {
 
     if (!isAuthorized) {
       console.log(
-        chalk.yellow(
-          `⚠️  Telegram: mensaje rechazado de @${username || firstName} (ID: ${chatId})`,
-        ),
+        chalk.yellow(`⚠️  Telegram: mensaje rechazado de @${username || firstName} (ID: ${chatId})`),
       );
       await bot!.sendMessage(
         chatId,
@@ -123,25 +121,27 @@ export async function startTelegram(): Promise<void> {
       let finalUserText = text;
       const { listExperts } = await import('../memory/expert-db.ts');
       const experts = listExperts(true);
-      
+
       const tagMatch = text.match(/^@([a-zA-Z0-9_]+)\b/i);
       if (tagMatch) {
-         const tagName = tagMatch[1].toLowerCase();
-         // Buscar si coincide con el "name" (simplificado) de un agente
-         const expert = experts.find(e => e.name.toLowerCase().replace(/[^a-z0-9]/g, '') === tagName);
-         
-         if (expert) {
-            console.log(chalk.blue(`🎯 Tag detectado para experto: ${expert.name}`));
-            // Removemos el tag del mensaje y forzamos el pedido
-            const cleanMessage = text.replace(tagMatch[0], '').trim();
-            finalUserText = `(OBLIGATORIO: ACTÚA COMO EL EXPERTO "${expert.name}". EL USUARIO TE HA INVOCADO DIRECTAMENTE. IGNORA TU ROL DE ORQUESTADOR POR AHORA Y RESPONDE ESTA CONSULTA CON ESE ROL) Consulta: ${cleanMessage}`;
-         }
+        const tagName = tagMatch[1].toLowerCase();
+        // Buscar si coincide con el "name" (simplificado) de un agente
+        const expert = experts.find(
+          (e) => e.name.toLowerCase().replace(/[^a-z0-9]/g, '') === tagName,
+        );
+
+        if (expert) {
+          console.log(chalk.blue(`🎯 Tag detectado para experto: ${expert.name}`));
+          // Removemos el tag del mensaje y forzamos el pedido
+          const cleanMessage = text.replace(tagMatch[0], '').trim();
+          finalUserText = `(OBLIGATORIO: ACTÚA COMO EL EXPERTO "${expert.name}". EL USUARIO TE HA INVOCADO DIRECTAMENTE. IGNORA TU ROL DE ORQUESTADOR POR AHORA Y RESPONDE ESTA CONSULTA CON ESE ROL) Consulta: ${cleanMessage}`;
+        }
       } else {
-         // It's a normal message, we enforce the Orchestrator logic to show buttons automatically!
-         const orquestador = experts.find(e => e.name.includes('Orquestador'));
-         if (orquestador) {
-            finalUserText = `(OBLIGATORIO: ACTUARÁS COMO EL ORQUESTADOR ESTRICTAMENTE. IGNORA EL PERFIL BASE Y APLICA ESTAR REGLAS: ${orquestador.system_prompt})\nConsulta del usuario: ${text}`;
-         }
+        // It's a normal message, we enforce the Orchestrator logic to show buttons automatically!
+        const orquestador = experts.find((e) => e.name.includes('Orquestador'));
+        if (orquestador) {
+          finalUserText = `(OBLIGATORIO: ACTUARÁS COMO EL ORQUESTADOR ESTRICTAMENTE. IGNORA EL PERFIL BASE Y APLICA ESTAR REGLAS: ${orquestador.system_prompt})\nConsulta del usuario: ${text}`;
+        }
       }
 
       const result = await runAgent({
@@ -182,9 +182,11 @@ export async function startTelegram(): Promise<void> {
 
       if (parsedJson && parsedJson.keyboard_type === 'inline' && parsedJson.botones) {
         // Hybrid UI detected
-        console.log(chalk.cyan(`🔌 Renderizando Menú Híbrido Telegram: ${parsedJson.botones.length} botones`));
-        const textToSend = parsedJson.respuesta_texto || "He aquí algunas opciones:";
-        
+        console.log(
+          chalk.cyan(`🔌 Renderizando Menú Híbrido Telegram: ${parsedJson.botones.length} botones`),
+        );
+        const textToSend = parsedJson.respuesta_texto || 'He aquí algunas opciones:';
+
         // Convert the bot buttons array into Telegram's format (2 per row max)
         const inlineKeyboard = [];
         let currentRow = [];
@@ -199,12 +201,13 @@ export async function startTelegram(): Promise<void> {
 
         await bot!.sendMessage(chatId, textToSend, {
           reply_markup: {
-            inline_keyboard: inlineKeyboard
-          }
+            inline_keyboard: inlineKeyboard,
+          },
         });
-        
+
         // Override result text for WebChat so it sees the pure text, not the JSON string
-        result.text = textToSend + '\n' + parsedJson.botones.map((b: any) => `[${b.text}]`).join(' ');
+        result.text =
+          textToSend + '\n' + parsedJson.botones.map((b: any) => `[${b.text}]`).join(' ');
       } else {
         // Standard Text response
         // Telegram soporta Markdown básico
@@ -260,12 +263,15 @@ export async function startTelegram(): Promise<void> {
   bot.on('polling_error', (err: any) => {
     const now = Date.now();
     errorCount++;
-    
+
     const isNetworkError = err.code === 'ENOTFOUND' || err.code === 'ETIMEDOUT';
-    
+
     if (now - lastErrorTime > 30000 || !isNetworkError) {
       const countMsg = errorCount > 1 ? ` (Ocurrido ${errorCount} veces)` : '';
-      console.error(chalk.red(`❌ Telegram error [${err.code || 'CODE_UNKNOWN'}]:`), err.message + countMsg);
+      console.error(
+        chalk.red(`❌ Telegram error [${err.code || 'CODE_UNKNOWN'}]:`),
+        err.message + countMsg,
+      );
       lastErrorTime = now;
       errorCount = 0;
     }
@@ -274,13 +280,13 @@ export async function startTelegram(): Promise<void> {
   // Handle Inline Button clicks (Callback Queries)
   bot.on('callback_query', async (query) => {
     if (!query.message || !query.data) return;
-    
+
     const chatId = query.message.chat.id;
     const telegramUsername = query.from?.username ?? query.from?.first_name ?? 'Desconocido';
     const callbackData = query.data;
 
     console.log(chalk.cyan(`👉 Telegram Callback (@${telegramUsername}): ${callbackData}`));
-    
+
     // Acknowledge the callback directly to remove loading state on the button
     await bot!.answerCallbackQuery(query.id);
 
@@ -296,7 +302,7 @@ export async function startTelegram(): Promise<void> {
 
     // Simulate sending the callback_data as a user message
     const simulatedText = `(Botón presionado: ${callbackData})`;
-    
+
     await bot!.sendChatAction(chatId, 'typing');
 
     try {
@@ -322,14 +328,14 @@ export async function startTelegram(): Promise<void> {
 
       if (result.text && result.text.trim() !== '') {
         await bot!.sendMessage(chatId, result.text).catch(async () => {
-           // fallback
-           await bot!.sendMessage(chatId, result.text);
+          // fallback
+          await bot!.sendMessage(chatId, result.text);
         });
-        
+
         // Notify WebChat
         const { listChats, listChannelChats } = await import('../memory/chat-db.ts');
         const { broadcastToUser } = await import('../gateway/server.ts');
-        
+
         broadcastToUser(effectiveUserId, {
           type: 'assistant_message',
           text: result.text,

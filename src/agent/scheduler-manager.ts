@@ -1,8 +1,8 @@
-import cron from 'node-cron';
 import chalk from 'chalk';
+import cron from 'node-cron';
+import { getBot } from '../channels/telegram.ts';
 import { getActiveTasks, type ScheduledTask } from '../memory/scheduler-db.ts';
 import { runAgent } from './loop.ts';
-import { getBot } from '../channels/telegram.ts';
 
 const activeJobs = new Map<number, cron.ScheduledTask>();
 

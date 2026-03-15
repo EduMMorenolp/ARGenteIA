@@ -1,12 +1,12 @@
-import { WebSocket } from 'ws';
+import chalk from 'chalk';
+import type { WebSocket } from 'ws';
 import { runAgent } from '../agent/loop.ts';
 import { getConfig } from '../config/index.ts';
-import { resetSession, getHistory } from '../memory/session.ts';
-import { getTools } from '../tools/index.ts';
-import { loadSkills } from '../skills/loader.ts';
-import { send } from '../gateway/server.ts';
 import type { WsMessage } from '../gateway/protocol.ts';
-import chalk from 'chalk';
+import { send } from '../gateway/server.ts';
+import { getHistory, resetSession } from '../memory/session.ts';
+import { loadSkills } from '../skills/loader.ts';
+import { getTools } from '../tools/index.ts';
 
 interface WebChatHandlerOpts {
   ws: WebSocket;
@@ -35,8 +35,9 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
   try {
     let result;
     const { getMessages } = await import('../memory/message-db.ts');
-    const { getChat, renameChat, createChat, listChats, listChannelChats } =
-      await import('../memory/chat-db.ts');
+    const { getChat, renameChat, createChat, listChats, listChannelChats } = await import(
+      '../memory/chat-db.ts'
+    );
 
     // 1. Asegurar chatId válido para este usuario y experto
     let currentChatId = opts.chatId;

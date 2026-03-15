@@ -39,7 +39,7 @@ export function upsertDbTool(tool: Omit<ToolRecord, 'created_at' | 'updated_at'>
       tool.script || null,
       tool.enabled,
       now,
-      tool.name
+      tool.name,
     );
   } else {
     db.prepare(`
@@ -53,7 +53,7 @@ export function upsertDbTool(tool: Omit<ToolRecord, 'created_at' | 'updated_at'>
       tool.script || null,
       tool.enabled,
       now,
-      now
+      now,
     );
   }
 }
@@ -63,7 +63,7 @@ export function toggleDbTool(name: string, enabled: boolean): void {
   db.prepare('UPDATE tools SET enabled = ?, updated_at = ? WHERE name = ?').run(
     enabled ? 1 : 0,
     new Date().toISOString(),
-    name
+    name,
   );
 }
 

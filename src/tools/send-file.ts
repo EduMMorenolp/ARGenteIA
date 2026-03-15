@@ -1,8 +1,8 @@
-import { resolve } from 'node:path';
 import { existsSync, statSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { getBot } from '../channels/telegram.ts';
 import type { Config } from '../config/index.ts';
 import { registerTool } from './index.ts';
-import { getBot } from '../channels/telegram.ts';
 
 export function registerSendFile(_config: Config): void {
   registerTool({
@@ -11,7 +11,8 @@ export function registerSendFile(_config: Config): void {
       type: 'function',
       function: {
         name: 'send_file_telegram',
-        description: "Envía un archivo local al usuario por Telegram. Usa rutas absolutas o '$HOME'. NO incluyas comillas extras en la ruta.",
+        description:
+          "Envía un archivo local al usuario por Telegram. Usa rutas absolutas o '$HOME'. NO incluyas comillas extras en la ruta.",
         parameters: {
           type: 'object',
           properties: {

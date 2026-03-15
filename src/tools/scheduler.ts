@@ -1,7 +1,7 @@
-import { registerTool } from './index.ts';
-import { saveTask, getUserTasks, deleteTask } from '../memory/scheduler-db.ts';
 import { scheduleLocalTask, stopLocalTask } from '../agent/scheduler-manager.ts';
 import type { Config } from '../config/index.ts';
+import { deleteTask, getUserTasks, saveTask } from '../memory/scheduler-db.ts';
+import { registerTool } from './index.ts';
 
 export function registerSchedulerTools(_config: Config): void {
   // 1. Programar tarea
@@ -107,7 +107,7 @@ export function registerSchedulerTools(_config: Config): void {
       const success = deleteTask(id, context.sessionId);
       if (success) {
         stopLocalTask(id);
-        
+
         // Notificar al WebChat para actualizar el sidebar
         import('../gateway/server.ts').then(({ broadcastTasksForUser }) => {
           broadcastTasksForUser(context.sessionId);

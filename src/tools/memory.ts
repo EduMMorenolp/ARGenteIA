@@ -1,5 +1,5 @@
+import { deleteFact, getFacts, saveFact } from '../memory/long-term.ts';
 import { registerTool } from './index.ts';
-import { saveFact, getFacts, deleteFact } from '../memory/long-term.ts';
 
 export function registerMemoryTools(): void {
   // 1. Herramienta para memorizar un dato

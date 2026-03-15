@@ -21,7 +21,7 @@ export function insertLog(entry: LogEntry): number {
     INSERT INTO activity_log (level, category, userId, chatId, message, data, latencyMs)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
-  
+
   const result = stmt.run(
     entry.level.toUpperCase(),
     entry.category.toLowerCase(),
@@ -29,16 +29,19 @@ export function insertLog(entry: LogEntry): number {
     entry.chatId || null,
     entry.message,
     entry.data ? JSON.stringify(entry.data) : null,
-    entry.latencyMs || null
+    entry.latencyMs || null,
   );
-  
+
   return result.lastInsertRowid as number;
 }
 
 /**
  * Obtiene los logs más recientes con filtros opcionales.
  */
-export function getRecentLogs(limit = 100, filters?: { userId?: string, category?: string, level?: string }): LogEntry[] {
+export function getRecentLogs(
+  limit = 100,
+  filters?: { userId?: string; category?: string; level?: string },
+): LogEntry[] {
   const db = getDb();
   let query = 'SELECT * FROM activity_log';
   const conditions: string[] = [];
@@ -65,10 +68,10 @@ export function getRecentLogs(limit = 100, filters?: { userId?: string, category
   params.push(limit);
 
   const rows = db.prepare(query).all(...params) as any[];
-  
-  return rows.map(row => ({
+
+  return rows.map((row) => ({
     ...row,
-    data: row.data ? JSON.parse(row.data) : null
+    data: row.data ? JSON.parse(row.data) : null,
   }));
 }
 
@@ -77,27 +80,33 @@ export function getRecentLogs(limit = 100, filters?: { userId?: string, category
  */
 export function getLogStats() {
   const db = getDb();
-  
-  const totalByLevel = db.prepare(`
+
+  const totalByLevel = db
+    .prepare(`
     SELECT level, COUNT(*) as count FROM activity_log GROUP BY level
-  `).all();
-  
-  const totalByCategory = db.prepare(`
+  `)
+    .all();
+
+  const totalByCategory = db
+    .prepare(`
     SELECT category, COUNT(*) as count FROM activity_log GROUP BY category
-  `).all();
-  
-  const toolUsage = db.prepare(`
+  `)
+    .all();
+
+  const toolUsage = db
+    .prepare(`
     SELECT message as tool, COUNT(*) as count 
     FROM activity_log 
     WHERE category = 'tool' AND level = 'ACTION'
     GROUP BY message 
     ORDER BY count DESC 
     LIMIT 10
-  `).all();
+  `)
+    .all();
 
   return {
     totalByLevel,
     totalByCategory,
-    toolUsage
+    toolUsage,
   };
 }

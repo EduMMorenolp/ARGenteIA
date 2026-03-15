@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { WsMessage } from '../types';
 
 const WS_URL = `ws://${window.location.host}/ws`;
@@ -12,7 +12,10 @@ export function useWebSocket(onMessage: (msg: WsMessage) => void) {
   const queue = useRef<any[]>([]);
 
   const connect = useCallback(() => {
-    if (ws.current?.readyState === WebSocket.CONNECTING || ws.current?.readyState === WebSocket.OPEN) {
+    if (
+      ws.current?.readyState === WebSocket.CONNECTING ||
+      ws.current?.readyState === WebSocket.OPEN
+    ) {
       return;
     }
 
@@ -39,7 +42,7 @@ export function useWebSocket(onMessage: (msg: WsMessage) => void) {
         const msg: WsMessage = JSON.parse(event.data);
         onMessageRef.current(msg);
       } catch (err) {
-        console.error("Failed to parse WS message:", err);
+        console.error('Failed to parse WS message:', err);
       }
     };
   }, []);
