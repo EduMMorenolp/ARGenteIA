@@ -142,9 +142,10 @@ export function RagModal({ onClose, ownerId }: ComponentProps) {
 
           <div className="modal-header">
             <div className="flex items-center gap-3">
-              <Database size={18} style={{ marginRight: 8, color: 'var(--text-main)' }} />
-              <h2 style={{ fontSize: '18px', margin: 0, color: 'var(--text-main)' }}>
+              <Database size={18} style={{ marginRight: 8, color: 'var(--text-main)',  }} />
+              <h2 style={{ fontSize: '18px', margin: 0, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 Memoria de Contexto (RAG)
+                <span className="badge-count">{chunks.length}</span>
               </h2>
             </div>
             <button className="icon-btn" onClick={onClose}>
@@ -169,6 +170,7 @@ export function RagModal({ onClose, ownerId }: ComponentProps) {
                   marginBottom: '1rem',
                 }}
               >
+
                 <h3
                   style={{
                     margin: 0,
@@ -251,7 +253,9 @@ export function RagModal({ onClose, ownerId }: ComponentProps) {
           <div className="modal-side-inner" style={{ paddingTop: '56px' }}>
             <div className="flex items-center gap-2 mb-3">
               <FileText size={16} className="text-accent" />
-              <h4 style={{ fontSize: '14px', color: 'var(--text-main)', margin: 0 }}>Almacenado</h4>
+              <h4 style={{ fontSize: '14px', color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                Almacenado <span className="badge-count" style={{ scale: '0.8', opacity: 0.8 }}>{chunks.length}</span>
+              </h4>
             </div>
             <p className="text-muted text-sm mb-4" style={{ lineHeight: 2.8 }}>
               Documentos en memoria para{' '}

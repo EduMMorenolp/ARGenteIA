@@ -9,6 +9,9 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 - **Robustez de Embeddings**: Añadidos timeouts y manejo de errores en la generación de vectores para evitar bloqueos del sistema cuando Ollama o APIs externas no responden. [15-3-26]
 - **Mapa Mental**: Corregido flujo de datos desde `user_facts` hacia la visualización del grafo. [15-3-26]
 
+### Mejorado
+- **Interfaz RAG**: Añadido contador de documentos en la cabecera del modal y en el panel lateral para una mejor gestión visual del contexto. [15-3-26]
+
 ## [0.91.0] - 15-3-26
 
 ### Corregido
