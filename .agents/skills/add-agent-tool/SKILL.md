@@ -6,67 +6,31 @@ description: Use this skill when the user wants to add a new tool or capability 
 # Skill: Add a New Agent Tool
 
 ## Overview
-ARGenteIA uses an OpenAI-compatible function-calling system. Each tool is defined with a Zod schema that gets converted to JSON Schema for the LLM, plus an execution function.
+ARGenteIA supports two types of tools:
+1.  **System Tools**: Hardcoded in `src/tools/`, registered at startup. Use these for complex logic or OS-level access.
+2.  **Dynamic Tools**: Created via the UI/Admin dashboard. Stored in SQLite and loaded at runtime. Perfect for quick scripts or API wrappers.
 
-## Steps to Add a New Tool
+## Method A: Adding a System Tool
+... (keep existing steps 1-3) ...
 
 ### 1. Create the Tool File
 Create a new file in `src/tools/<toolName>.ts`:
-
-```typescript
-import { z } from 'zod';
-import { zodToJsonSchema } from 'zod-to-json-schema';
-
-// Define the input schema
-export const MyToolSchema = z.object({
-  param1: z.string().describe('Description of param1'),
-  param2: z.number().optional().describe('Optional number param'),
-});
-
-export type MyToolInput = z.infer<typeof MyToolSchema>;
-
-// The tool definition (for LLM discovery)
-export const myToolDefinition = {
-  type: 'function' as const,
-  function: {
-    name: 'my_tool_name',
-    description: 'Clear description of what this tool does and when to use it.',
-    parameters: zodToJsonSchema(MyToolSchema),
-  },
-};
-
-// The tool execution function
-export async function executMyTool(input: MyToolInput): Promise<string> {
-  const parsed = MyToolSchema.parse(input);
-  
-  try {
-    // Your tool logic here
-    return `Result: ...`;
-  } catch (error) {
-    return `Error executing tool: ${error}`;
-  }
-}
-```
+... (keep content from line 16 to 49) ...
 
 ### 2. Register the Tool in the Agent
-In `src/agent/`, find the array where tools are registered and add:
-```typescript
-import { myToolDefinition, executeMyTool, MyToolInput } from '../tools/myTool.js';
+In `src/agent/loop.ts`, register the definition and execution logic.
 
-// In the tools array:
-myToolDefinition,
-
-// In the tool execution switch/map:
-case 'my_tool_name':
-  return await executeMyTool(args as MyToolInput);
-```
-
-### 3. Update Prompts (Optional)
-If the tool is complex, add a usage example to the relevant system prompt in `src/promptsSystem/`.
+## Method B: Adding a Dynamic Tool (Recommended for JS logic)
+1.  **Identify Requirement**: Determine if the tool can be implemented in plain JavaScript.
+2.  **Open Tool Manager**: Use the UI to "Add New Tool".
+3.  **Define Schema**: Input name, description, and Zod parameters.
+4.  **Write Script**: Use the inline editor to provide the JS logic.
+5.  **Test**: Use the "Debug" or "Chat" to verify.
 
 ## Checklist
-- [ ] Tool file created in `src/tools/`
-- [ ] Zod schema defined with `.describe()` on all fields
-- [ ] Tool registered in agent
-- [ ] Tool tested manually via chat
-- [ ] If stateful: DB schema updated
+- [ ] Tool type determined (System vs Dynamic)
+- [ ] Zod schema defined with `.describe()`
+- [ ] Logic implemented and error handling added
+- [ ] Registered in agent (if System) or Database (if Dynamic)
+- [ ] Verified via chat interface
+

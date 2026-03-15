@@ -1,0 +1,45 @@
+# ARGenteIA Project — Reglas Globales y Estándares
+
+Este archivo define las reglas obligatorias para cualquier intervención en el proyecto ARGenteIA.
+
+## 🤖 Instrucciones para el Modelo
+- Antes de cada tarea, lee el `CHANGELOG.md` para entender el estado actual.
+- Al finalizar, SIEMPRE pregunta: "¿Deseas que actualice el CHANGELOG con estos cambios?" si no lo has hecho ya.
+- Si detectas que un `import` no tiene la extensión `.js`, corrígelo automáticamente (ESM compliance).
+
+## 📝 Gestión de Changelog (MANDATORIO)
+Cualquier cambio que se realice en el código DEBE ser documentado en el archivo `CHANGELOG.md` en la raíz del proyecto.
+1.  **Inmediatez**: Actualiza el changelog inmediatamente después de realizar los cambios.
+2.  **Formato**: Sigue el estándar de [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
+3.  **Secciones**: Clasifica los cambios en: `Añadido`, `Mejorado`, `Corregido`, `Cambiado`, `Eliminado`.
+4.  **Idioma**: Español.
+⚠️ **IMPORTANTE**: No des por terminada una tarea hasta que el `CHANGELOG.md` refleje fielmente los cambios.
+
+## 🏗️ Contexto y Estructura del Proyecto
+- **Naturaleza**: Asistente personal de IA 100% local (Node.js + TS).
+- **Entrypoints**: Servidor Express (API/WS) y Bot de Telegram.
+- **Stack**: Node.js (ESM), Express 5, WebSockets (`ws`), SQLite (`better-sqlite3`), Zod, pnpm (workspaces).
+- **Diferenciación de Skills**: 
+  - `skills/`: Lógica interna de habilidades del asistente.
+  - `.agents/rules/` y `.agents/workflows/`: Reglas y flujos para la IA.
+
+## 💻 Estándares de TypeScript y Backend
+- **Tipado**: Estricto. Nunca usar `any`. Tipar retornos asíncronos como `Promise<T>`.
+- **Módulos**: Usar extensión `.js` en los imports (requerido por ESM).
+- **Naming**: camelCase para funciones/variables, PascalCase para clases/interfaces. Sufijo `Schema` para tipos Zod.
+- **Base de Datos**: Usar sentencias preparadas. NO interpolar variables en SQL.
+- **Configuración**: Usar `getConfig()` de `src/config/index.ts`. NO modificar `config.json` directamente ni hardcodear credenciales.
+
+## 🎨 Estándares de UI Frontend (`/ui`)
+- **Framework**: Vite + React + TypeScript.
+- **Estilos**: **CSS Nativo obligatorio**. NO usar Tailwind a menos que se pida expresamente.
+- **Estética**: Dark mode premium, Glassmorphism (`backdrop-filter: blur()`), acento `#4f8cff`.
+- **Variables**: Usar variables CSS del sistema en lugar de valores hardcodeados.
+- **Verificación**: Siempre verificar cambios visuales en `http://localhost:5173/` usando el subagente de navegador si es posible.
+
+## 🛠️ Herramientas y Biome
+- **Linter/Formatter**: Usamos **Biome**. Comandos: `pnpm run format`, `pnpm run lint`, `pnpm run lint:fix`.
+- **Configuración**: El archivo raíz `biome.json` gobierna todo el proyecto.
+
+---
+**REGLA DE ORO**: Si rompes algo, arréglalo antes de reportar. Si añades una funcionalidad, asegúrate de que sea "wow" visualmente.

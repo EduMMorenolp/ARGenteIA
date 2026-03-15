@@ -6,8 +6,12 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ### Añadido
 - **Mantenimiento**: Migración completa de ESLint/Prettier a **Biome** para optimización de linting y formateo.
+- **Mantenimiento**: Consolidación de todas las reglas de proyecto (Overview, TypeScript, UI) en un único archivo `.cursorrules` en la raíz para garantizar su aplicación global.
+- **Mantenimiento**: Actualización integral de las habilidades del agente (`.agents/skills`) y creación de nuevas habilidades internas (`/skills`) para Logs, Herramientas Dinámicas y Clima.
+- **Mantenimiento**: Implementación del primer sistema de **Workflows** para estandarizar el debugging de la UI.
+- **Mantenimiento**: Limpieza de la carpeta `.agents/rules` tras la unificación de estándares.
 - **UI: Modal de Gestión de Herramientas y Logs e Informes renovado:**
-  - Implementación de un barra de herramientas superior (toolbar) con buscador integrado en tiempo real para filtrar contenido en ambos modales (`ToolManager.tsx` y `LogsModal.tsx`).
+  - Implementación de una barra de herramientas superior (toolbar) con buscador integrado en tiempo real para filtrar contenido en ambos modales (`ToolManager.tsx` y `LogsModal.tsx`).
   - Agregado sistema visual de KPIs (métricas clave) en la parte superior para resúmenes rápidos (Total de Herramientas, Activas, Dinámicas, Errores Totales, etc).
   - Herramientas: Incorporación de filtros dinámicos mediante selectores para ordenar por "Tipo" (Sistema/Dinámicas) y "Estado" (Activas/Inactivas).
   - Mejora integral en el diseño CSS, adoptando un layout card-based con `grid` para un uso óptimo del espacio, scrollbars ocultos y cabeceras/toolbars flotantes adherentes (`position: sticky`).
