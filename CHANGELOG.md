@@ -7,6 +7,12 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 ### Añadido
 - Establecida regla obligatoria para la IA: registrar todos los cambios en el `CHANGELOG.md`.
 - Archivo de reglas `.cursorrules` y `.agents/rules/changelog-rules.md` para automatizar este proceso.
+- **UI: Modal de Gestión de Herramientas y Logs e Informes renovado:**
+  - Implementación de un barra de herramientas superior (toolbar) con buscador integrado en tiempo real para filtrar contenido en ambos modales (`ToolManager.tsx` y `LogsModal.tsx`).
+  - Agregado sistema visual de KPIs (métricas clave) en la parte superior para resúmenes rápidos (Total de Herramientas, Activas, Dinámicas, Errores Totales, etc).
+  - Herramientas: Incorporación de filtros dinámicos mediante selectores para ordenar por "Tipo" (Sistema/Dinámicas) y "Estado" (Activas/Inactivas).
+  - Mejora integral en el diseño CSS, adoptando un layout card-based con `grid` para un uso óptimo del espacio, scrollbars ocultos y cabeceras/toolbars flotantes adherentes (`position: sticky`).
+  - Metadatos visuales enriquecidos en las tarjetas de herramientas y reportes.
 - **UI: Modal de Creación de Expertos renovado:**
   - Implementación del nuevo layout con `modal-centered-wrapper` homologando el diseño con el modal de Gestión de Modelos.
   - Añadidas **dos ventanas emergentes (paneles laterales)** con animación fluida en el `ExpertCreator`.
@@ -14,7 +20,7 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
   - El panel izquierdo preparado para futuras "Opciones Avanzadas".
 - **UI: Rediseño del Sidebar Principal:**
   - Las secciones del sidebar (Comandos, Expertos, Tareas, Modelos) ahora son **colapsables / expansibles**, permitiendo optimizar el espacio vertical.
-  - Nuevos iconos estandarizados (`TerminalSquare`, `Network`, `CalendarClock`, `Cpu`) para los encabezados de cada sección.
+  - Nuevos iconos estandarizados (`TerminalSquare`, `Network`, `CalendarClock`, `Cpu`, `FileText`) para los encabezados de cada sección.
   - Mejora en el layout de los comandos y estados de hover de los items.
 
 ## [0.9.0] - 2026-03-04
