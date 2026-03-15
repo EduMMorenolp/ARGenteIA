@@ -6,6 +6,7 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ### Añadido
 - **Mantenimiento**: Migración completa de ESLint/Prettier a **Biome** para optimización de linting y formateo.
+- **Mantenimiento**: Actualización integral de la documentación a la versión **v0.9.0** (README, Technical, Architecture, File Guide) reflejando todos los cambios de infraestructura.
 - **Mantenimiento**: Sistema de configuración mejorado: el archivo `config.json` ahora es opcional. El sistema arranca con valores por defecto si no existe.
 - **Mantenimiento**: Actualización de `config.example.opcional.json` con todos los parámetros disponibles (Tools, Telegram, Memory, etc.).
 - **Mantenimiento**: Consolidación de todas las reglas de proyecto (Overview, TypeScript, UI) en un único archivo `.cursorrules` en la raíz para garantizar su aplicación global.

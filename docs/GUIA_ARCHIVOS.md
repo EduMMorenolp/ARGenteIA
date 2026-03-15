@@ -8,9 +8,12 @@ Este documento explica cómo funciona el asistente desde el momento en que se in
 
 El archivo `src/index.ts` es el punto de entrada de la aplicación. Cuando ejecutas el servidor (vía `pnpm dev` o `npm start`), ocurre lo siguiente:
 
-1.  **Carga de Configuración (`loadConfig`):** Se lee el archivo `config.json`. Si no existe, el servidor se detiene pidiendo que lo crees basándote en `config.example.json`.
-2.  **Inicialización de Base de Datos (`getDb`):** Se conecta a SQLite (`assistant.db`). Si las tablas no existen (es la primera vez), se crean automáticamente (usuarios, mensajes, tareas, expertos, etc.).
-3.  **Registro de Herramientas (`initTools`):** Se cargan y habilitan todas las funciones que el agente puede usar (búsqueda web, escribir archivos, clima, captura de pantalla, etc.).
+1.  **Carga de Configuración (`loadConfig`):** Se lee `config.json`. Si no existe, el sistema inicia con valores por defecto y avisa que se base en `config.example.opcional.json` para personalizar.
+2.  **Inicialización de Base de Datos y Logs:** Se conecta a SQLite (`assistant.db`) e inicia el motor de logs de actividad (`activity_log`).
+3.  **Registro de Herramientas:** Se cargan las herramientas fijas del sistema y las dinámicas almacenadas en la base de datos.
+...
+5.  **Biome (Linter/Formatter):** El proyecto usa **Biome** para mantener la consistencia del código de forma ultrarápida.
+6.  **Encendido del Gateway...**
 4.  **Activación del Planificador (`initScheduler`):** Se cargan las tareas programadas (CRON) activas de la base de datos para que el asistente pueda realizar acciones por sí solo en el futuro.
 5.  **Encendido del Gateway (`createGateway`):**
     *   Se inicia un servidor **Express** para servir la interfaz web (`ui/`).

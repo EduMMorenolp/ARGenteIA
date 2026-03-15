@@ -1,4 +1,4 @@
-# 🤖 ARGenteIA `v0.8.0`
+# 🤖 ARGenteIA `v0.9.0`
 
 ### El Asistente Personal que Vive en tu PC
 
@@ -9,14 +9,15 @@ ARGenteIA es mucho más que un simple chatbot. Es un ecosistema de IA diseñado 
 ## ✨ Características Principales
 
 *   **🏠 100% Local o Cloud:** Tú eliges. Conéctalo a **Ollama** para privacidad total o a **OpenRouter/OpenAI** para máxima potencia.
-*   **🧠 Memoria Infinita:** No solo recuerda la charla actual. El asistente puede "memorizar" datos sobre ti (tus gustos, fechas importantes, notas) que persisten para siempre.
-*   **🤖 Sistema de Expertos (Multi-Agente):** Crea agentes especializados para tareas específicas: un experto en programación, un asistente de cocina o un analista financiero.
-*   **📚 Triple RAG (Retrieval-Augmented Generation):** El asistente cuenta con memoria a largo plazo basada en vectores (Embeddings) tanto a nivel **Global** como **Por Experto**, además de inyectar las descripciones de herramientas (Tool RAG) dinámicamente para ahorrar tokens.
-*   **🐚 Terminal Inteligente:** Pídele que ejecute comandos, instale paquetes o analice logs. Soporta **Windows (PowerShell)** y **Linux (Bash)**.
-*   **📅 Automatización CRON:** Programa tareas para que el asistente las haga por ti mientras duermes (reportes, recordatorios, monitoreo).
-*   **📊 Dashboard y Gestor de Modelos:** Control visual del consumo y gestión integral de tus APIs (OpenRouter, Ollama) con búsqueda e integración directa desde la UI.
-*   **⚡ Respuestas en Tiempo Real:** Interfaz **Streaming** nativa (vía WebSockets) para que la interacción fluya como un chat humano.
-*   **📱 Multi-Canal Nativo:** Chatea con una interfaz Web moderna y premium o usa el bot de **Telegram** para enviarte archivos y comandos desde cualquier lugar.
+*   **🛠️ Herramientas Dinámicas:** Crea y edita herramientas en tiempo real mediante JavaScript (vía UI) sin reiniciar el servidor.
+*   **🧠 Memoria Infinita:** No solo recuerda la charla actual. El asistente puede "memorizar" datos sobre ti que persisten para siempre.
+*   **🤖 Sistema de Expertos Expandido:** Biblioteca de plantillas con +10 expertos preconfigurados (Cripto, CM, Redactor, Fitness, etc.).
+*   **📈 Logs e Informes Avanzados:** Registro detallado de actividad, métricas de rendimiento y KPIs visuales en tiempo real.
+*   **📚 Triple RAG (Retrieval-Augmented Generation):** Memoria vectorial persistente a nivel Global, por Experto y Tool RAG dinámico.
+*   **🐚 Terminal Inteligente:** Integración nativa con **PowerShell (Windows)** y **Bash (Linux)** con control de seguridad.
+*   **📅 Automatización CRON:** Programa tareas (reportes, recordatorios, monitoreo) directamente desde el chat.
+*   **⚡ Arquitectura Moderna:** Migración a **Biome** para un desarrollo ultrarápido. Configuración simplificada (`config.json` opcional).
+*   **📱 Multi-Canal Nativo:** Web UI premium (Glassmorphism) y bot de **Telegram** con menús interactivos (Inline Keyboards).
 
 ---
 

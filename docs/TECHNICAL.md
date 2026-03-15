@@ -4,16 +4,17 @@
 
 ### Requisitos Previos
 
-- **Node.js**: Versión 22 o superior
-- **PNPM**: El gestor de paquetes recomendado (npm install -g pnpm)
-- **Ollama** (Opcional): Si deseas ejecutar modelos 100% locales
+- **Node.js**: Versión 22 o superior.
+- **PNPM**: El gestor de paquetes recomendado.
+- **Biome**: Utilizado para linting y formateo ultrarápido (reemplaza a ESLint/Prettier).
+- **Ollama** (Opcional): Para modelos 100% locales.
 
 ### Pasos de Instalación
 
 - Clonar el repositorio: `git clone https://github.com/EduMMorenolp/ARGenteIA.git`
 - Entrar al directorio: `cd ARGenteIA`
 - Instalar dependencias: `pnpm install`
-- Copiar configuración: `cp config.example.json config.json`
+- **Configuración (Opcional)**: El sistema arranca con valores por defecto. Para personalizar, copia `config.example.opcional.json` a `config.json`.
 - Ejecutar en desarrollo: `pnpm dev`
 
 ## Configuración
@@ -57,11 +58,27 @@ Se utiliza SQLite con el driver better-sqlite3. Las tablas principales:
 - **chats**: Agrupación de mensajes por contexto y experto
 - **user_facts**: Memoria a largo plazo (recuerdos precisos del usuario)
 - **document_chunks**: Memoria vectorial RAG con embeddings para búsqueda por similitud semántica
-- **scheduled_tasks**: Tareas CRON persistentes
-- **sub_agents**: Configuración de expertos personalizados (nombre, prompt, herramientas)
-- **models**: Modelos de IA configurados (nombre, displayName, API Key, Base URL)
+- **scheduled_tasks**: Tareas CRON persistentes.
+- **sub_agents**: Configuración de expertos personalizados.
+- **models**: Modelos de IA configurados.
+- **activity_log**: Registro histórico de acciones y errores del sistema.
+- **dynamic_tools**: Herramientas creadas dinámicamente vía UI.
+
+## Workflows y Estándares
+
+### .agents/workflows
+El proyecto incluye flujos de trabajo guiados para tareas comunes (ej: debugging de UI). Estos archivos `.md` sirven de guía para que cualquier asistente mantenga la consistencia en los procesos.
+
+### Global Standards (.cursorrules)
+Todas las reglas de estilo, estándares de TypeScript y guías de UI están centralizadas en el archivo `.cursorrules` en la raíz. Esto garantiza que el asistente aplique siempre las mejores prácticas del proyecto.
+
+### Biome
+Usamos Biome para garantizar un código limpio y consistente. 
+- Formatear: `pnpm run format`
+- Corregir lints: `pnpm run lint:fix`
 
 ## Extensibilidad
+... (continúa igual) ...
 
 ### Añadir una nueva herramienta
 

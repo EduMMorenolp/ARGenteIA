@@ -7,18 +7,18 @@ El sistema está diseñado bajo una arquitectura de Agente Autónomo con múltip
 - **Canales de Entrada**: Telegram Bot y WebChat Frontend (React)
 - **Comunicación Central**: Servidor Express con protocolo WebSocket
 - **Cerebro (Motor del Agente)**: Agent Loop, Model Providers (OpenAI/Ollama/OpenRouter), Expert Runner Multi-Agente
-- **Herramientas**: Terminal Bash/PS, Filesystem Tools, Web Search/URL, Scheduler/Tareas
-- **Memoria y Persistencia**: SQLite DB + Memoria de Sesión
+- **Herramientas**: Terminal Bash/PS, Herramientas Dinámicas (JS), Filesystem, Web Search, Scheduler.
+- **Memoria y Persistencia**: SQLite DB + Memoria de Sesión + Logs de Actividad.
 
 ## Punto de Entrada
 
 Archivo: `src/index.ts`
 
-Es el encargado de encender el motor. Realiza cuatro acciones críticas:
+Es el encargado de encender el motor. Realiza acciones críticas:
 
-- Carga y valida la configuración (`config.json`) con Zod
-- Inicializa la base de datos SQLite
-- Registra todas las herramientas disponibles (+ precomputa embeddings para Tool RAG)
+- Carga configuración (soporta modo `optional` sin `config.json`).
+- Inicializa la base de datos SQLite y el sistema de Logs.
+- Registra herramientas fijas y dinámicas.
 - Arranca el Gateway (Web) y el Bot de Telegram
 
 ## Gateway y Protocolo
