@@ -68,8 +68,7 @@ export function registerSchedulerTools(_config: Config): void {
       type: 'function',
       function: {
         name: 'schedule_delayed_task',
-        description:
-          'Programa una acción para que ocurra una sola vez después de N minutos.',
+        description: 'Programa una acción para que ocurra una sola vez después de N minutos.',
         parameters: {
           type: 'object',
           properties: {

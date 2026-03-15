@@ -15,6 +15,10 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 - **Mantenimiento**: Limpieza de la carpeta `.agents/rules` tras la unificación de estándares.
 - **Recordatorios de un solo uso**: Implementación de la herramienta `schedule_delayed_task` para programar acciones puntuales después de N minutos.
 - **Programador**: Mejora en el núcleo del planificador para soportar tareas desechables (`is_once`) que se eliminan automáticamente tras su ejecución.
+- **Mejora en Resiliencia de Modelos**: 
+  - Notificaciones en tiempo real en el chat sobre fallos de modelos y reintentos automáticos.
+  - Reporte preciso del modelo final que respondió, corrigiendo errores de visualización durante fallos en cascada.
+  - Soporte para notificaciones de Rate Limit (429) y espera inteligente con feedback al usuario.
 - **Mapa Mental**: Nueva visualización de grafo de memoria semántica usando embeddings locales.
 - **Memoria de Hechos Mejorada**: Ahora los hechos memorizados incluyen representación vectorial.
 - **UI: Modal de Gestión de Herramientas y Logs e Informes renovado:**

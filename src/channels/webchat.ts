@@ -86,7 +86,7 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
 
       result = {
         text: resultExpert.text,
-        model: `Expert: ${opts.expertName}`,
+        model: resultExpert.model,
         usage: resultExpert.usage,
         latencyMs: resultExpert.latencyMs,
       };

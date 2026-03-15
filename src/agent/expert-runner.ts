@@ -24,7 +24,7 @@ export interface ExpertRequest {
  */
 export async function runExpert(
   req: ExpertRequest,
-): Promise<{ text: string; usage?: CompletionUsage; latencyMs: number }> {
+): Promise<{ text: string; usage?: CompletionUsage; latencyMs: number; model: string }> {
   const startTime = Date.now();
   const expert = getExpert(req.expertName, true);
   if (!expert) {
@@ -129,6 +129,7 @@ export async function runExpert(
             text: assistantMsg.content,
             usage: response.usage,
             latencyMs: Date.now() - startTime,
+            model: expert.model,
           };
         }
         break;
@@ -189,6 +190,7 @@ export async function runExpert(
       text: finalResponse,
       usage: response.usage,
       latencyMs: Date.now() - startTime,
+      model: expert.model,
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);

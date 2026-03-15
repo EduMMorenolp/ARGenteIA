@@ -123,17 +123,20 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
 
   if (opts.chatId) activeChats.add(opts.chatId);
 
+  let actualModel = model;
   try {
     let responseText = '';
 
     const startTime = Date.now();
     let result: { text: string; usage?: CompletionUsage };
-
     if (provider === 'anthropic') {
-      const text = await runAnthropic(model, messages, config.agent.maxTokens);
-      result = { text };
+      const anthRes = await runAnthropic(model, messages, config.agent.maxTokens);
+      result = { text: anthRes.text };
+      actualModel = anthRes.actualModel;
     } else {
-      result = await runOpenAI(model, messages, config.agent.maxTokens, opts);
+      const openAiRes = await runOpenAI(model, messages, config.agent.maxTokens, opts);
+      result = { text: openAiRes.text, usage: openAiRes.usage };
+      actualModel = openAiRes.actualModel;
     }
     const latencyMs = Date.now() - startTime;
     responseText = result.text;
@@ -164,14 +167,14 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
     logger.agent(`Respuesta de IA para chat ${opts.chatId}`, {
       userId: opts.userId,
       chatId: opts.chatId,
-      model,
+      model: actualModel,
       latencyMs,
       data: { usage: result.usage },
     });
 
     return {
       text: responseText,
-      model,
+      model: actualModel,
       usage: result.usage,
       latencyMs,
     };
@@ -180,7 +183,7 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
     const msg = err instanceof Error ? err.message : 'Error desconocido';
     return {
       text: `Lo siento, ocurrió un error al procesar tu mensaje: ${msg}. Por favor, intenta de nuevo o reinicia la sesión con /reset.`,
-      model,
+      model: actualModel || model,
     };
   } finally {
     opts.onTyping?.(false);
@@ -232,7 +235,7 @@ async function runOpenAI(
   messages: ChatCompletionMessageParam[],
   maxTokens: number,
   opts: AgentOptions,
-): Promise<{ text: string; usage?: CompletionUsage }> {
+): Promise<{ text: string; usage?: CompletionUsage; actualModel: string }> {
   const config = getConfig();
   const userId = opts.userId;
 
@@ -412,6 +415,9 @@ async function runOpenAI(
                     `   ⚠️ [${currentModel}] Límite alcanzado. Reintentando en ${delay / 1000}s...`,
                   ),
                 );
+                opts.onAction?.(
+                  `⏳ ${currentModel} saturado (429). Reintentando en ${delay / 1000}s...`,
+                );
                 await new Promise((resolve) => setTimeout(resolve, delay));
                 retries--;
                 delay *= 2;
@@ -453,6 +459,7 @@ async function runOpenAI(
                 return {
                   text: assistantMsg.content,
                   usage: (response as any).usage,
+                  actualModel: currentModel,
                 };
               }
               break;
@@ -521,12 +528,17 @@ async function runOpenAI(
             content: loadPrompt('fallback'),
           });
           const finalRes = await callWithRetry(loopMessages, false);
-          return { text: finalRes.choices[0]?.message?.content || '', usage: undefined };
+          return {
+            text: finalRes.choices[0]?.message?.content || '',
+            usage: undefined,
+            actualModel: currentModel,
+          };
         }
 
         return {
           text: response.choices[0].message.content,
           usage: response.usage,
+          actualModel: currentModel,
         };
       } catch (err: unknown) {
         const isRateLimit =
@@ -559,6 +571,7 @@ async function runOpenAI(
               `   🚨 Modelo [${currentModel}] falló (${msg}). Probando fallback con [${modelsToTry[mIdx + 1]}]...`,
             ),
           );
+          opts.onAction?.(`⚠️ ${currentModel} falló (${msg}). Reintentando...`);
           continue; // Siguiente modelo en el loop for
         }
 
@@ -596,6 +609,6 @@ async function runAnthropic(
   _model: string,
   _messages: ChatCompletionMessageParam[],
   _tokens: number,
-): Promise<string> {
-  return 'Soporte Anthropic en desarrollo.';
+): Promise<{ text: string; actualModel: string }> {
+  return { text: 'Soporte Anthropic en desarrollo.', actualModel: _model };
 }

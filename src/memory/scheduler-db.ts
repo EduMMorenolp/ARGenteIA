@@ -10,12 +10,7 @@ export interface ScheduledTask {
   created_at: string;
 }
 
-export function saveTask(
-  userId: string,
-  task: string,
-  cron: string,
-  isOnce = 0,
-): number {
+export function saveTask(userId: string, task: string, cron: string, isOnce = 0): number {
   const db = getDb();
   const stmt = db.prepare(
     'INSERT INTO scheduled_tasks (userId, task, cron, is_once) VALUES (?, ?, ?, ?)',
