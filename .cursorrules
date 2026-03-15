@@ -13,6 +13,7 @@ Cualquier cambio que se realice en el código DEBE ser documentado en el archivo
 2.  **Formato**: Sigue el estándar de [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 3.  **Secciones**: Clasifica los cambios en: `Añadido`, `Mejorado`, `Corregido`, `Cambiado`, `Eliminado`.
 4.  **Idioma**: Español.
+5.  **Fecha**: Cada ítem del changelog debe terminar con la fecha del cambio entre corchetes, formato `[D-M-YY]` (ej: `... única. [15-3-26]`).
 ⚠️ **IMPORTANTE**: No des por terminada una tarea hasta que el `CHANGELOG.md` refleje fielmente los cambios.
 
 ## 🏗️ Contexto y Estructura del Proyecto

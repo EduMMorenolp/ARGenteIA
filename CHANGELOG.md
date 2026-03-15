@@ -5,17 +5,17 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 ## [Unreleased]
 
 ### Corregido
-- **Persistencia de Mensajes**: Solucionado error crítico en `runExpert` que impedía el guardado de respuestas del asistente en la base de datos debido a un retorno temprano en el bucle de herramientas.
-- **Sincronización Telegram-Web**: Corregido el guardado de mensajes entrantes desde Telegram en la base de datos (antes solo se transmitían por WebSocket pero no se persistían).
-- **Duplicación de Cuentas**: Corregido fallo que creaba perfiles duplicados al usar Telegram sin vinculación previa. Ahora el sistema utiliza el ID numérico de Telegram para una vinculación persistente y única.
-- **Lista de Chats**: Se ha unificado la visualización de chats web en el sidebar; ahora se muestran todos los chats recientes (asistente general y expertos) independientemente del experto seleccionado, evitando que los chats "desaparezcan" al recibir actualizaciones de otros canales.
-- **Limpieza de Historial**: Eliminado el prefijo redundante `[Experto: ...]` al guardar mensajes de usuario en chats de expertos, mejorando la legibilidad del historial.
-- **Resiliencia de Expertos**: Implementado el sistema de **Model Fallbacks** también para expertos, asegurando que si el modelo preferido falla (Rate Limit u otro), se intente con modelos alternativos de la configuración o base de datos.
+- **Persistencia de Mensajes**: Solucionado error crítico en `runExpert` que impedía el guardado de respuestas del asistente en la base de datos debido a un retorno temprano en el bucle de herramientas. [15-3-26]
+- **Sincronización Telegram-Web**: Corregido el guardado de mensajes entrantes desde Telegram en la base de datos (antes solo se transmitían por WebSocket pero no se persistían). [15-3-26]
+- **Duplicación de Cuentas**: Corregido fallo que creaba perfiles duplicados al usar Telegram sin vinculación previa. Ahora el sistema utiliza el ID numérico de Telegram para una vinculación persistente y única. [15-3-26]
+- **Lista de Chats**: Se ha unificado la visualización de chats web en el sidebar; ahora se muestran todos los chats recientes (asistente general y expertos) independientemente del experto seleccionado, evitando que los chats "desaparezcan" al recibir actualizaciones de otros canales. [15-3-26]
+- **Limpieza de Historial**: Eliminado el prefijo redundante `[Experto: ...]` al guardar mensajes de usuario en chats de expertos, mejorando la legibilidad del historial. [15-3-26]
+- **Resiliencia de Expertos**: Implementado el sistema de **Model Fallbacks** también para expertos, asegurando que si el modelo preferido falla (Rate Limit u otro), se intente con modelos alternativos de la configuración o base de datos. [15-3-26]
 
 ### Añadido
-- **Base de Datos**: Nueva columna `telegram_id` en la tabla `users` para garantizar la identificación inequívoca de usuarios procedentes de Telegram.
-- **Prompt de Sistema**: Inyección de metadatos de canal (ID de Telegram y estado de vinculación) en el prompt para que el asistente pueda asistir activamente en la configuración del perfil del usuario.
-- **Herramienta `update_profile`**: Mejorada para soportar la actualización de datos de Telegram y capturar automáticamente el ID de canal durante el uso desde el bot.
+- **Base de Datos**: Nueva columna `telegram_id` en la tabla `users` para garantizar la identificación inequívoca de usuarios procedentes de Telegram. [15-3-26]
+- **Prompt de Sistema**: Inyección de metadatos de canal (ID de Telegram y estado de vinculación) en el prompt para que el asistente pueda asistir activamente en la configuración del perfil del usuario. [15-3-26]
+- **Herramienta `update_profile`**: Mejorada para soportar la actualización de datos de Telegram y capturar automáticamente el ID de canal durante el uso desde el bot. [15-3-26]
 - **Mantenimiento**: Migración completa de ESLint/Prettier a **Biome** para optimización de linting y formateo.
 - **Mantenimiento**: Actualización integral de la documentación a la versión **v0.9.0** (README, Technical, Architecture, File Guide) reflejando todos los cambios de infraestructura.
 - **Mantenimiento**: Sistema de configuración mejorado: el archivo `config.json` ahora es opcional. El sistema arranca con valores por defecto si no existe.
