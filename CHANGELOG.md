@@ -5,8 +5,7 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 ## [Unreleased]
 
 ### Añadido
-- Establecida regla obligatoria para la IA: registrar todos los cambios en el `CHANGELOG.md`.
-- Archivo de reglas `.cursorrules` y `.agents/rules/changelog-rules.md` para automatizar este proceso.
+- **Mantenimiento**: Migración completa de ESLint/Prettier a **Biome** para optimización de linting y formateo.
 - **UI: Modal de Gestión de Herramientas y Logs e Informes renovado:**
   - Implementación de un barra de herramientas superior (toolbar) con buscador integrado en tiempo real para filtrar contenido en ambos modales (`ToolManager.tsx` y `LogsModal.tsx`).
   - Agregado sistema visual de KPIs (métricas clave) en la parte superior para resúmenes rápidos (Total de Herramientas, Activas, Dinámicas, Errores Totales, etc).
