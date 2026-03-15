@@ -43,6 +43,8 @@ export function registerSchedulerTools(_config: Config): void {
           userId: context.sessionId,
           task: taskStr,
           cron: cronStr,
+          is_once: 0,
+          active: 1,
           created_at: new Date().toISOString(),
         });
 
@@ -55,6 +57,72 @@ export function registerSchedulerTools(_config: Config): void {
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
         return `❌ Error al programar la tarea: ${msg}`;
+      }
+    },
+  });
+
+  // 1.5. Programar tarea de un solo uso (delay)
+  registerTool({
+    isEnabled: () => true,
+    spec: {
+      type: 'function',
+      function: {
+        name: 'schedule_delayed_task',
+        description:
+          'Programa una acción para que ocurra una sola vez después de N minutos.',
+        parameters: {
+          type: 'object',
+          properties: {
+            task: {
+              type: 'string',
+              description: 'Descripción de la tarea a realizar.',
+            },
+            minutes: {
+              type: 'number',
+              description: 'Minutos a esperar desde ahora.',
+            },
+          },
+          required: ['task', 'minutes'],
+        },
+      },
+    },
+    handler: async (args, context) => {
+      const taskStr = String(args['task'] ?? '').trim();
+      const minutes = Number(args['minutes']);
+
+      if (!taskStr || isNaN(minutes) || minutes <= 0) {
+        return '❌ Error: Datos inválidos. "minutes" debe ser un número positivo.';
+      }
+
+      try {
+        const now = new Date();
+        const targetDate = new Date(now.getTime() + minutes * 60000);
+
+        // Generar cron para un solo uso: min hour day month *
+        const cronStr = `${targetDate.getMinutes()} ${targetDate.getHours()} ${targetDate.getDate()} ${
+          targetDate.getMonth() + 1
+        } *`;
+
+        const taskId = saveTask(context.sessionId, taskStr, cronStr, 1);
+        scheduleLocalTask({
+          id: taskId,
+          userId: context.sessionId,
+          task: taskStr,
+          cron: cronStr,
+          is_once: 1,
+          active: 1,
+          created_at: now.toISOString(),
+        });
+
+        // Notificar al WebChat
+        import('../gateway/server.ts').then(({ broadcastTasksForUser }) => {
+          broadcastTasksForUser(context.sessionId);
+        });
+
+        return `✅ Recordatorio programado para dentro de ${minutes} min (aprox ${targetDate.toLocaleTimeString()}). Tarea: "${taskStr}"`;
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return `❌ Error al programar: ${msg}`;
       }
     },
   });

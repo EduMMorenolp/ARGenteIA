@@ -308,6 +308,7 @@ export function createGateway(): GatewayServer {
             userId: sessionId,
             task: msg.task,
             cron: msg.cron,
+            is_once: 0,
             active: 1,
             created_at: new Date().toISOString(),
           });

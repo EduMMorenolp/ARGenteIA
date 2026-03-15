@@ -164,8 +164,9 @@ export async function runAgent(opts: AgentOptions): Promise<AgentResponse> {
     logger.agent(`Respuesta de IA para chat ${opts.chatId}`, {
       userId: opts.userId,
       chatId: opts.chatId,
+      model,
       latencyMs,
-      data: { model, usage: result.usage },
+      data: { usage: result.usage },
     });
 
     return {

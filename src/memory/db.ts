@@ -200,9 +200,9 @@ export function getDb(): Database.Database {
     // Ya existe o error
   }
 
-  // Migración: Agregar displayName a models
+  // Migración: Agregar is_once a scheduled_tasks
   try {
-    _db.exec('ALTER TABLE models ADD COLUMN displayName TEXT');
+    _db.exec('ALTER TABLE scheduled_tasks ADD COLUMN is_once INTEGER DEFAULT 0');
   } catch {
     // Ya existe
   }

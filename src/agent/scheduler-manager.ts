@@ -80,25 +80,36 @@ export function scheduleLocalTask(task: ScheduledTask): void {
             origin: isTelegram ? 'telegram' : 'web',
           });
 
-          // Enviar el resultado al canal correspondiente
-          if (task.userId && task.userId.startsWith('telegram-')) {
-            const chatId = task.userId.replace('telegram-', '');
-            const bot = getBot();
-            if (bot) {
-              await bot
-                .sendMessage(chatId, result.text, { parse_mode: 'Markdown' })
-                .catch(async () => {
-                  await bot.sendMessage(chatId, result.text);
-                });
+            // Enviar el resultado al canal correspondiente
+            if (task.userId && task.userId.startsWith('telegram-')) {
+              const chatId = task.userId.replace('telegram-', '');
+              const bot = getBot();
+              if (bot) {
+                await bot
+                  .sendMessage(chatId, result.text, { parse_mode: 'Markdown' })
+                  .catch(async () => {
+                    await bot.sendMessage(chatId, result.text);
+                  });
+              }
+            } else {
+              console.log(
+                chalk.dim(
+                  `   [scheduler] No se puede enviar respuesta a canal desconocido: ${task.userId}`,
+                ),
+              );
             }
-          } else {
-            console.log(
-              chalk.dim(
-                `   [scheduler] No se puede enviar respuesta a canal desconocido: ${task.userId}`,
-              ),
-            );
-          }
-        } catch (err: unknown) {
+
+            // Si es una tarea de un solo uso, eliminarla
+            if (task.is_once === 1) {
+              const { deleteTask } = await import('../memory/scheduler-db.ts');
+              deleteTask(task.id, task.userId);
+              stopLocalTask(task.id);
+              // Notificar al WebChat
+              import('../gateway/server.ts').then(({ broadcastTasksForUser }) => {
+                broadcastTasksForUser(task.userId);
+              });
+            }
+          } catch (err: unknown) {
           console.error(
             chalk.red(`   ❌ Error al ejecutar runAgent para tarea [ID ${task.id}]:`),
             err instanceof Error ? err.message : err,

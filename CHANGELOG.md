@@ -13,6 +13,8 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 - **Mantenimiento**: Actualización integral de las habilidades del agente (`.agents/skills`) y creación de nuevas habilidades internas (`/skills`) para Logs, Herramientas Dinámicas y Clima.
 - **Mantenimiento**: Implementación del primer sistema de **Workflows** para estandarizar el debugging de la UI.
 - **Mantenimiento**: Limpieza de la carpeta `.agents/rules` tras la unificación de estándares.
+- **Recordatorios de un solo uso**: Implementación de la herramienta `schedule_delayed_task` para programar acciones puntuales después de N minutos.
+- **Programador**: Mejora en el núcleo del planificador para soportar tareas desechables (`is_once`) que se eliminan automáticamente tras su ejecución.
 - **Mapa Mental**: Nueva visualización de grafo de memoria semántica usando embeddings locales.
 - **Memoria de Hechos Mejorada**: Ahora los hechos memorizados incluyen representación vectorial.
 - **UI: Modal de Gestión de Herramientas y Logs e Informes renovado:**

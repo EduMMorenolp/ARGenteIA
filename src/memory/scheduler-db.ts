@@ -5,14 +5,22 @@ export interface ScheduledTask {
   userId: string;
   task: string;
   cron: string;
+  is_once: number;
   active: number;
   created_at: string;
 }
 
-export function saveTask(userId: string, task: string, cron: string): number {
+export function saveTask(
+  userId: string,
+  task: string,
+  cron: string,
+  isOnce = 0,
+): number {
   const db = getDb();
-  const stmt = db.prepare('INSERT INTO scheduled_tasks (userId, task, cron) VALUES (?, ?, ?)');
-  const result = stmt.run(userId, task, cron);
+  const stmt = db.prepare(
+    'INSERT INTO scheduled_tasks (userId, task, cron, is_once) VALUES (?, ?, ?, ?)',
+  );
+  const result = stmt.run(userId, task, cron, isOnce);
   return result.lastInsertRowid as number;
 }
 
