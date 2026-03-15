@@ -210,7 +210,7 @@ export function createGateway(): GatewayServer {
 
             send(ws, {
               type: 'list_chats',
-              chats: listChats(sessionId),
+              chats: listChats(sessionId, undefined), // Usar undefined para ver todos los chats recientes en el sidebar
               channelChats: listChannelChats(sessionId),
             } as unknown as WsMessage);
           },
@@ -420,11 +420,10 @@ export function createGateway(): GatewayServer {
           togglePin(msg.chatId);
         }
 
-        // Re-enviar lista de chats actualizada
-        const expertFilter = msg.expertName !== undefined ? msg.expertName : null;
+        // Re-enviar lista de chats actualizada a todos los clientes (unificada)
         send(ws, {
           type: 'list_chats',
-          chats: listChats(sessionId, expertFilter),
+          chats: listChats(sessionId, undefined), // Sin filtro por defecto para ver todos los recientes
           channelChats: listChannelChats(sessionId),
         } as unknown as WsMessage);
       } else if (msg.type === 'request_dashboard') {

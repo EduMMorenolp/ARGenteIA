@@ -154,7 +154,7 @@ export async function handleWebChatMessage(opts: WebChatHandlerOpts): Promise<vo
 
     send(ws, {
       type: 'list_chats',
-      chats: listChats(sessionId, opts.expertName || null),
+      chats: listChats(sessionId, undefined),
       channelChats: listChannelChats(sessionId),
     } as unknown as WsMessage);
   } catch (err) {

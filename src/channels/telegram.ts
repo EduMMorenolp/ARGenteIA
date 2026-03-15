@@ -116,7 +116,17 @@ export async function startTelegram(): Promise<void> {
     try {
       const { getOrCreateChannelChat } = await import('../memory/chat-db.ts');
       const channelChat = getOrCreateChannelChat(effectiveUserId, 'telegram');
-
+ 
+      // Persistir el mensaje del usuario en la BD
+      const { saveMessage } = await import('../memory/message-db.ts');
+      saveMessage({
+        userId: effectiveUserId,
+        chatId: channelChat.id,
+        role: 'user',
+        content: text,
+        origin: 'telegram',
+      });
+ 
       // Interceptar Tags (@AgentName) para invocar expertos en grupos o chat directo
       let finalUserText = text;
       const { listExperts } = await import('../memory/expert-db.ts');
@@ -251,7 +261,7 @@ export async function startTelegram(): Promise<void> {
 
       broadcastToUser(effectiveUserId, {
         type: 'list_chats',
-        chats: listChats(effectiveUserId, null), // Actualizar lista general
+        chats: listChats(effectiveUserId, undefined), // Enviar TODOS los chats web para no pisar el filtro de la UI
         channelChats: listChannelChats(effectiveUserId),
       } as any);
     } catch (err) {

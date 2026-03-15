@@ -4,6 +4,13 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ## [Unreleased]
 
+### Corregido
+- **Persistencia de Mensajes**: Solucionado error crítico en `runExpert` que impedía el guardado de respuestas del asistente en la base de datos debido a un retorno temprano en el bucle de herramientas.
+- **Sincronización Telegram-Web**: Corregido el guardado de mensajes entrantes desde Telegram en la base de datos (antes solo se transmitían por WebSocket pero no se persistían).
+- **Lista de Chats**: Se ha unificado la visualización de chats web en el sidebar; ahora se muestran todos los chats recientes (asistente general y expertos) independientemente del experto seleccionado, evitando que los chats "desaparezcan" al recibir actualizaciones de otros canales.
+- **Limpieza de Historial**: Eliminado el prefijo redundante `[Experto: ...]` al guardar mensajes de usuario en chats de expertos, mejorando la legibilidad del historial.
+- **Resiliencia de Expertos**: Implementado el sistema de **Model Fallbacks** también para expertos, asegurando que si el modelo preferido falla (Rate Limit u otro), se intente con modelos alternativos de la configuración o base de datos.
+
 ### Añadido
 - **Mantenimiento**: Migración completa de ESLint/Prettier a **Biome** para optimización de linting y formateo.
 - **Mantenimiento**: Actualización integral de la documentación a la versión **v0.9.0** (README, Technical, Architecture, File Guide) reflejando todos los cambios de infraestructura.
