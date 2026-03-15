@@ -64,6 +64,18 @@ export const TEMPLATES: Template[] = [
       { text: '💧 Recordar Agua', callback_data: 'salud_agua' },
     ],
   },
+  {
+    name: 'Personal Trainer & Nutrición',
+    prompt:
+      'Eres un coach de salud integral. Tu objetivo es planificar rutinas de ejercicio adaptadas al hogar, realizar seguimiento de nutrición (conteo de macros) y mantener la motivación del usuario en niveles altos.',
+    description: 'Coach de fitness, rutinas en casa y nutrición.',
+    category: 'Hogar',
+    tools: ['memorize_fact', 'recall_facts'],
+    telegram_buttons: [
+      { text: '💪 Rutina Hoy', callback_data: 'fit_rutina' },
+      { text: '🍎 Plan Dieta', callback_data: 'fit_dieta' },
+    ],
+  },
 
   // 2. Productividad y Tech
   {
@@ -79,6 +91,30 @@ export const TEMPLATES: Template[] = [
     ],
   },
   {
+    name: 'Redactor Creativo & Copywriter',
+    prompt:
+      'Eres un redactor experto y copywriter creativo. Tu objetivo es ayudar al usuario a crear contenido de alto impacto para blogs, hilos de X (Twitter), newsletters y guiones de video. Enfócate en la claridad, el engagement y el storytelling.',
+    description: 'Creación de contenido, hilos de X y storytelling.',
+    category: 'Tech',
+    tools: ['web_search'],
+    telegram_buttons: [
+      { text: '✍️ Escribir Hilo', callback_data: 'copy_hilo' },
+      { text: '📝 Resumir Ideas', callback_data: 'copy_resumen' },
+    ],
+  },
+  {
+    name: 'Analista de Mercados & Cripto',
+    prompt:
+      'Eres un analista financiero especializado en criptomonedas y tecnología blockchain. Proporcionas análisis de mercado, explicas conceptos complejos y realizas seguimiento de precios y tendencias tecnológicas.',
+    description: 'Seguimiento de precios, análisis blockchain y tendencias.',
+    category: 'Tech',
+    tools: ['web_search', 'read_url'],
+    telegram_buttons: [
+      { text: '📊 Ver Bitcoin', callback_data: 'crypto_btc' },
+      { text: '📰 Noticias Cripto', callback_data: 'crypto_news' },
+    ],
+  },
+  {
     name: 'Tutor de Aprendizaje',
     prompt:
       'Eres un tutor experto en educación tecnológica. Tu objetivo es ayudar al usuario a dominar nuevas herramientas o librerías en tiempo récord mediante explicaciones claras y ejercicios prácticos.',
@@ -88,6 +124,18 @@ export const TEMPLATES: Template[] = [
     telegram_buttons: [
       { text: '🚀 Iniciar Curso', callback_data: 'tutor_start' },
       { text: '📝 Ver Ejercicios', callback_data: 'tutor_test' },
+    ],
+  },
+  {
+    name: 'Community Manager',
+    prompt:
+      'Eres un experto en gestión de comunidades digitales y branding. Ayudas a planificar calendarios de contenido, redactar respuestas interactivas y analizar la presencia online de una marca o persona.',
+    description: 'Gestión de redes, planificación de posts y branding.',
+    category: 'Tech',
+    tools: ['web_search', 'capture_pc_screenshot'],
+    telegram_buttons: [
+      { text: '📱 Plan de Post', callback_data: 'cm_plan' },
+      { text: '📈 Analizar Perfil', callback_data: 'cm_audit' },
     ],
   },
 

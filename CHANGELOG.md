@@ -13,6 +13,7 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 - **Mantenimiento**: Implementación del primer sistema de **Workflows** para estandarizar el debugging de la UI.
 - **Mantenimiento**: Limpieza de la carpeta `.agents/rules` tras la unificación de estándares.
 - **UI: Modal de Gestión de Herramientas y Logs e Informes renovado:**
+- **Nuevas Plantillas de Agentes**: Se han añadido 4 perfiles expertos a la librería (Redactor Creativo, Analista Cripto, Community Manager y Personal Trainer & Nutrición).
   - Implementación de una barra de herramientas superior (toolbar) con buscador integrado en tiempo real para filtrar contenido en ambos modales (`ToolManager.tsx` y `LogsModal.tsx`).
   - Agregado sistema visual de KPIs (métricas clave) en la parte superior para resúmenes rápidos (Total de Herramientas, Activas, Dinámicas, Errores Totales, etc).
   - Herramientas: Incorporación de filtros dinámicos mediante selectores para ordenar por "Tipo" (Sistema/Dinámicas) y "Estado" (Activas/Inactivas).
