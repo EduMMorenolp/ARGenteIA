@@ -13,11 +13,19 @@ export interface Fact {
  */
 export async function saveFact(userId: string, fact: string): Promise<void> {
   const { generateEmbedding } = await import('../embeddings/provider.ts');
-  const embedding = await generateEmbedding(fact);
-
-  const db = getDb();
-  const stmt = db.prepare('INSERT INTO user_facts (userId, fact, embedding) VALUES (?, ?, ?)');
-  stmt.run(userId, fact, JSON.stringify(embedding));
+  const { logger } = await import('../utils/logger.ts');
+  
+  try {
+    const embedding = await generateEmbedding(fact);
+    const db = getDb();
+    const stmt = db.prepare('INSERT INTO user_facts (userId, fact, embedding) VALUES (?, ?, ?)');
+    stmt.run(userId, fact, JSON.stringify(embedding));
+    
+    logger.info(`✅ Hecho memorizado para ${userId}: "${fact}"`, { category: 'system' });
+  } catch (err) {
+    logger.error(`❌ Error al memorizar hecho para ${userId}:`, err);
+    throw err;
+  }
 }
 
 /**

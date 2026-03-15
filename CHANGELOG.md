@@ -2,6 +2,13 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [Unreleased]
+
+### Corregido
+- **Memoria Proactiva**: El Orquestador ahora detecta información personal relevante y usa `memorize_fact` automáticamente para construir el Mapa Mental. [15-3-26]
+- **Robustez de Embeddings**: Añadidos timeouts y manejo de errores en la generación de vectores para evitar bloqueos del sistema cuando Ollama o APIs externas no responden. [15-3-26]
+- **Mapa Mental**: Corregido flujo de datos desde `user_facts` hacia la visualización del grafo. [15-3-26]
+
 ## [0.91.0] - 15-3-26
 
 ### Corregido

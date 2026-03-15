@@ -18,6 +18,9 @@ export function cosineSimilarity(vecA: number[], vecB: number[]): number {
 export async function generateEmbedding(text: string): Promise<number[]> {
   // First try Ollama locally (cheap, fast, unlimited)
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
     const res = await fetch('http://localhost:11434/api/embeddings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -25,7 +28,10 @@ export async function generateEmbedding(text: string): Promise<number[]> {
         model: 'nomic-embed-text', // Or 'mxbai-embed-large'
         prompt: text,
       }),
+      signal: controller.signal,
     });
+    
+    clearTimeout(timeoutId);
 
     if (res.ok) {
       const body = (await res.json()) as { embedding: number[] };
@@ -39,10 +45,10 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 
   // Fallback to OpenAI API (via OpenRouter or direct)
   const config = getConfig();
+  // ... rest of logic for API key ...
   let apiKey = '';
   let baseUrl = 'https://api.openai.com/v1';
 
-  // Try to find a model with an API key
   for (const modelKey of Object.keys(config.models)) {
     if (config.models[modelKey].apiKey) {
       apiKey = config.models[modelKey].apiKey as string;
@@ -57,6 +63,9 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   }
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout for API
+
     const res = await fetch(`${baseUrl.replace(/\/$/, '')}/embeddings`, {
       method: 'POST',
       headers: {
@@ -67,7 +76,10 @@ export async function generateEmbedding(text: string): Promise<number[]> {
         input: text,
         model: 'text-embedding-3-small', // standard fallback
       }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (res.ok) {
       const body = (await res.json()) as any;

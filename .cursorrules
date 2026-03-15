@@ -14,10 +14,6 @@ Cualquier cambio que se realice en el código DEBE ser documentado en el archivo
 3.  **Secciones**: Clasifica los cambios en: `Añadido`, `Mejorado`, `Corregido`, `Cambiado`, `Eliminado`.
 4.  **Idioma**: Español.
 5.  **Fecha**: Cada ítem del changelog debe terminar con la fecha del cambio entre corchetes, formato `[D-M-YY]` (ej: `... única. [15-3-26]`).
-6.  **Incremento de Versión**: Se debe subir la versión siguiendo el estándar **SemVer** cuando se cierre un ciclo de trabajo:
-    - **PATCH** (0.91.XX): Para correcciones de errores (`Corregido`) o tareas de mantenimiento menores.
-    - **MINOR** (0.9X.0): Para nuevas funcionalidades (`Añadido`) o mejoras significativas (`Mejorado`).
-    - **MAJOR** (XX.0.0): Para cambios incompatibles, rediseños estructurales o hitos masivos.
 ⚠️ **IMPORTANTE**: No des por terminada una tarea hasta que el `CHANGELOG.md` refleje fielmente los cambios.
 
 ## 🏗️ Contexto y Estructura del Proyecto

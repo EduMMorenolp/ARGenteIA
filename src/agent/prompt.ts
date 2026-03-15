@@ -51,9 +51,11 @@ export async function buildSystemPrompt(skills: string[]): Promise<string> {
   const config = getConfig();
   const base = config.agent.systemPrompt;
   const sysCtx = buildSystemContext();
+  const memoryInstr = loadPrompt('memory');
 
   const parts: string[] = [base];
   if (sysCtx) parts.push(sysCtx);
+  if (memoryInstr) parts.push(memoryInstr);
   if (skills.length > 0) parts.push(`# Skills adicionales\n\n${skills.join('\n\n---\n\n')}`);
 
   return parts.join('\n\n');
