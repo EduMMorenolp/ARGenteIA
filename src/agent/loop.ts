@@ -279,6 +279,18 @@ async function runOpenAI(
         systemPrompt += `\n\n` + loadPrompt('onboarding');
       }
 
+      // Add context about origin
+      if (opts.origin === 'telegram') {
+        systemPrompt += `\n\n# CONTEXTO DE CANAL (TELEGRAM):`;
+        systemPrompt += `\n- El usuario te contacta por Telegram.`;
+        if (opts.telegramChatId) {
+          systemPrompt += `\n- Su ID de Telegram es: ${opts.telegramChatId}.`;
+        }
+        if (userProfile && !userProfile.telegram_user) {
+          systemPrompt += `\n- AVISO: Este usuario aún no tiene vinculado su nombre de usuario de Telegram en su perfil. Sugiérele usar la herramienta update_profile si desea vincular su cuenta manual con esta de Telegram.`;
+        }
+      }
+
       // 2. Base Rules & Skills (without duplication)
       const basePrompt = generalOverride?.system_prompt || config.agent.systemPrompt;
       if (basePrompt && basePrompt.length > 0) {

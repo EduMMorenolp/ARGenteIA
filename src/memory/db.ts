@@ -43,6 +43,7 @@ export function getDb(): Database.Database {
       name TEXT,
       timezone TEXT DEFAULT 'America/Argentina/Buenos_Aires',
       telegram_user TEXT,
+      telegram_id INTEGER,
       telegram_token TEXT,
       login_pin TEXT DEFAULT '0000',
       preferences TEXT,

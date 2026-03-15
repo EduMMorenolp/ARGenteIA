@@ -5,6 +5,7 @@ export interface UserProfile {
   name: string | null;
   timezone: string;
   telegram_user: string | null;
+  telegram_id: number | null;
   telegram_token: string | null;
   login_pin: string;
   preferences: string | null;
@@ -39,13 +40,14 @@ export function upsertUser(
     stmt.run(...values, userId);
   } else {
     const stmt = db.prepare(
-      'INSERT INTO users (userId, name, timezone, telegram_user, telegram_token, login_pin, preferences) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO users (userId, name, timezone, telegram_user, telegram_id, telegram_token, login_pin, preferences) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
     );
     stmt.run(
       userId,
       data.name || null,
       data.timezone || 'America/Argentina/Buenos_Aires',
       data.telegram_user || null,
+      (data as any).telegram_id || null,
       data.telegram_token || null,
       data.login_pin || '0000',
       data.preferences || null,

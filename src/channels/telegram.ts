@@ -76,6 +76,10 @@ export async function startTelegram(): Promise<void> {
     const cleanUsername = username.replace(/^@/, '').toLowerCase();
 
     const dbUser = allUsers.find((u) => {
+      // 1. Intentar por ID (más fiable)
+      if (u.telegram_id === chatId) return true;
+      
+      // 2. Intentar por Username (fallback)
       const dbTgUser = (u.telegram_user || '').replace(/^@/, '').toLowerCase();
       return dbTgUser === cleanUsername && cleanUsername !== '';
     });
