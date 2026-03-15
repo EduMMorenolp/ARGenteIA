@@ -2,7 +2,7 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
-## [Unreleased]
+## [0.91.0] - 15-3-26
 
 ### Corregido
 - **Persistencia de Mensajes**: Solucionado error crítico en `runExpert` que impedía el guardado de respuestas del asistente en la base de datos debido a un retorno temprano en el bucle de herramientas. [15-3-26]
@@ -19,7 +19,7 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 - **Prompt de Sistema**: Inyección de metadatos de canal (ID de Telegram y estado de vinculación) en el prompt para que el asistente pueda asistir activamente en la configuración del perfil del usuario. [15-3-26]
 - **Herramienta `update_profile`**: Mejorada para soportar la actualización de datos de Telegram y capturar automáticamente el ID de canal durante el uso desde el bot. [15-3-26]
 - **Mantenimiento**: Migración completa de ESLint/Prettier a **Biome** para optimización de linting y formateo.
-- **Mantenimiento**: Actualización integral de la documentación a la versión **v0.9.0** (README, Technical, Architecture, File Guide) reflejando todos los cambios de infraestructura.
+- **Mantenimiento**: Actualización integral de la documentación a la versión **v0.91.0** (README, Technical, Architecture, File Guide) reflejando todos los cambios de infraestructura.
 - **Mantenimiento**: Sistema de configuración mejorado: el archivo `config.json` ahora es opcional. El sistema arranca con valores por defecto si no existe.
 - **Mantenimiento**: Actualización de `config.example.opcional.json` con todos los parámetros disponibles (Tools, Telegram, Memory, etc.).
 - **Mantenimiento**: Consolidación de todas las reglas de proyecto (Overview, TypeScript, UI) en un único archivo `.cursorrules` en la raíz para garantizar su aplicación global.
