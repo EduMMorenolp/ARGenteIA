@@ -42,5 +42,11 @@
     "dbPath": "./assistant.db",
     "maxContextMessages": 50,
     "compactAt": 100
+  },
+  "messengerService": {
+    "enabled": false,
+    "baseUrl": "http://localhost:3011",
+    "apiKey": "tu_api_key_de_messenger_service",
+    "timeoutMs": 2000
   }
 }

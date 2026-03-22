@@ -324,6 +324,16 @@ export interface WsDashboardStatsMessage {
     totalRequests: number;
     dailyActivity: Array<{ date: string; messages: number; tokens: number }>;
     expertRanking: Array<{ expert: string; count: number; tokens: number; avgLatency: number }>;
+    messengerService?: {
+      status: 'online' | 'offline' | 'disabled';
+      latencyMs: number;
+      sent: number;
+      failed: number;
+      queued: number;
+      activeProjects: number;
+      lastCheck: string;
+      lastError?: string;
+    };
   };
 }
 

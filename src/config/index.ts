@@ -56,6 +56,13 @@ const MemoryConfigSchema = z.object({
   compactAt: z.number().int().positive().default(60),
 });
 
+const MessengerServiceConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  baseUrl: z.string().url().default('http://localhost:3011'),
+  apiKey: z.string().optional(),
+  timeoutMs: z.number().int().positive().default(2000),
+});
+
 const ConfigSchema = z.object({
   agent: AgentConfigSchema,
   models: z.record(z.string(), ModelConfigSchema).optional().default({}),
@@ -76,6 +83,11 @@ const ConfigSchema = z.object({
     dbPath: './assistant.db',
     maxContextMessages: 40,
     compactAt: 60,
+  })),
+  messengerService: MessengerServiceConfigSchema.default(() => ({
+    enabled: false,
+    baseUrl: 'http://localhost:3011',
+    timeoutMs: 2000,
   })),
 });
 

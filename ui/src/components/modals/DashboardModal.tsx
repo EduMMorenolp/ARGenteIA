@@ -1,4 +1,4 @@
-import { BarChart3, Clock, Cpu, MessageSquare, TrendingUp, X, Zap } from 'lucide-react';
+import { BarChart3, Clock, Cpu, MessageSquare, Radio, TrendingUp, X, Zap } from 'lucide-react';
 import { useEffect } from 'react';
 import type { DashboardStats } from '../../types';
 
@@ -114,6 +114,32 @@ export function DashboardModal({ stats, onClose, onRequestStats }: DashboardModa
                       ? formatNumber(Math.round(stats.totalTokens / stats.totalRequests))
                       : 0}{' '}
                     tokens/petición
+                  </span>
+                </div>
+              </div>
+
+              <div className="kpi-card messenger-card">
+                <div className="kpi-icon messenger">
+                  <Radio size={20} />
+                </div>
+                <div className="kpi-data">
+                  <span className="kpi-value messenger-status">
+                    {stats.messengerService?.status === 'online'
+                      ? 'Online'
+                      : stats.messengerService?.status === 'disabled'
+                        ? 'Off'
+                        : 'Offline'}
+                  </span>
+                  <span className="kpi-label">Messenger-Service</span>
+                </div>
+                <div className="kpi-sub">
+                  <span>
+                    Sent: {stats.messengerService?.sent || 0} · Failed:{' '}
+                    {stats.messengerService?.failed || 0}
+                  </span>
+                  <span>
+                    Latencia: {formatLatency(stats.messengerService?.latencyMs || 0)} · Proyectos:{' '}
+                    {stats.messengerService?.activeProjects || 0}
                   </span>
                 </div>
               </div>

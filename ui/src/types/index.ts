@@ -138,6 +138,16 @@ export interface DashboardStats {
     tokens: number;
     avgLatency: number;
   }>;
+  messengerService?: {
+    status: 'online' | 'offline' | 'disabled';
+    latencyMs: number;
+    sent: number;
+    failed: number;
+    queued: number;
+    activeProjects: number;
+    lastCheck: string;
+    lastError?: string;
+  };
 }
 
 export interface ModelCapabilities {

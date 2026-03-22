@@ -31,6 +31,13 @@ Cualquier cambio que se realice en el código DEBE ser documentado en el archivo
 - **Base de Datos**: Usar sentencias preparadas. NO interpolar variables en SQL.
 - **Configuración**: Usar `getConfig()` de `src/config/index.ts`. NO modificar `config.json` directamente ni hardcodear credenciales.
 
+## 🔗 Reglas de Microservicios (Messenger-Service)
+- **Contrato Estricto**: Toda comunicación entre servicios debe validarse con Zod antes de procesarse.
+- **Autenticación Interna**: Toda llamada HTTP a microservicios debe incluir API Key y timeout explícito.
+- **Sin Acople de Datos**: No leer/escribir bases de datos de otro proyecto de forma directa; solo mediante API.
+- **Idempotencia y Reintentos**: Operaciones de reenvío deben registrar intentos y evitar duplicados silenciosos.
+- **Observabilidad**: Registrar estado de conexión, latencia y último error de cada integración externa crítica.
+
 ## 🎨 Estándares de UI Frontend (`/ui`)
 - **Framework**: Vite + React + TypeScript.
 - **Estilos**: **CSS Nativo obligatorio**. NO usar Tailwind a menos que se pida expresamente.

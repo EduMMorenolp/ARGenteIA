@@ -1,3 +1,4 @@
+import { getConfig } from '../config/index.ts';
 import { getDb } from './db.ts';
 
 export interface StatEntry {
@@ -26,6 +27,81 @@ export interface DashboardStats {
   totalRequests: number;
   dailyActivity: Array<{ date: string; messages: number; tokens: number }>;
   expertRanking: Array<{ expert: string; count: number; tokens: number; avgLatency: number }>;
+  messengerService?: {
+    status: 'online' | 'offline' | 'disabled';
+    latencyMs: number;
+    sent: number;
+    failed: number;
+    queued: number;
+    activeProjects: number;
+    lastCheck: string;
+    lastError?: string;
+  };
+}
+
+export async function getMessengerSidebarStats(): Promise<
+  NonNullable<DashboardStats['messengerService']>
+> {
+  const config = getConfig();
+  const lastCheck = new Date().toISOString();
+
+  if (!config.messengerService?.enabled) {
+    return {
+      status: 'disabled',
+      latencyMs: 0,
+      sent: 0,
+      failed: 0,
+      queued: 0,
+      activeProjects: 0,
+      lastCheck,
+    };
+  }
+
+  const start = Date.now();
+  try {
+    const response = await fetch(`${config.messengerService.baseUrl}/metrics?window=24h`, {
+      method: 'GET',
+      headers: {
+        'x-api-key': config.messengerService.apiKey || '',
+      },
+      signal: AbortSignal.timeout(config.messengerService.timeoutMs),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`HTTP ${response.status} ${text}`);
+    }
+
+    const metrics = (await response.json()) as {
+      totals?: {
+        sent?: number;
+        failed?: number;
+        queued?: number;
+      };
+      byApp?: Array<{ appId: string }>;
+    };
+
+    return {
+      status: 'online',
+      latencyMs: Date.now() - start,
+      sent: metrics.totals?.sent || 0,
+      failed: metrics.totals?.failed || 0,
+      queued: metrics.totals?.queued || 0,
+      activeProjects: metrics.byApp?.length || 0,
+      lastCheck,
+    };
+  } catch (error: unknown) {
+    return {
+      status: 'offline',
+      latencyMs: Date.now() - start,
+      sent: 0,
+      failed: 0,
+      queued: 0,
+      activeProjects: 0,
+      lastCheck,
+      lastError: error instanceof Error ? error.message : String(error),
+    };
+  }
 }
 
 /**

@@ -4,6 +4,14 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ## [Unreleased]
 
+### Añadido
+- **Dashboard Sidebar**: Nuevo panel de estado para `Messenger-Service` en el modal de métricas, con conectividad, latencia, volumen enviado, fallos y proyectos activos. [22-3-26]
+- **Configuración**: Nueva sección `messengerService` en la validación Zod (`enabled`, `baseUrl`, `apiKey`, `timeoutMs`) y en `config.example.opcional.json`. [22-3-26]
+
+### Cambiado
+- **Gateway Dashboard**: `request_dashboard` ahora compone estadísticas locales + estado remoto de `Messenger-Service` para UI unificada de operación. [22-3-26]
+- **Estándares de Proyecto**: `.cursorrules` ampliado con reglas de comunicación entre microservicios (contrato, auth, desacople, idempotencia y observabilidad). [22-3-26]
+
 ### Corregido
 - **Memoria Proactiva**: El Orquestador ahora detecta información personal relevante y usa `memorize_fact` automáticamente para construir el Mapa Mental. [15-3-26]
 - **Robustez de Embeddings**: Añadidos timeouts y manejo de errores en la generación de vectores para evitar bloqueos del sistema cuando Ollama o APIs externas no responden. [15-3-26]

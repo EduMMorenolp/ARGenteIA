@@ -93,6 +93,21 @@
   color: #a855f7;
 }
 
+.kpi-icon.messenger {
+  background: rgba(56, 189, 248, 0.16);
+  color: #38bdf8;
+}
+
+.kpi-card.messenger-card .kpi-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.messenger-status {
+  font-size: 24px;
+}
+
 .kpi-data {
   display: flex;
   flex-direction: column;

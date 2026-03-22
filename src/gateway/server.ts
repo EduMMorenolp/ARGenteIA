@@ -427,8 +427,15 @@ export function createGateway(): GatewayServer {
           channelChats: listChannelChats(sessionId),
         } as unknown as WsMessage);
       } else if (msg.type === 'request_dashboard') {
-        const { getStats } = await import('../memory/stats-db.ts');
-        const stats = getStats(sessionId);
+        const { getMessengerSidebarStats, getStats } = await import('../memory/stats-db.ts');
+        const [baseStats, messengerService] = await Promise.all([
+          Promise.resolve(getStats(sessionId)),
+          getMessengerSidebarStats(),
+        ]);
+        const stats = {
+          ...baseStats,
+          messengerService,
+        };
         console.log(chalk.cyan(`📊 Dashboard solicitado por ${sessionId}`));
         send(ws, {
           type: 'dashboard_stats',
