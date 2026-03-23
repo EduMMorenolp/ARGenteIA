@@ -7,13 +7,11 @@ import {
   Cpu,
   Database,
   Edit2,
-  FileText,
   Network,
   Plus,
   Server,
   TerminalSquare,
   Trash2,
-  Zap,
 } from 'lucide-react';
 import { useState } from 'react';
 import type { Expert, ModelConfig, ScheduledTask } from '../../types';
@@ -259,29 +257,6 @@ export function Sidebar({
             <div className="nav-section">
               <div
                 className="section-header"
-                onClick={onOpenMemoryGraph}
-                style={{ cursor: 'pointer' }}
-              >
-                <div className="section-title-wrap">
-                  <Network size={14} className="text-muted" />
-                  <span className="section-title">Mapa Mental</span>
-                </div>
-                <button
-                  className="icon-btn-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenMemoryGraph();
-                  }}
-                  title="Visualizar Memoria Semántica"
-                >
-                  <Zap size={12} />
-                </button>
-              </div>
-            </div>
-
-            <div className="nav-section">
-              <div
-                className="section-header"
                 onClick={() => toggleSection('tasks')}
                 style={{ cursor: 'pointer' }}
               >
@@ -362,41 +337,6 @@ export function Sidebar({
               )}
             </div>
 
-            <div className="nav-section">
-              <div className="section-header" onClick={onOpenTools} style={{ cursor: 'pointer' }}>
-                <div className="section-title-wrap">
-                  <TerminalSquare size={14} className="text-muted" />
-                  <span className="section-title">Herramientas</span>
-                </div>
-                <button
-                  className="icon-btn-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenTools();
-                  }}
-                >
-                  <Plus size={14} />
-                </button>
-              </div>
-            </div>
-
-            <div className="nav-section">
-              <div className="section-header" onClick={onOpenLogs} style={{ cursor: 'pointer' }}>
-                <div className="section-title-wrap">
-                  <FileText size={14} className="text-muted" />
-                  <span className="section-title">Logs e Informes</span>
-                </div>
-                <button
-                  className="icon-btn-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenLogs();
-                  }}
-                >
-                  <Plus size={14} />
-                </button>
-              </div>
-            </div>
           </nav>
 
           <div className="sidebar-footer">
