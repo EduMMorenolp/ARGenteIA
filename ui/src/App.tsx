@@ -28,6 +28,7 @@ import { ModelManager } from './components/modals/ModelManager';
 import { ProfileModal } from './components/modals/ProfileModal';
 import { RagModal } from './components/modals/RagModal';
 import { TaskEditor } from './components/modals/TaskEditor';
+import { TelegramConfigModal } from './components/modals/TelegramConfigModal';
 import { ToolManager } from './components/modals/ToolManager';
 import { useAssistant } from './hooks/useAssistant';
 
@@ -40,6 +41,7 @@ export default function App() {
   const [isGraphOpen, setIsGraphOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isChatSidebarOpen, setIsChatSidebarOpen] = useState(true);
+  const [isTelegramConfigOpen, setIsTelegramConfigOpen] = useState(false);
   const [ragOwnerId, setRagOwnerId] = useState<string | null>(null);
   const {
     messages,
@@ -276,6 +278,7 @@ export default function App() {
         currentUser={currentUser}
         onLogout={logout}
         onOpenProfile={() => setIsProfileOpen(true)}
+        onOpenChannelSettings={() => setIsTelegramConfigOpen(true)}
       />
 
       {isCreatorOpen && (
@@ -305,8 +308,29 @@ export default function App() {
         <ProfileModal
           user={currentUser}
           onClose={() => setIsProfileOpen(false)}
-          onSave={updateUser}
+          onSave={(name, timezone, loginPin) => updateUser(name, timezone, loginPin)}
           onDelete={deleteAccount}
+        />
+      )}
+
+      {/* Telegram Config Modal */}
+      {isTelegramConfigOpen && currentUser && (
+        <TelegramConfigModal
+          telegramUser={currentUser.telegram_user || ''}
+          messengerServiceApiKey={currentUser.messenger_api_key || ''}
+          allowedUsers={currentUser.allowed_telegram_users || []}
+          onClose={() => setIsTelegramConfigOpen(false)}
+          onSave={(telegramUser, apiKey, allowedUsers) => {
+            // Guardar configuración de Telegram
+            updateUser(
+              currentUser.name || '',
+              currentUser.timezone,
+              currentUser.login_pin,
+              telegramUser,
+              apiKey,
+              allowedUsers
+            );
+          }}
         />
       )}
 

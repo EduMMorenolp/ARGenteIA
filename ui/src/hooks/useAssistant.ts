@@ -584,9 +584,10 @@ export function useAssistant() {
   const updateUser = (
     name: string,
     timezone: string,
-    telegram_user?: string,
-    telegram_token?: string,
     login_pin?: string,
+    telegram_user?: string,
+    messenger_api_key?: string,
+    allowed_telegram_users?: string[],
   ) => {
     if (!currentUser) return;
     send({
@@ -595,15 +596,17 @@ export function useAssistant() {
       name,
       timezone,
       telegram_user,
-      telegram_token,
+      messenger_api_key,
+      allowed_telegram_users,
       login_pin,
     });
     setCurrentUser({
       ...currentUser,
       name,
       timezone,
-      telegram_user: telegram_user || null,
-      telegram_token: telegram_token || null,
+      telegram_user: telegram_user || currentUser.telegram_user,
+      messenger_api_key: messenger_api_key || currentUser.messenger_api_key,
+      allowed_telegram_users: allowed_telegram_users || currentUser.allowed_telegram_users,
       login_pin: login_pin || currentUser.login_pin,
     });
   };

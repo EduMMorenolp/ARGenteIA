@@ -44,6 +44,8 @@ export interface UserProfile {
   timezone: string;
   telegram_user: string | null;
   telegram_token: string | null;
+  messenger_api_key?: string | null;
+  allowed_telegram_users?: string[];
   login_pin: string;
   created_at: string;
 }

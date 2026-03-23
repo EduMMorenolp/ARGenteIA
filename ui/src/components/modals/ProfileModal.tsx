@@ -1,14 +1,10 @@
 import {
   AlertTriangle,
-  Eye,
-  EyeOff,
   Globe,
   Lock,
-  MessageSquare,
   Trash2,
   User,
   X,
-  Zap,
 } from 'lucide-react';
 import { useState } from 'react';
 import type { UserProfile } from '../../types';
@@ -19,8 +15,6 @@ interface ProfileModalProps {
   onSave: (
     name: string,
     timezone: string,
-    telegramUser: string,
-    telegramToken: string,
     loginPin: string,
   ) => void;
   onDelete: () => void;
@@ -29,16 +23,13 @@ interface ProfileModalProps {
 export function ProfileModal({ user, onClose, onSave, onDelete }: ProfileModalProps) {
   const [name, setName] = useState(user.name || '');
   const [timezone, setTimezone] = useState(user.timezone || 'America/Argentina/Buenos_Aires');
-  const [telegramUser, setTelegramUser] = useState(user.telegram_user || '');
-  const [telegramToken, setTelegramToken] = useState(user.telegram_token || '');
   const [loginPin, setLoginPin] = useState(user.login_pin || '0000');
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
-  const [showTelegramToken, setShowTelegramToken] = useState(false);
 
   const handleSave = () => {
     if (!name.trim()) return;
     if (loginPin.length !== 4) return;
-    onSave(name, timezone, telegramUser, telegramToken, loginPin);
+    onSave(name, timezone, loginPin);
     onClose();
   };
 
@@ -98,44 +89,6 @@ export function ProfileModal({ user, onClose, onSave, onDelete }: ProfileModalPr
                   placeholder="America/Argentina/Buenos_Aires"
                 />
                 <span className="field-hint">Usada para tus tareas programadas.</span>
-              </div>
-
-              <div className="form-group">
-                <label>
-                  <MessageSquare size={14} /> Usuario de Telegram
-                </label>
-                <input
-                  type="text"
-                  value={telegramUser}
-                  onChange={(e) => setTelegramUser(e.target.value)}
-                  placeholder="@tu_usuario"
-                />
-                <span className="field-hint">Vincula tu cuenta con el bot de Telegram.</span>
-              </div>
-
-              <div className="form-group">
-                <label>
-                  <Zap size={14} /> Token del Bot de Telegram (API Key)
-                </label>
-                <div className="input-with-toggle">
-                  <input
-                    type={showTelegramToken ? 'text' : 'password'}
-                    value={telegramToken}
-                    onChange={(e) => setTelegramToken(e.target.value)}
-                    placeholder="123456789:ABCDEF..."
-                  />
-                  <button
-                    type="button"
-                    className="toggle-visibility"
-                    onClick={() => setShowTelegramToken(!showTelegramToken)}
-                    title={showTelegramToken ? 'Ocultar' : 'Mostrar'}
-                  >
-                    {showTelegramToken ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                <span className="field-hint">
-                  Si lo cambias, el bot se reiniciará con el nuevo token.
-                </span>
               </div>
 
               <div className="form-group">

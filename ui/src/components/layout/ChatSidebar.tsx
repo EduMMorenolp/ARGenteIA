@@ -7,6 +7,7 @@ import {
   MoreVertical,
   Pin,
   Plus,
+  Settings,
   Trash2,
   User,
 } from 'lucide-react';
@@ -27,6 +28,7 @@ interface ChatSidebarProps {
   currentUser: UserProfile;
   onLogout: () => void;
   onOpenProfile: () => void;
+  onOpenChannelSettings?: (channelId: string) => void;
 }
 
 export function ChatSidebar({
@@ -43,6 +45,7 @@ export function ChatSidebar({
   currentUser,
   onLogout,
   onOpenProfile,
+  onOpenChannelSettings,
 }: ChatSidebarProps) {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const pinnedChats = chats.filter((c) => c.pinned);
@@ -132,6 +135,7 @@ export function ChatSidebar({
                       onRename={() => {}}
                       onTogglePin={() => {}}
                       isFixed
+                      onOpenSettings={() => onOpenChannelSettings?.(chat.id)}
                     />
                   ))}
                 </div>
@@ -198,6 +202,7 @@ interface ChatItemProps {
   onRename: (title: string) => void;
   onTogglePin: () => void;
   isFixed?: boolean;
+  onOpenSettings?: () => void;
 }
 
 function ChatItem({
@@ -208,6 +213,7 @@ function ChatItem({
   onRename,
   onTogglePin,
   isFixed,
+  onOpenSettings,
 }: ChatItemProps) {
   const handleRename = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -240,7 +246,16 @@ function ChatItem({
           {chat.lastMessage && <span className="chat-preview">{chat.lastMessage}</span>}
         </div>
       </button>
-      {!isFixed && (
+      {isFixed ? (
+        <div className="chat-actions">
+          <button onClick={(e) => {
+            e.stopPropagation();
+            onOpenSettings?.();
+          }} title="Configurar">
+            <Settings size={12} />
+          </button>
+        </div>
+      ) : (
         <div className="chat-actions">
           <button onClick={handleTogglePin} title={chat.pinned ? 'Quitar pin' : 'Fijar chat'}>
             <Pin size={12} fill={chat.pinned ? 'currentColor' : 'none'} />

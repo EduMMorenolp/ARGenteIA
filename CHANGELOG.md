@@ -5,10 +5,15 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 ## [Unreleased]
 
 ### Añadido
+- **Modal de Configuración de Telegram**: Nuevo modal dedicado para gestionar credenciales del Messenger Service y usuarios permitidos en el canal de Telegram desde el sidebar de chats. [23-3-26]
+- **Botón de Configuración en Canales**: Agregado botón de engranaje (⚙️) en los canales fijos (Telegram) del sidebar para acceso rápido a la configuración. [23-3-26]
+- **Campos de Usuario Mejorados**: Nuevos campos en `UserProfile` para almacenar `messenger_api_key` y `allowed_telegram_users`. [23-3-26]
 - **Dashboard Sidebar**: Nuevo panel de estado para `Messenger-Service` en el modal de métricas, con conectividad, latencia, volumen enviado, fallos y proyectos activos. [22-3-26]
 - **Configuración**: Nueva sección `messengerService` en la validación Zod (`enabled`, `baseUrl`, `apiKey`, `timeoutMs`) y en `config.example.opcional.json`. [22-3-26]
 
 ### Cambiado
+- **Arquitectura de Configuración de Telegram**: Separada la configuración de Telegram del modal de Perfil en un modal dedicado para mejor organización UI. [23-3-26]
+- **Firma de updateUser**: Actualizada para soportar nuevos parámetros de configuración de Messenger Service (apiKey, allowed_users). [23-3-26]
 - **Gateway Dashboard**: `request_dashboard` ahora compone estadísticas locales + estado remoto de `Messenger-Service` para UI unificada de operación. [22-3-26]
 - **Estándares de Proyecto**: `.cursorrules` ampliado con reglas de comunicación entre microservicios (contrato, auth, desacople, idempotencia y observabilidad). [22-3-26]
 
